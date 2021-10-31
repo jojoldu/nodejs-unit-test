@@ -27,8 +27,6 @@ describe('Order1', () => {
         expect(cancelOrder.amount).toBe(-1000);
         expect(cancelOrder.description).toBe('배민주문');
     });
-
-
 });
 ```
 
