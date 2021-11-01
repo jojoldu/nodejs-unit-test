@@ -1,5 +1,6 @@
-import JSJoda, { LocalDateTime } from 'js-joda';
+import { LocalDateTime } from 'js-joda';
 import { OrderStatus } from './OrderStatus';
+import { Pay } from './Pay';
 
 export class Order {
 
@@ -9,6 +10,7 @@ export class Order {
     private _orderDateTime: LocalDateTime;
     private _description: string;
     private _parentId: number;
+    private _pays: Pay[];
 
     constructor() {
         this._id = Order.generateId();
@@ -22,6 +24,15 @@ export class Order {
     static create (amount: number, orderTime: LocalDateTime, description: string): Order {
         const newOrder = new Order();
         newOrder._amount = amount;
+        newOrder._status = OrderStatus.APPROVAL;
+        newOrder._orderDateTime = orderTime;
+        newOrder._description = description;
+        return newOrder;
+    }
+
+    static createWithPays (pays: Pay[], orderTime: LocalDateTime, description: string): Order {
+        const newOrder = new Order();
+        newOrder._amount = pays?.reduce((sum, pay) => sum + pay.amount, 0);
         newOrder._status = OrderStatus.APPROVAL;
         newOrder._orderDateTime = orderTime;
         newOrder._description = description;
@@ -60,5 +71,9 @@ export class Order {
 
     get parentId(): number {
         return this._parentId;
+    }
+
+    get pays(): Pay[] {
+        return this._pays;
     }
 }
