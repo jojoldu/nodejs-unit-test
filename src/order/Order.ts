@@ -49,6 +49,12 @@ export class Order {
         return cancelOrder;
     }
 
+    update(other: Order): void {
+        this._orderDateTime = other._orderDateTime;
+        this._description = other._description;
+        this._amount = other._amount;
+    }
+
     get id(): number {
         return this._id;
     }
