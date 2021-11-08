@@ -7,8 +7,9 @@ export class OrderRepository {
         OrderRepository.database.set(1, new Order());
     }
 
-    save (order: Order): void {
+    save (order: Order): Order {
         OrderRepository.database.set(order.id, order);
+        return order;
     }
 
     findById(id: number): Order | undefined {
