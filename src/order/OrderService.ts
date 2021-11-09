@@ -16,7 +16,23 @@ export class OrderService {
         }
     }
 
-    cancelOrder(orderId: number, cancelTime: LocalDateTime): Order {
+    cancelOrder1(orderId: number, cancelTime: LocalDateTime): Order {
+        const order: Order | undefined = this.orderRepository.findById(orderId);
+        if (!order) {
+            this.logAndThrow(orderId);
+        }
+        const cancelOrder = order.cancel(cancelTime);
+
+        return this.orderRepository.save(cancelOrder);
+    }
+
+    private logAndThrow(orderId: number) {
+        const errorMessage = `orderId=${orderId}에 해당하는 주문이 존재하지 않습니다.`;
+        console.log(errorMessage);
+        throw new NotFoundException(errorMessage);
+    }
+
+    cancelOrder2(orderId: number, cancelTime: LocalDateTime): Order {
         const order: Order | undefined = this.orderRepository.findById(orderId);
         this.validateOrder(order, orderId);
 

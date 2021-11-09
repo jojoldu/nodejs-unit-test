@@ -11,6 +11,10 @@ export class OrderCreateReq {
         this._description = description;
     }
 
+    static createWithEmptyDesc(amount: number, status: OrderStatus): OrderCreateReq {
+        return new OrderCreateReq(amount, status, '');
+    }
+
     validate() {
         this.validateApproval();
         this.validateCancel();
