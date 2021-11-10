@@ -25,12 +25,4 @@ describe('OrderAmountSum', () => {
         expect(sut.sumAmount).toBe(700);
     });
 
-    it('전체 합계 금액을 구한다 2', () => {
-        const sut = new OrderAmountSum([
-            1000, 300, -100, -500
-        ]);
-
-        expect(sut.sumAmount2).toBe(700);
-    });
-
 });
