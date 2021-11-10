@@ -13,6 +13,60 @@
 
 내부 구현은 언제든지 바뀔 수 있기 때문에 테스트 코드는 내부 구현 보다 최종 결과를 검증해야한다  
 
+## 상세 구현부를 모두 검증대상으로
+
+```javascript
+get sumAmount(): number {
+    return this.plusSum + this.minusSum;
+}
+
+private addPlusAmounts(amounts: number[]): void {
+    this.plusSum = amounts
+        .filter(amount => amount > 0)
+        .reduce((before, current) => before + current);
+}
+
+private addMinusAmounts(amounts: number[]): void {
+    this.minusSum = amounts
+        .filter(amount => amount < 0)
+        .reduce((before, current) => before + current);
+}
+```
+
+```javascript
+it('plusSum에는 양수들의 총합이 등록된다', () => {
+    const sut = new OrderAmountSum([
+        1000, 300, -100, -500
+    ]);
+
+    expect(sut.plusSum).toBe(1300);
+});
+
+it('minusSum에는 음수들의 총합이 등록된다', () => {
+    const sut = new OrderAmountSum([
+        1000, 300, -100, -500
+    ]);
+
+    expect(sut.minusSum).toBe(-600);
+});
+
+it('전체 합계 금액을 구한다', () => {
+    const sut = new OrderAmountSum([
+        1000, 300, -100, -500
+    ]);
+
+    expect(sut.sumAmount).toBe(700);
+});
+
+```
+
+```javascript
+
+get sumAmount(): number {
+    return this.amounts
+        .reduce((before, current) => before + current);
+}
+```
 ## Mock 
 대표적인 예로 모의 객체 (Mock 객체)를 호출하는지 여부를 확인하는 것이다.  
 모의 객체 호출 여부를 확인하는 것은 구현을 검증하는 것이지만,  
