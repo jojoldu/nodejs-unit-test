@@ -9,5 +9,4 @@ export class OrderAmountSum2 {
         return this.amounts
             .reduce((before, current) => before + current);
     }
-
 }

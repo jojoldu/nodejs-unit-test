@@ -12,8 +12,22 @@ export class OrderRepository {
         return order;
     }
 
+    update (order: Order): Order {
+        const savedOrder = this.findById(order.id);
+        savedOrder.update(order);
+        OrderRepository.database.set(order.id, savedOrder);
+        return savedOrder;
+    }
+
+    saveOrUpdate(order: Order) {
+        if(order.id) {
+            this.update(order);
+        } else {
+            this.save(order);
+        }
+    }
+
     findById(id: number): Order | undefined {
         return OrderRepository.database.get(id);
     }
-
 }

@@ -10,10 +10,14 @@ export class OrderService {
     saveOrUpdate(order: Order): void {
         const savedOrder = this.orderRepository.findById(order.id);
         if (savedOrder) {
-            savedOrder.update(order);
+            this.orderRepository.update(order);
         } else {
             this.orderRepository.save(order);
         }
+    }
+
+    saveOrUpdate2(order: Order): void {
+        this.orderRepository.saveOrUpdate(order);
     }
 
     cancelOrder1(orderId: number, cancelTime: LocalDateTime): Order {
@@ -26,7 +30,7 @@ export class OrderService {
         return this.orderRepository.save(cancelOrder);
     }
 
-    private logAndThrow(orderId: number) {
+    logAndThrow(orderId: number) {
         const errorMessage = `orderId=${orderId}에 해당하는 주문이 존재하지 않습니다.`;
         console.log(errorMessage);
         throw new NotFoundException(errorMessage);
@@ -41,7 +45,7 @@ export class OrderService {
         return this.orderRepository.save(cancelOrder);
     }
 
-    private validateOrder(order: Order, orderId: number) {
+    validateOrder(order: Order, orderId: number) {
         if (!order) {
             const errorMessage = `orderId=${orderId}에 해당하는 주문이 존재하지 않습니다.`;
             throw new NotFoundException(errorMessage);

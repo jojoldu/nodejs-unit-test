@@ -55,6 +55,23 @@ export class Order {
         this._amount = other._amount;
     }
 
+    updateAmount(amount: number): void {
+        this._amount = amount;
+    }
+
+    copy(): Order {
+        const order = new Order();
+        order._id = this._id;
+        order._orderDateTime = this._orderDateTime;
+        order._amount= this._amount;
+        order._status= this._status;
+        order._description= this._description;
+        order._parentId= this._parentId;
+        order._pays= this._pays;
+
+        return order;
+    }
+
     get id(): number {
         return this._id;
     }
