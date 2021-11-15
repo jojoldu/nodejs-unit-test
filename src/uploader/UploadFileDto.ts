@@ -1,5 +1,6 @@
 import { Readable } from 'stream';
 import { LocalDate } from 'js-joda';
+import { DateTimeUtil } from '../util/DateTimeUtil';
 
 export class UploadFileDto {
     private readonly _uploaderName: string;
@@ -50,7 +51,7 @@ export class UploadFileDto {
             bucket,
             type,
             fileName,
-            `${uuidv4()}.${fileName.split('.').pop() || ''}`,
+            `node-test.${fileName.split('.').pop() || ''}`,
             data,
             domain,
             date,
