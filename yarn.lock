@@ -4517,6 +4517,11 @@ through@^2.3.6:
   resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
   integrity sha1-DdTJ/6q8NXlgsbckEV1+Doai4fU=
 
+time-unit@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/time-unit/-/time-unit-1.1.0.tgz#c6609c3a899e4d834143c9e1392eea5ab4a95b6b"
+  integrity sha1-xmCcOomeTYNBQ8nhOS7qWrSpW2s=
+
 tmp@^0.0.33:
   version "0.0.33"
   resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.0.33.tgz#6d34335889768d21b2bcda0aa277ced3b1bfadf9"
@@ -4571,6 +4576,11 @@ tree-kill@1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/tree-kill/-/tree-kill-1.2.2.tgz#4ca09a9092c88b73a7cdc5e8a01b507b0790a0cc"
   integrity sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==
+
+ts-jenum@^2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/ts-jenum/-/ts-jenum-2.2.2.tgz#9279b13704cdff7df8dcb1d106e4696e518b5285"
+  integrity sha512-vykqLRRmbgyKOE/XgLPd9Vbm03LHF3IYqNZAVGDY0GiHazerKSdfXi41KYCP6vV3wHpm2sgLEnXwXHFGQtDhHw==
 
 ts-jest@^27.0.3:
   version "27.0.7"
