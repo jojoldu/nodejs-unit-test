@@ -62,4 +62,30 @@ export class DateTimeUtil {
 
     return LocalDateTime.parse(strDate, DateTimeUtil.DATE_TIME_FORMATTER);
   }
+
+  static testCatch() {
+    try {
+      return DateTimeUtil.testPromise()
+          .then(() => console.log('testCatch 성공'));
+    } catch (e) {
+      console.log('테스트 실패\n', e);
+    }
+  }
+
+  static async testCatch2() {
+    try {
+      await DateTimeUtil.testPromise()
+      console.log('testCatch 성공');
+    } catch (e) {
+      console.log('테스트 실패\n', e);
+    }
+  }
+
+  static testPromise(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        reject(new Error('testPromise 에러납니다'));
+      }, 100);
+    })
+  }
 }
