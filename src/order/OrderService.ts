@@ -7,6 +7,10 @@ export class OrderService {
     constructor(private readonly orderRepository: OrderRepository) {
     }
 
+    accept(order: Order) {
+
+    }
+
     saveOrUpdate(order: Order): void {
         const savedOrder = this.orderRepository.findById(order.id);
         if (savedOrder) {
