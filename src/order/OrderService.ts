@@ -7,8 +7,10 @@ export class OrderService {
     constructor(private readonly orderRepository: OrderRepository) {
     }
 
-    accept(order: Order) {
-
+    accept(orderId: number, now = LocalDateTime.now()): void {
+        const order = this.orderRepository.findById(orderId);
+        order.accept(now);
+        this.orderRepository.save(order);
     }
 
     saveOrUpdate(order: Order): void {

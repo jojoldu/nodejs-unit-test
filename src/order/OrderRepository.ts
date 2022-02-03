@@ -7,6 +7,10 @@ export class OrderRepository {
         OrderRepository.database.set(1, new Order());
     }
 
+    insert (order: Order): void {
+        OrderRepository.database.set(order.id, order);
+    }
+
     save (order: Order): Order {
         OrderRepository.database.set(order.id, order);
         return order;

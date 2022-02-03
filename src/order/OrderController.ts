@@ -6,7 +6,7 @@ export class OrderController {
     constructor(private readonly orderService: OrderService) {}
 
     @Get('/accept')
-    accept(): string {
-        return this.orderService.accept();
+    accept(orderId: number): void {
+        return this.orderService.accept(orderId);
     }
 }

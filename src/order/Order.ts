@@ -8,6 +8,7 @@ export class Order {
     private _amount: number;
     private _status: OrderStatus;
     private _orderDateTime: LocalDateTime;
+    private _acceptDateTime: LocalDateTime;
     private _description: string;
     private _parentId: number;
     private _pays: Pay[];
@@ -33,7 +34,7 @@ export class Order {
     static createWithPays (pays: Pay[], orderTime: LocalDateTime, description: string): Order {
         const newOrder = new Order();
         newOrder._amount = pays?.reduce((sum, pay) => sum + pay.amount, 0);
-        newOrder._status = OrderStatus.APPROVAL;
+        newOrder._status = OrderStatus.REQUEST;
         newOrder._orderDateTime = orderTime;
         newOrder._description = description;
         return newOrder;
@@ -72,6 +73,11 @@ export class Order {
         return order;
     }
 
+    accept(now: LocalDateTime) {
+        this._status = OrderStatus.APPROVAL;
+        this._acceptDateTime = now;
+    }
+
     get id(): number {
         return this._id;
     }
@@ -99,4 +105,5 @@ export class Order {
     get pays(): Pay[] {
         return this._pays;
     }
+
 }
