@@ -25,7 +25,7 @@ export class Order {
     static create (amount: number, orderTime: LocalDateTime, description: string): Order {
         const newOrder = new Order();
         newOrder._amount = amount;
-        newOrder._status = OrderStatus.APPROVAL;
+        newOrder._status = OrderStatus.REQUEST;
         newOrder._orderDateTime = orderTime;
         newOrder._description = description;
         return newOrder;

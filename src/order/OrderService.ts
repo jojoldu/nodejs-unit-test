@@ -10,7 +10,7 @@ export class OrderService {
     accept(orderId: number, now = LocalDateTime.now()): void {
         const order = this.orderRepository.findById(orderId);
         order.accept(now);
-        this.orderRepository.save(order);
+        this.orderRepository.update(order);
     }
 
     saveOrUpdate(order: Order): void {
