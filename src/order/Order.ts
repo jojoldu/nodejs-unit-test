@@ -106,4 +106,7 @@ export class Order {
         return this._pays;
     }
 
+    get acceptDateTime(): LocalDateTime {
+        return this._acceptDateTime;
+    }
 }
