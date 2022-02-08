@@ -7,6 +7,13 @@ export class OrderService {
     constructor(private readonly orderRepository: OrderRepository) {
     }
 
+    validateCompletedOrder(orderId: number): void {
+        const order = this.orderRepository.findById(orderId);
+        if(order.isNotCompleted()) {
+            throw new Error('아직 완료처리되지 못했습니다.');
+        }
+    }
+
     accept(orderId: number, now = LocalDateTime.now()): void {
         const order = this.orderRepository.findById(orderId);
         order.accept(now);

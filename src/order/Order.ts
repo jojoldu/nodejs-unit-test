@@ -109,4 +109,8 @@ export class Order {
     get acceptDateTime(): LocalDateTime {
         return this._acceptDateTime;
     }
+
+    isNotCompleted() {
+        return this._status != OrderStatus.COMPLETED;
+    }
 }

@@ -1,4 +1,4 @@
-import { mock } from 'ts-mockito';
+import { anyNumber, instance, mock, when } from 'ts-mockito';
 import { OrderRepository } from '../../../src/order/OrderRepository';
 import { Order } from '../../../src/order/Order';
 import { LocalDateTime } from 'js-joda';
@@ -11,6 +11,28 @@ describe('OrderService', () => {
     beforeEach(() => {
         mockedRepository = mock(OrderRepository);
     });
+
+    it('[Stub Class] 주문이 완료되지 못했다면 에러가 발생한다', () => {
+        const stubRepository = new class extends OrderRepository {
+            override findById(id: number): Order | undefined {
+                return Order.create(1000, LocalDateTime.now(), '');
+            }
+        }
+        const sut = new OrderService(stubRepository);
+
+        expect(() => {sut.validateCompletedOrder(1)}).toThrow('아직 완료처리되지 못했습니다.');
+    });
+
+    it('[ts-mockito] 주문이 완료되지 못했다면 에러가 발생한다', () => {
+        const order = Order.create(1000, LocalDateTime.now(), '');
+        const stubRepositoryType: OrderRepository = mock(OrderRepository);
+        when(stubRepositoryType.findById(anyNumber())).thenReturn(order);
+
+        const sut = new OrderService(instance(stubRepositoryType));
+
+        expect(() => {sut.validateCompletedOrder(1)}).toThrow('아직 완료처리되지 못했습니다.');
+    });
+
 
     it('[Stub Class] 해당 주문을 승인처리한다', () => {
         // given
