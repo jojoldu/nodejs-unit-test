@@ -18,13 +18,17 @@ describe('OrderService', () => {
                 return Order.create(1000, LocalDateTime.now(), '');
             }
         }
+
+        // when
         const sut = new OrderService(stubRepository);
 
+        // then
         expect(() => {sut.validateCompletedOrder(1)}).toThrow('아직 완료처리되지 못했습니다.');
     });
 
     it('[ts-mockito] 주문이 완료되지 못했다면 에러가 발생한다', () => {
         const order = Order.create(1000, LocalDateTime.now(), '');
+
         const stubRepositoryType: OrderRepository = mock(OrderRepository);
         when(stubRepositoryType.findById(anyNumber())).thenReturn(order);
 
