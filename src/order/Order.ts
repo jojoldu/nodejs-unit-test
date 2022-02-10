@@ -22,6 +22,13 @@ export class Order {
         return Math.random() * (99999 - 1) + 1;
     }
 
+    static of (amount: number, orderStatus: OrderStatus): Order {
+        const newOrder = new Order();
+        newOrder._amount = amount;
+        newOrder._status = orderStatus;
+        return newOrder;
+    }
+
     static create (amount: number, orderTime: LocalDateTime, description: string): Order {
         const newOrder = new Order();
         newOrder._amount = amount;
@@ -84,7 +91,7 @@ export class Order {
     }
 
     equalsBilling (billingStatus: string): boolean {
-        return this._status !== billingStatus;
+        return this._status === billingStatus;
     }
 
     get id(): number {
@@ -93,6 +100,10 @@ export class Order {
 
     get amount(): number {
         return this._amount;
+    }
+
+    set status(value: OrderStatus) {
+        this._status = value;
     }
 
     get status(): OrderStatus {
