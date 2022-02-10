@@ -13,9 +13,6 @@ class OrderRepositoryStub extends OrderRepository {
         return this._savedOrder;
     }
 
-    override
-
-
     get savedOrder(): Order {
         return this._savedOrder;
     }

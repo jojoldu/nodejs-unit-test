@@ -73,8 +73,13 @@ export class Order {
         return order;
     }
 
-    accept(now: LocalDateTime) {
+    accept(now: LocalDateTime): void {
         this._status = OrderStatus.APPROVAL;
+        this._acceptDateTime = now;
+    }
+
+    complete(now: LocalDateTime): void {
+        this._status = OrderStatus.COMPLETED;
         this._acceptDateTime = now;
     }
 

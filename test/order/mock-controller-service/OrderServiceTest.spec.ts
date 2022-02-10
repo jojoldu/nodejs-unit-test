@@ -12,21 +12,45 @@ describe('OrderService', () => {
         mockedRepository = mock(OrderRepository);
     });
 
+    it('[Stub Class] 주문이 완료되었다면 에러가 발생하지 않는다', () => {
+        // given
+        const now = LocalDateTime.now();
+        const stubRepository = new class extends OrderRepository {
+            override findById(id: number): Order | undefined {
+                const order = Order.create(1000, now, '');
+                order.complete(now);
+                return order;
+            }
+        }
+
+        const sut = new OrderService(stubRepository);
+
+        // when
+        sut.validateCompletedOrder(1);
+
+    });
+
     it('[Stub Class] 주문이 완료되지 못했다면 에러가 발생한다', () => {
+        // given
         const stubRepository = new class extends OrderRepository {
             override findById(id: number): Order | undefined {
                 return Order.create(1000, LocalDateTime.now(), '');
             }
         }
 
-        // when
         const sut = new OrderService(stubRepository);
 
+        // when
+        const actual = () => {
+            sut.validateCompletedOrder(1)
+        };
+
         // then
-        expect(() => {sut.validateCompletedOrder(1)}).toThrow('아직 완료처리되지 못했습니다.');
+        expect(actual).toThrow('아직 완료처리되지 못했습니다.');
     });
 
     it('[ts-mockito] 주문이 완료되지 못했다면 에러가 발생한다', () => {
+        // given
         const order = Order.create(1000, LocalDateTime.now(), '');
 
         const stubRepositoryType: OrderRepository = mock(OrderRepository);
@@ -34,7 +58,13 @@ describe('OrderService', () => {
 
         const sut = new OrderService(instance(stubRepositoryType));
 
-        expect(() => {sut.validateCompletedOrder(1)}).toThrow('아직 완료처리되지 못했습니다.');
+        // when
+        const actual = () => {
+            sut.validateCompletedOrder(1)
+        };
+
+        // then
+        expect(actual).toThrow('아직 완료처리되지 못했습니다.');
     });
 
 
@@ -53,7 +83,7 @@ describe('OrderService', () => {
             }
         }
         const sut = new OrderService(stubRepository);
-        const now = LocalDateTime.of(2022,2,8,0,0,0);
+        const now = LocalDateTime.of(2022, 2, 8, 0, 0, 0);
 
         // when
         sut.accept(order.id, now);
@@ -62,7 +92,6 @@ describe('OrderService', () => {
         expect(stubRepository._savedOrder.status).toBe(OrderStatus.APPROVAL);
         expect(stubRepository._savedOrder.acceptDateTime).toBe(now);
     });
-
 
 
 });
