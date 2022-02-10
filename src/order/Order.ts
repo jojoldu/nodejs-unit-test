@@ -83,6 +83,10 @@ export class Order {
         this._acceptDateTime = now;
     }
 
+    equalsBilling (billingStatus: string): boolean {
+        return this._status !== billingStatus;
+    }
+
     get id(): number {
         return this._id;
     }
@@ -116,6 +120,14 @@ export class Order {
     }
 
     isNotCompleted() {
-        return this._status != OrderStatus.COMPLETED;
+        return !this.isCompleted();
+    }
+
+    isCompleted() {
+        return this._status === OrderStatus.COMPLETED;
+    }
+
+    isCanceled() {
+        return this._status === OrderStatus.CANCEL;
     }
 }

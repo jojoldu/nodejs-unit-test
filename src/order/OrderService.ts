@@ -2,9 +2,13 @@ import { Order } from './Order';
 import { OrderRepository } from './OrderRepository';
 import { NotFoundException } from '@nestjs/common';
 import { LocalDateTime } from 'js-joda';
+import { BillingApi } from './BillingApi';
 
 export class OrderService {
-    constructor(private readonly orderRepository: OrderRepository) {
+    constructor(
+        private readonly orderRepository: OrderRepository,
+        private readonly billingApi?: BillingApi
+        ) {
     }
 
     validateCompletedOrder(orderId: number): void {
@@ -12,6 +16,24 @@ export class OrderService {
         if(order.isNotCompleted()) {
             throw new Error('아직 완료처리되지 못했습니다.');
         }
+    }
+
+    compareBilling(orderId: number): void {
+        const order = this.orderRepository.findById(orderId);
+        const billingStatus = this.billingApi.getBillingStatus(orderId);
+
+        if(order.equalsBilling(billingStatus)) {
+            return ;
+        }
+
+        if(order.isCompleted()) {
+            this.billingApi.complete(order);
+        }
+
+        if(order.isNotCompleted()) {
+            this.billingApi.cancel(order);
+        }
+
     }
 
     accept(orderId: number, now = LocalDateTime.now()): void {
