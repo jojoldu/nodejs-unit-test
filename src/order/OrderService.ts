@@ -20,6 +20,11 @@ export class OrderService {
         this.orderRepository.update(order);
     }
 
+    /**
+     * 케이스1) 외부 API 호출과 이를 저장하는 형태
+     * 케이스2) 분기에 따른 서로 다른 API 호출
+     */
+
     saveOrUpdate(order: Order): void {
         const savedOrder = this.orderRepository.findById(order.id);
         if (savedOrder) {
