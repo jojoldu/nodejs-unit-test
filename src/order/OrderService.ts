@@ -33,7 +33,6 @@ export class OrderService {
         if(order.isNotCompleted()) {
             this.billingApi.cancel(order);
         }
-
     }
 
     accept(orderId: number, now = LocalDateTime.now()): void {

@@ -1,11 +1,13 @@
-# Service 계층 단위 테스트 하기
+# Service 계층 테스트 더블을 이용한 단위 테스트 하기
 
-간혹 Controller와 Service를 항상 통합 테스트 혹은 E2E 테스트로만 작성하는 경우를 본다.  
-프레임워크에 따라 다르겠지만, 모든 Controller와 Service를 통합 테스트 혹은 E2E 테스트로만 검증하기 보다는 상황에 따라 적절한 [테스트 더블](https://repo.yona.io/files/4000)을 사용하여 단위 테스트로 작성한다면 전체 테스트 속도 향상에 도움이 된다.  
+간혹 Controller와 Service를 항상 통합 테스트 혹은 E2E 테스트로만 작성하는 경우를 보게됩니다.  
+프레임워크에 따라 다르겠지만, 모든 Controller와 Service를 통합 테스트 혹은 E2E 테스트로만 검증하기 보다는 상황에 따라 적절한 [테스트 더블](https://repo.yona.io/files/4000)을 사용하여 단위 테스트로 작성한다면 전체 테스트 속도 향상에 도움이 됩니다.  
   
+> 물론 과도한 테스트 더블 사용은 테스트의 의미를 무의미하게 만들기 때문에 주의가 필요합니다.  
+
 ## 예제 1
 
-이를테면 다음과 같은 서비스 로직이 있다고 하자.
+첫번째 예제로 다음과 같은 서비스 로직에 대한 단위 테스트를 작성해보겠습니다.
 
 ```ts
 export class OrderService {
@@ -26,13 +28,13 @@ export class OrderService {
 * repository를 통해 주문을 조회한다
 * 조회된 주문 상태가 완료처리가 아닌 경우
   * 메세지와 함께 에러가 발생한다
-* 조회된 주문 상태가 완료처리인 경우 그대로 메소드가 종료된다
+* 조회된 주문 상태가 완료처리인 경우 그대로 메소드가 종료
 
-이런 로직의 경우 `orderRepository` 에서 주문 조회 코드를 모킹한다면 테스트 코드 작성과 테스트 성능을 개선시킬 수 있다.
+이런 로직의 경우 `orderRepository` 에서 주문 조회 코드를 모킹한다면 테스트 코드 작성과 테스트 성능을 개선시킬 수 있습니다.
 
 ### 테스트 코드
 
-기존 로직을 모킹한다면, 크게 2가지 방법이 있다.
+기존 로직을 모킹한다면, 크게 2가지 방법이 있습니다.
 
 * 모킹 라이브러리 없이 사용
 * 특정 모킹 라이브러리를 사용
@@ -94,14 +96,140 @@ it('[ts-mockito] 주문이 완료되지 못했다면 에러가 발생한다', ()
 
 ```
 
-> 개인적으로 NodeJS **백엔드 개발을 할 경우에는** `jest.mock` 을 선호하지 않는다.  
-> 모듈 자체를 모킹해버려서 **모듈 시스템 후킹**하는 방향으로 애플리케이션 디자인이 되는 경우를 쉽게 보기 때문이다.  
-> **애플리케이션 디자인의 의존성 관리를 어지럽히는** 디자인을 유도하는 것 같아서 선호하지 않는다.  
+> 개인적으로 **NodeJS로 백엔드 개발을 할 경우에는** `jest.mock` 을 선호하지 않습니다.  
+> 모듈 자체를 모킹해버려서 **모듈 시스템 후킹** 을 하는게 당연한거처럼 **의존성 관리를 어지럽히는** 디자인을 유도하는 것 같은 느낌을 많이 받습니다.  
 
-
-이와 같은 경우 
 
 ## 예제 2
+
+두번째 예제는 다음과 같이 **외부 의존성**을 사용해야할 경우입니다.
+
+* 외부 API를 호출해서 데이터를 전달하고, 보낸 데이터를 검증해야하는 경우
+* 메세지큐로 메세지를 보내되 몇개의 메세지가 발송되었는지 검증해야하는 경우
+
+
+```ts
+export class OrderService {
+    constructor(
+        private readonly orderRepository: OrderRepository,
+        private readonly billingApi: BillingApi
+        ) {
+    }
+
+    compareBilling(orderId: number): void {
+        const order = this.orderRepository.findById(orderId);
+        const billingStatus = this.billingApi.getBillingStatus(orderId);
+
+        if(order.equalsBilling(billingStatus)) {
+            return ;
+        }
+
+        if(order.isCompleted()) {
+            this.billingApi.complete(order);
+        }
+
+        if(order.isNotCompleted()) {
+            this.billingApi.cancel(order);
+        }
+    }
+```
+
+### 테스트 코드
+
+```ts
+export class BillingApiStub extends BillingApi {
+    billingStatus: string;
+    completedOrder: Order;
+    canceledOrder: Order;
+
+    constructor(billingStatus: string) {
+        super();
+        this.billingStatus = billingStatus;
+    }
+
+    getBillingStatus(orderId: number): string {
+        return this.billingStatus;
+    }
+
+    complete(order: Order): void {
+        this.completedOrder = order;
+    }
+
+    cancel(order: Order): void {
+        this.canceledOrder = order;
+    }
+}
+```
+
+```ts
+describe('주문-결제 대사', () => {
+    it('주문이 완료인데, 결제가 아닐경우 결제 완료 요청을 한다', () => {
+        // given
+        const orderStatus = OrderStatus.COMPLETED;
+        const order = Order.of(1000, orderStatus);
+
+        const billingStatus = "CANCEL";
+        const billingApiStub = new BillingApiStub(billingStatus);
+
+        const stubRepository: OrderRepository = mock(OrderRepository);
+        when(stubRepository.findById(anyNumber())).thenReturn(order);
+
+        const sut = new OrderService(instance(stubRepository), billingApiStub);
+
+        // when
+        sut.compareBilling(order.id);
+
+        // then
+        expect(billingApiStub.completedOrder.id).toBe(order.id);
+        expect(billingApiStub.completedOrder.status).toBe(orderStatus);
+        expect(billingApiStub.canceledOrder).toBeUndefined();
+    });
+
+    it('주문이 취소인데, 결제가 아닐경우 결제 취소 요청을 한다', () => {
+        // given
+        const orderStatus = OrderStatus.CANCEL;
+        const order = Order.of(1000, orderStatus);
+
+        const billingStatus = "COMPLETED";
+        const billingApiStub = new BillingApiStub(billingStatus);
+
+        const stubRepository: OrderRepository = mock(OrderRepository);
+        when(stubRepository.findById(anyNumber())).thenReturn(order);
+
+        const sut = new OrderService(instance(stubRepository), billingApiStub);
+
+        // when
+        sut.compareBilling(order.id);
+
+        // then
+        expect(billingApiStub.canceledOrder.id).toBe(order.id);
+        expect(billingApiStub.canceledOrder.status).toBe(orderStatus);
+        expect(billingApiStub.completedOrder).toBeUndefined();
+    });
+
+    it('주문과 결제가 동일한 상태일경우 추가결제요청은 하지 않는다', () => {
+        // given
+        const orderStatus = OrderStatus.COMPLETED;
+        const order = Order.of(1000, orderStatus);
+
+        const billingStatus = "COMPLETED";
+        const billingApiStub = new BillingApiStub(billingStatus);
+
+        const stubRepository: OrderRepository = mock(OrderRepository);
+        when(stubRepository.findById(anyNumber())).thenReturn(order);
+
+        const sut = new OrderService(instance(stubRepository), billingApiStub);
+
+        // when
+        sut.compareBilling(order.id);
+
+        // then
+        expect(billingApiStub.completedOrder).toBeUndefined();
+        expect(billingApiStub.canceledOrder).toBeUndefined();
+    });
+});
+
+```
 
 ## 주의사항
 

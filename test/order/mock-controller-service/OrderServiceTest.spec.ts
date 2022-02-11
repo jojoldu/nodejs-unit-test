@@ -136,7 +136,6 @@ describe('OrderService', () => {
             expect(billingApiStub.completedOrder).toBeUndefined();
             expect(billingApiStub.canceledOrder).toBeUndefined();
         });
-
     });
 
     describe('주문 승인 처리', () => {
