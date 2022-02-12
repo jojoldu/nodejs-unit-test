@@ -5,6 +5,7 @@ import { LocalDateTime } from 'js-joda';
 import { OrderService } from '../../../src/order/OrderService';
 import { OrderStatus } from '../../../src/order/OrderStatus';
 import { BillingApiStub } from './BillingApiStub';
+import { OrderRepositoryStub } from './OrderRepositoryStub';
 
 describe('OrderService', () => {
     let mockedRepository: OrderRepository;
@@ -32,15 +33,9 @@ describe('OrderService', () => {
 
         });
 
-        it('[Stub Class] 주문이 완료되지 못했다면 에러가 발생한다', () => {
+        it('[Stub Class2] 주문이 완료되지 못했다면 에러가 발생한다', () => {
             // given
-            const stubRepository = new class extends OrderRepository {
-                override findById(id: number): Order | undefined {
-                    return Order.create(1000, LocalDateTime.now(), '');
-                }
-            }
-
-            const sut = new OrderService(stubRepository);
+            const sut = new OrderService(new OrderRepositoryStub());
 
             // when
             const actual = () => {

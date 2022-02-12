@@ -30,7 +30,7 @@ export class OrderService {
             this.billingApi.complete(order);
         }
 
-        if(order.isNotCompleted()) {
+        if(order.isCanceled()) {
             this.billingApi.cancel(order);
         }
     }

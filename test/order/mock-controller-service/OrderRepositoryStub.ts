@@ -1,7 +1,7 @@
 import { OrderRepository } from '../../../src/order/OrderRepository';
 import { Order } from '../../../src/order/Order';
 
-class OrderRepositoryStub extends OrderRepository {
+export class OrderRepositoryStub extends OrderRepository {
     private _savedOrder: Order;
 
     constructor() {
