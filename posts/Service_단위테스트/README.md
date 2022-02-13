@@ -298,7 +298,7 @@ it('주문이 취소인데, 결제가 아닐경우 결제 취소 요청을 한�
 
 ```ts
 it('주문과 결제가 동일한 상태일경우 추가결제요청은 하지 않는다', () => {
-    // given
+    // given     
     const orderStatus = OrderStatus.COMPLETED;
     const order = Order.of(1000, orderStatus);
 

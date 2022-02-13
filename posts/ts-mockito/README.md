@@ -1,4 +1,8 @@
-# ts-mockito 로 jest.mock 대체하기
+# jest.mock 보다 ts-mockito 사용하기
+
+NodeJS 기반의 백엔드에서는 [NestJS](https://docs.nestjs.com/providers#dependency-injection), [routing-controllers](https://github.com/typestack/routing-controllers) 등 최근 대세가 되는 MVC 프레임워크들이 모두 Class를 기반으로 한 DI (Dependency Injection) 
+
+
 
 [Testing your TypeScript code with ts-mockito](https://medium.com/passionate-people/testing-your-typescript-code-with-ts-mockito-ac439deae33e)
 
