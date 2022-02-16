@@ -28,6 +28,23 @@ describe('OrderService', () => {
             expect(actual).toThrow('아직 완료처리되지 못했습니다.');
         });
 
+        it('[jest.mock2] 주문이 완료되지 못했다면 에러가 발생한다', () => {
+            // given
+            let mockRepository = { findById: () => {return null} };
+            jest.spyOn(mockRepository, 'findById')
+                .mockImplementation(() => Order.create(1000, LocalDateTime.now(), ''));
+
+            const sut = new OrderService(mockRepository );
+
+            // when
+            const actual = () => {
+                sut.validateCompletedOrder(1)
+            };
+
+            // then
+            expect(actual).toThrow('아직 완료처리되지 못했습니다.');
+        });
+
         it('[ts-mockito] 주문이 완료되지 못했다면 에러가 발생한다', () => {
             // given
             const order = Order.create(1000, LocalDateTime.now(), '');
