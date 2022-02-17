@@ -13,9 +13,9 @@ describe('OrderService', () => {
 
         it('[jest.mock] 주문이 완료되지 못했다면 에러가 발생한다', () => {
             // given
-            let mockRepository = new OrderRepository();
+            const mockRepository = new OrderRepository();
             jest.spyOn(mockRepository, 'findById')
-                .mockImplementation(() => Order.create(1000, LocalDateTime.now(), ''));
+                .mockImplementation(() => Order.create(1000, LocalDateTime.now(), 'jest.mock'));
 
             const sut = new OrderService(mockRepository);
 
@@ -30,11 +30,13 @@ describe('OrderService', () => {
 
         it('[jest.mock2] 주문이 완료되지 못했다면 에러가 발생한다', () => {
             // given
-            let mockRepository = { findById: () => {return null} };
+            const mockRepository = new OrderRepository();
             jest.spyOn(mockRepository, 'findById')
-                .mockImplementation(() => Order.create(1000, LocalDateTime.now(), ''));
+                .mockImplementation((orderId) => orderId === 1?
+                    Order.create(1000, LocalDateTime.now(), 'jest.mock')
+                    : undefined);
 
-            const sut = new OrderService(mockRepository );
+            const sut = new OrderService(mockRepository);
 
             // when
             const actual = () => {
@@ -45,12 +47,31 @@ describe('OrderService', () => {
             expect(actual).toThrow('아직 완료처리되지 못했습니다.');
         });
 
+        it('[jest.mock3] 주문이 완료되지 못했다면 에러가 발생한다', () => {
+            // given
+            const mockRepository = new OrderRepository();
+            jest.spyOn(mockRepository, 'findById')
+                .mockImplementation((orderId) => orderId === 1?
+                    Order.create(1000, LocalDateTime.now(), 'jest.mock')
+                    : undefined);
+
+            const sut = new OrderService(mockRepository);
+
+            // when
+            const actual = () => {
+                sut.validateCompletedOrder(3)
+            };
+
+            // then
+            expect(actual).toThrow('아직 완료처리되지 못했습니다.');
+        });
+
         it('[ts-mockito] 주문이 완료되지 못했다면 에러가 발생한다', () => {
             // given
-            const order = Order.create(1000, LocalDateTime.now(), '');
+            const order = Order.create(1000, LocalDateTime.now(), 'ts-mockito');
 
-            const stubRepository: OrderRepository = mock(OrderRepository);
-            when(stubRepository.findById(anyNumber())).thenReturn(order);
+            const stubRepository: OrderRepository = mock(OrderRepository); // stub 객체 생성
+            when(stubRepository.findById(1)).thenReturn(order); // when
 
             const sut = new OrderService(instance(stubRepository));
 
