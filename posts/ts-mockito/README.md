@@ -2,20 +2,23 @@
 
 NodeJS 기반의 백엔드에서는 [NestJS](https://docs.nestjs.com/providers#dependency-injection), [RoutingControllers](https://github.com/typestack/routing-controllers) 등 최근 대세가 되는 MVC 프레임워크들이 모두 **Class를 기반으로 한 DI (Dependency Injection)** 방식을 사용하고 있다.  
   
-그러다보니 **함수와 모듈 Mocking** 위주의 Jest는 백엔드 NodeJS 환경에서 적합한 도구는 아닐 수 있다.  
-특히, Stub 객체 생성에 불편한 점이 많다. 
+그러다보니 Jest의 Mocking 방식은 백엔드 NodeJS 환경에서 적합한 도구는 아닐 수 있다.  
+특히, Mock/Stub 객체 생성에 불편한 점이 많다. 
+  
+그래서 Test Runner로서 Jest는 사용하더라도, **Mock 라이브러리는 다른 것**을 사용하는 것을 추천하는데, 그 중 대표적인 것들은 다음과 같다.
 
-> Mock과 Stub의 차이가 애매하신 분들은 마틴 파울러의 [Mocks Aren't Stubs](https://martinfowler.com/articles/mocksArentStubs.html) 글을 꼭 읽어보길 추천한다.  
-> [번역본](https://sungjk.github.io/2022/02/03/mocks-arent-stubs.html)도 있다.
+* [ts-mockito](https://www.npmjs.com/package/ts-mockito)
+* [sinonjs](https://sinonjs.org/)
+* [jest-mock-extended](https://www.npmjs.com/package/jest-mock-extended)
 
-이번 글에서는 ts-mockito 를 통한 테스트 더블 (Mock, Stub 등) 활용법을 알아본다.
+이번 글에서는 그 중 ts-mockito 를 통한 테스트 더블 (Mock, Stub 등) 활용법을 알아본다.
 
 ## Jest 와 ts-mockito 비교
 
-먼저 기존 Jest 방식이 왜 불편한지를 알아본다.  
+먼저 기존 Jest 방식이 왜 불편한지 보자.  
 
 > Jest로 객체 Mock/Stub 하는것에 대한 불편함만 다룬다.  
-> Jest의 모든 점이 안좋다는 것을 이야기하는 것이 아니다.
+> **Jest의 모든 점이 안좋다는 것을 이야기하는 것이 아니다**.
   
 테스트할 메인 코드는 다음과 같다.  
 
@@ -43,7 +46,8 @@ export class OrderService {
 ### Jest
 
 Jest는 기본적으로 **함수 혹은 모듈을 Mocking** 할 수 있다.  
-
+다만 클래스를 기반으로 하는 객체를 Stub, Mock 하는 것이 상대적으로 매끄럽지 못하다.  
+  
 이를테면 아래와 같이 일반적인 DI 기반의 NodeJS 백엔드 프레임워크에서 **특정 객체의 특정 메소드만 의도한 대로 작동**하도록 하기 위해서 Jest는 다음과 같이 `spyOn` 방법을 지원한다.  
   
 ```ts
@@ -66,6 +70,8 @@ it('[jest.mock] 주문이 완료되지 못했다면 에러가 발생한다', () 
     expect(actual).toThrow('아직 완료처리되지 못했습니다.');
 });
 ```
+
+* 
 
 이 코드에서 개인적으로 느낀 단점은 다음과 같다
 
