@@ -7,6 +7,7 @@ import {
     instance,
     mock,
     objectContaining,
+    reset,
     when
 } from 'ts-mockito';
 
@@ -22,6 +23,10 @@ describe('ts-mockito', () => {
     let mockService: OrderService;
     beforeEach(() => {
         mockService = mock(OrderService);
+    });
+
+    afterEach(() => {
+        reset(mockService);
     });
 
     it('when', () => {
