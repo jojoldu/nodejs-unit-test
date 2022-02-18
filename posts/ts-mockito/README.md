@@ -13,7 +13,7 @@ NodeJS 기반의 백엔드에서는 [NestJS](https://docs.nestjs.com/providers#d
 
 이번 글에서는 그 중 ts-mockito 를 통한 테스트 더블 (Mock, Stub 등) 활용법을 알아본다.
 
-## Jest 와 ts-mockito 비교
+## 1. Jest 와 ts-mockito 비교
 
 먼저 기존 Jest 방식이 왜 불편한지 보자.  
 
@@ -48,7 +48,7 @@ export class OrderService {
 Jest는 기본적으로 **함수 혹은 모듈을 Mocking** 할 수 있다.  
 다만 클래스를 기반으로 하는 객체를 Stub, Mock 하는 것이 상대적으로 매끄럽지 못하다.  
   
-이를테면 아래와 같이 일반적인 DI 기반의 NodeJS 백엔드 프레임워크에서 **특정 객체의 특정 메소드만 의도한 대로 작동**하도록 하기 위해서 Jest는 다음과 같이 `spyOn` 방법을 지원한다.  
+이를테면 일반적인 DI 기반의 NodeJS 백엔드 프레임워크에서 **특정 객체의 특정 메소드만 의도한 대로 작동**하도록 하기 위해서 Jest는 다음과 같이 `spyOn` 방법을 지원한다.  
   
 ```ts
 it('[jest.mock] 주문이 완료되지 못했다면 에러가 발생한다', () => {
@@ -71,18 +71,29 @@ it('[jest.mock] 주문이 완료되지 못했다면 에러가 발생한다', () 
 });
 ```
 
-* 
+* `const mockRepository = new OrderRepository()`
+  * Stub 처리할 객체를 생성한다.
+  * 해당 객체의 메소드가 Stub 처리될 예정이다.
+* `jest.spyOn(mockRepository, 'findById')`
+  * 위에서 만든 mockRepository의 `findById` 메소드를 대상으로 지정한다
+* `.mockImplementation()`
+  * Stub 함수를 등록할 수 있다
+* `(orderId) => orderId === 1?`
+  * 별도의 `when` 을 지원하지 않아, Jest에서는 위와 같이 Stub 함수 내부에서 분기 로직을 처리한다.
+
 
 이 코드에서 개인적으로 느낀 단점은 다음과 같다
 
 * **직관적이지 못한 사용법**
-  * Mock, Stub 이 아닌 다른 테스트 더블인 Spy를 사용하는 듯한 오해를 보여준다
-* **문자열로 Target Method 지정**
+  * 단순한 클래스 Stub에도 장황한 코드가 필요하다.
+  * 사용되는 코드들이 기본적인 다른 테스트 프레임워크를 사용해본 사람들에겐 낯설다
+  * Spy는 Stub 과는 다르지만, Jest는 Stub 을 지원하지 않아 Spy를 통해 우회한다.
+* **문자열 Target Method**
   * 메소드명의 변경이 있을 경우 자동으로 리팩토링이 되지 못한다.
   * IDE의 자동완성 지원을 못받고, 직접 메소드를 입력해야하니 오타 문제 등이 존재한다
 * **불편한 인터페이스**
-  * `orderId` 가 1인 경우 특정 주문 정보를 반환한다는 조건을 구성하는 코드가 직관적이지 못하다
-  * `mockImplementation` **내부에서 if 문으로 분기 처리** 하는 코드를 작성해야만 한다
+  * 위와 같이 Stub 발생 조건이 `orderId==1` 과 같이 특별한 값이 들어올때로 한정해야할 경우 **Stub 함수에서 처리해야한다**
+  * 이렇게 되면 Stub 코드와 발생 조건이 한 함수에서 묶여있어 단일 책임원칙에서 크게 위반된다
   * 이를 해결하기 위해 [jest-when](https://www.npmjs.com/package/jest-when) 라는 다른 패키지가 추가로 필요하다.  
 * Test Runner만 교체되어도 쓸 수 없는 테스트 코드
   * 테스트 코드가 이미 Jest의 Mock 코드를 쓰고 있어, 다른 테스트 러너 Karama, Mocha, Cypress 등으로 교체하려고 할경우 테스트 코드 전체를 수정해야만한다
@@ -91,6 +102,8 @@ it('[jest.mock] 주문이 완료되지 못했다면 에러가 발생한다', () 
 반대로 ts-mockito에서는 어떻게 테스트 코드를 작성하는지 비교해보자.
 
 ### ts-mockito
+
+ts-mockito 를 통해 위의 테스트를 다시 구현해보자.
 
 ```ts
 it('[ts-mockito] 주문이 완료되지 못했다면 에러가 발생한다', () => {
@@ -111,6 +124,8 @@ it('[ts-mockito] 주문이 완료되지 못했다면 에러가 발생한다', ()
     expect(actual).toThrow('아직 완료처리되지 못했습니다.');
 });
 ```
+
+바로 비교가 될텐데, 굉장히 직관적인 코드의 차이가 있다.
 
 * `mock`
   * Stub, Mock 하고자 하는 대상을 만든다

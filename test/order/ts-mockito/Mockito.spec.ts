@@ -3,7 +3,6 @@ import {
     anyNumber,
     anyOfClass,
     anyString,
-    anything,
     between,
     instance,
     mock,
@@ -11,46 +10,60 @@ import {
     when
 } from 'ts-mockito';
 
-class MyService {
-    getFoo(arg: any): any {}
+class OrderService {
+    getOrder(arg: any): any {}
 }
 
 
 describe('ts-mockito', () => {
-    class SpecificClass {}
-    const specificFunction = () => true;
+    class TestClass {}
+    const testFunction = () => true;
 
-    let mockService: MyService;
+    let mockService: OrderService;
     beforeEach(() => {
-        mockService = mock(MyService);
+        mockService = mock(OrderService);
     });
 
     it('when', () => {
-        when(mockService.getFoo(anything())).thenReturn('anything');
-        when(mockService.getFoo(anyString())).thenReturn('any other string');
-        when(mockService.getFoo('bar')).thenReturn('bar');
-        when(mockService.getFoo('baz')).thenReturn('baz');
-        when(mockService.getFoo(anyNumber())).thenReturn('any number');
-        when(mockService.getFoo(7)).thenReturn(7);
-        when(mockService.getFoo(anyOfClass(SpecificClass))).thenReturn('SpecificClass instance was passed in');
-        when(mockService.getFoo(anyFunction())).thenReturn('function');
-        when(mockService.getFoo(specificFunction)).thenReturn('specificFunction');
-        when(mockService.getFoo(between(13, 17))).thenReturn('between 13 and 17');
-        when(mockService.getFoo(objectContaining({ a: 1 }))).thenReturn('object contains { a: 1 }');
+        /** given **/
+        // string
+        when(mockService.getOrder(anyString())).thenReturn('anyString');
+        when(mockService.getOrder('inflab')).thenReturn('inflab');
 
-        const service: MyService = instance(mockService);
+        // number
+        when(mockService.getOrder(anyNumber())).thenReturn('anyNumber');
+        when(mockService.getOrder(1)).thenReturn(1);
 
-        expect(service.getFoo('asdf')).toBe('any other string');
-        expect(service.getFoo('bar')).toBe('bar');
-        expect(service.getFoo('baz')).toBe('baz');
-        expect(service.getFoo(22)).toBe('any number');
-        expect(service.getFoo(7)).toBe(7);
-        expect(service.getFoo(new SpecificClass())).toBe('SpecificClass instance was passed in')
-        expect(service.getFoo(() => {})).toBe('function')
-        expect(service.getFoo(specificFunction)).toBe('specificFunction')
-        expect(service.getFoo(15)).toBe('between 13 and 17')
-        expect(service.getFoo({ b: 2, c: 3, a: 1 })).toBe('object contains { a: 1 }')
-        expect(service.getFoo({ b: 2, c: 3 })).toBe('anything');
+        // Class & Function
+        when(mockService.getOrder(anyOfClass(TestClass))).thenReturn('TestClass');
+        when(mockService.getOrder(anyFunction())).thenReturn('anyFunction');
+        when(mockService.getOrder(testFunction)).thenReturn('testFunction');
+
+        // 범위 조건
+        when(mockService.getOrder(between(10, 20))).thenReturn('between 10 and 20');
+        when(mockService.getOrder(objectContaining({ a: 1 }))).thenReturn('{ a: 1 }');
+
+        /** when **/
+        const service: OrderService = instance(mockService);
+
+        /** then **/
+
+        // string
+        expect(service.getOrder('test')).toBe('anyString');
+        expect(service.getOrder('inflab')).toBe('inflab');
+
+        // number
+        expect(service.getOrder(22)).toBe('anyNumber');
+        expect(service.getOrder(1)).toBe(1);
+
+        // Class & Function
+        expect(service.getOrder(new TestClass())).toBe('TestClass');
+        expect(service.getOrder(() => {})).toBe('anyFunction');
+        expect(service.getOrder(testFunction)).toBe('testFunction');
+
+        // 범위 조건
+        expect(service.getOrder(19)).toBe('between 10 and 20');
+        expect(service.getOrder({ b: 2, c: 3, a: 1 })).toBe('{ a: 1 }');
     });
 
     it('verify', () => {
