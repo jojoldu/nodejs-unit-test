@@ -3,7 +3,7 @@ import {
     anyNumber,
     anyOfClass,
     anyString, anything,
-    between,
+    between, capture,
     instance,
     mock,
     objectContaining,
@@ -86,7 +86,18 @@ describe('ts-mockito', () => {
     });
 
     it('capture', () => {
+        const mockService: OrderService = mock(OrderService);
+        const service: OrderService = instance(mockService);
 
+        service.getOrder(1);
+        service.getOrder(2);
+        service.getOrder('test');
+        service.getOrder({ a: 0 });
+
+        expect(capture(mockService.getOrder).first()).toStrictEqual([1]);
+        expect(capture(mockService.getOrder).byCallIndex(1)).toStrictEqual([2]);
+        expect(capture(mockService.getOrder).beforeLast()).toStrictEqual(['test']);
+        expect(capture(mockService.getOrder).last()).toStrictEqual([{ a: 0 }]);
     });
 
 
@@ -101,13 +112,13 @@ describe('ts-mockito', () => {
         let mockedFoo:Foo = mock(Foo);
 
         // Getting instance
-        let foo:Foo = instance(mockedFoo);
+        let service:Foo = instance(mockedFoo);
 
         // Some calls
-        foo.getBar(1);
-        foo.getBar(2);
-        foo.getBar(2);
-        foo.getBar(3);
+        service.getBar(1);
+        service.getBar(2);
+        service.getBar(2);
+        service.getBar(3);
 
         // Call count verification
         verify(mockedFoo.getBar(1)).once();               // was called with arg === 1 only once
