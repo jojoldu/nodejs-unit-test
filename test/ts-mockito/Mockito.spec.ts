@@ -2,35 +2,28 @@ import {
     anyFunction,
     anyNumber,
     anyOfClass,
-    anyString,
+    anyString, anything,
     between,
     instance,
     mock,
     objectContaining,
-    reset,
+    reset, verify,
     when
 } from 'ts-mockito';
 
 class OrderService {
-    getOrder(arg: any): any {}
+    getOrder(arg: any): any {
+        return arg;
+    }
 }
-
 
 describe('ts-mockito', () => {
     class TestClass {}
     const testFunction = () => true;
 
-    let mockService: OrderService;
-    beforeEach(() => {
-        mockService = mock(OrderService);
-    });
-
-    afterEach(() => {
-        reset(mockService);
-    });
-
     it('when', () => {
         /** given **/
+        const mockService: OrderService = mock(OrderService);
         // string
         when(mockService.getOrder(anyString())).thenReturn('anyString');
         when(mockService.getOrder('inflab')).thenReturn('inflab');
@@ -71,11 +64,58 @@ describe('ts-mockito', () => {
         expect(service.getOrder({ b: 2, c: 3, a: 1 })).toBe('{ a: 1 }');
     });
 
-    it('verify', () => {
 
+    it('verify', () => {
+        const mockService: OrderService = mock(OrderService);
+        const service: OrderService = instance(mockService);
+
+        service.getOrder(1);
+        service.getOrder('test1');
+        service.getOrder('test2');
+        service.getOrder(10);
+
+        // Call Count verify
+        verify(service.getOrder(1)).times(1);
+        verify(service.getOrder(anyString())).times(2);
+        verify(service.getOrder(anything())).times(4);
+
+        verify(service.getOrder(10)).atLeast(1);
+
+        // Call order verify
+        verify(service.getOrder('test2')).calledBefore(service.getOrder(10));
     });
 
     it('capture', () => {
 
+    });
+
+
+    class Foo {
+        getBar(num: number): any {
+            return num;
+        }
+    }
+
+    it('verify example', () => {
+        // Creating mock
+        let mockedFoo:Foo = mock(Foo);
+
+        // Getting instance
+        let foo:Foo = instance(mockedFoo);
+
+        // Some calls
+        foo.getBar(1);
+        foo.getBar(2);
+        foo.getBar(2);
+        foo.getBar(3);
+
+        // Call count verification
+        verify(mockedFoo.getBar(1)).once();               // was called with arg === 1 only once
+        verify(mockedFoo.getBar(2)).twice();              // was called with arg === 2 exactly two times
+        verify(mockedFoo.getBar(between(2, 3))).thrice(); // was called with arg between 2-3 exactly three times
+        verify(mockedFoo.getBar(anyNumber())).times(4);    // was called with any number arg exactly four times
+        verify(mockedFoo.getBar(2)).atLeast(2);           // was called with arg === 2 min two times
+        verify(mockedFoo.getBar(anything())).atMost(4);   // was called with any argument max four times
+        verify(mockedFoo.getBar(4)).never();
     });
 });

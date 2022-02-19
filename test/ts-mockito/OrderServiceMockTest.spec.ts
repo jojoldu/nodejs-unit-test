@@ -1,8 +1,8 @@
 import { anyNumber, instance, mock, when } from 'ts-mockito';
-import { OrderRepository } from '../../../src/order/OrderRepository';
-import { Order } from '../../../src/order/Order';
+import { OrderRepository } from '../../src/order/OrderRepository';
+import { Order } from '../../src/order/Order';
 import { LocalDateTime } from 'js-joda';
-import { OrderService } from '../../../src/order/OrderService';
+import { OrderService } from '../../src/order/OrderService';
 
 describe('OrderService', () => {
 

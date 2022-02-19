@@ -40,7 +40,7 @@ export class OrderService {
 
 위 코드의 테스트 코드는 다음과 같은 형태로 구성되어야 한다
 
-*  `OrderRepository` 객체의 `findById` 를 Stub 처리해서 의도한 상태의 주문이 반환되도록 한다.
+* `OrderRepository` 객체의 `findById` 를 Stub 처리해서 의도한 상태의 주문이 반환되도록 한다.
 * 원하는 상태의 주문 정보를 기반으로 에러가 발생 or 정상 종료가 되는지를 검증한다
 
 ### Jest
@@ -84,20 +84,20 @@ it('[jest.mock] 주문이 완료되지 못했다면 에러가 발생한다', () 
 
 이 코드에서 개인적으로 느낀 단점은 다음과 같다
 
-* **직관적이지 못한 사용법**
+* **장황한 사용법**
   * 단순한 클래스 Stub에도 장황한 코드가 필요하다.
   * 사용되는 코드들이 기본적인 다른 테스트 프레임워크를 사용해본 사람들에겐 낯설다
   * Spy는 Stub 과는 다르지만, Jest는 Stub 을 지원하지 않아 Spy를 통해 우회한다.
-* **문자열 Target Method**
-  * 메소드명의 변경이 있을 경우 자동으로 리팩토링이 되지 못한다.
-  * IDE의 자동완성 지원을 못받고, 직접 메소드를 입력해야하니 오타 문제 등이 존재한다
+* **IDE의 지원을 받을 수 없는 문자열 베이스**
+  * Stubbing 메소드 지정을 **문자열**로 하기 때문에 IDE의 리팩토링, 자동완성 등을 지원받을 수 없다.
+  * 특히 직접 메소드를 입력해야하니 오타 문제 등이 존재한다
 * **불편한 인터페이스**
   * 위와 같이 Stub 발생 조건이 `orderId==1` 과 같이 특별한 값이 들어올때로 한정해야할 경우 **Stub 함수에서 처리해야한다**
   * 이렇게 되면 Stub 코드와 발생 조건이 한 함수에서 묶여있어 단일 책임원칙에서 크게 위반된다
   * 이를 해결하기 위해 [jest-when](https://www.npmjs.com/package/jest-when) 라는 다른 패키지가 추가로 필요하다.  
-* Test Runner만 교체되어도 쓸 수 없는 테스트 코드
+* **Test Runner에 종속적인 Mocking**
   * 테스트 코드가 이미 Jest의 Mock 코드를 쓰고 있어, 다른 테스트 러너 Karama, Mocha, Cypress 등으로 교체하려고 할경우 테스트 코드 전체를 수정해야만한다
-  * Mock 라이브러리가 별도로 있을 경우 테스트 코드 자체의 교체가 필요하진 않다. 
+  * Mock 라이브러리가 별도로 있을 경우 테스트 코드의 교체가 필요하진 않다.
 
 반대로 ts-mockito에서는 어떻게 테스트 코드를 작성하는지 비교해보자.
 
@@ -125,27 +125,98 @@ it('[ts-mockito] 주문이 완료되지 못했다면 에러가 발생한다', ()
 });
 ```
 
-바로 비교가 될텐데, 굉장히 직관적인 코드의 차이가 있다.
-
 * `mock`
   * Stub, Mock 하고자 하는 대상을 만든다
 * `when`
   * **해당 Stub 객체가 어떤 상황일때** 의도한 행동을 하게 할 것인지 지정
-  * 지금 같은 경우 `findById` 메소드에 `1` 이 넘어온 경우로 지정
+  * 지금 같은 경우 `findById` 메소드에 `1` 이 넘어온 경우 `.thenReturn` 이 발동하도록 지정
 * `.thenReturn`
   * `when` 상황에서 반환할 값을 지정
 
-ts-mockito를 하면서 다음의 장점을 얻게 됩니다.
+둘을 비교해보면 ts-mockito는 다음과 같은 장점이 있다.
 
-* ts-mockito에서 jest mock에 비해 훨씬 더 간결한 구문입니다. 
-* Java Mockito 라이브러리에 대한 경험이 있다면 집과 같은 편안함을 느낄 것입니다.
-* ts-mockito에서 훨씬 더 리팩터링/IDE 친화적인 API
-* 프레임워크 독립 - 언젠가 다른 테스트 러너(예: Karma, Cypress)로 마이그레이션하려는 경우 모든 jest.mocks 및 ts-mockito 모의를 교체해야 합니다.
+* **직관적인 사용법**
+  * 흔히 사용하는 Mocking 방식의 직관적인 메소드들 (`when`, `mock`, `verify` 등)로 테스트 환경이 구축 가능하다
+  * 각 Mocking 메소드별 역할이 나눠져있어, **if문으로 Stubbing 트리거 조건을 함께 포함**시키는 등의 행위가 없어진다.
+* **IDE의 100% 지원**
+  * 문자열이 아닌, 실제 해당 객체의 메소드를 직접 호출하는 방식이라 **리팩토링, 오타방지, 자동완성** 등 IDE의 지원을 100% 받을 수 있다. 
+* **Test Runner에 종속적이지 않은 Mocking**
+  * Mocking만을 다루기 때문에 Test Runner가 Jest외 다른 것으로 변경되어도 기존 Mocking / Stubbing 코드의 변화가 없다.
+* 타 언어와 비슷한 사용법
+  * JVM의 Mockito, C#의 Nuget 등과 유사한 인터페이스를 가지고 있어, 다른 언어를 쓰다가 넘어온 개발자도 친숙하게 사용할 수 있다.
   
-## ts-mockito 사용법
+특히 직관적인 사용법과 IDE의 지원을 100% 받을 수 있다는 점은 생산성 측면에서 큰 차이이다.  
+그럼 이제 ts-mockito의 기본 사용법들을 알아보자.
 
-### When
+## 2. ts-mockito 사용법
+
+대부분의 사용법은 [공식 Github](https://github.com/NagRock/ts-mockito) 에 있으니 이를 참고하면 좋다.  
+  
+여기서는 가장 많이 사용되는 `when`, `verify`, `capture` 에 대해서 알아본다.
+
+### when
+
+when 
+```ts
+class TestClass {}
+const testFunction = () => true;
+
+    let mockService: OrderService;
+    beforeEach(() => {
+        mockService = mock(OrderService);
+    });
+
+    afterEach(() => {
+        reset(mockService);
+    });
+
+it('when', () => {
+    /** given **/
+    // string
+    when(mockService.getOrder(anyString())).thenReturn('anyString');
+    when(mockService.getOrder('inflab')).thenReturn('inflab');
+
+    // number
+    when(mockService.getOrder(anyNumber())).thenReturn('anyNumber');
+    when(mockService.getOrder(1)).thenReturn(1);
+
+    // Class & Function
+    when(mockService.getOrder(anyOfClass(TestClass))).thenReturn('TestClass');
+    when(mockService.getOrder(anyFunction())).thenReturn('anyFunction');
+    when(mockService.getOrder(testFunction)).thenReturn('testFunction');
+
+    // 범위 조건
+    when(mockService.getOrder(between(10, 20))).thenReturn('between 10 and 20');
+    when(mockService.getOrder(objectContaining({ a: 1 }))).thenReturn('{ a: 1 }');
+
+    /** when **/
+    const service: OrderService = instance(mockService);
+
+    /** then **/
+
+    // string
+    expect(service.getOrder('test')).toBe('anyString');
+    expect(service.getOrder('inflab')).toBe('inflab');
+
+    // number
+    expect(service.getOrder(22)).toBe('anyNumber');
+    expect(service.getOrder(1)).toBe(1);
+
+    // Class & Function
+    expect(service.getOrder(new TestClass())).toBe('TestClass');
+    expect(service.getOrder(() => {})).toBe('anyFunction');
+    expect(service.getOrder(testFunction)).toBe('testFunction');
+
+    // 범위 조건
+    expect(service.getOrder(19)).toBe('between 10 and 20');
+    expect(service.getOrder({ b: 2, c: 3, a: 1 })).toBe('{ a: 1 }');
+});
+```
+
 
 ### verify
+
+verify 는 지정된 인자가 특정 조건 (파라미터 값, 타입, 총 호출된 횟수, 호출 순서 등) 에 맞춰 호출되었음을 검증할 수 있습니다.  
+
 
 ### capture
