@@ -75,14 +75,17 @@ describe('ts-mockito', () => {
         service.getOrder(10);
 
         // Call Count verify
-        verify(service.getOrder(1)).times(1);
+        const methodStubVerificator1 = verify(service.getOrder(anyNumber()));
+        methodStubVerificator1.times(1);
         verify(service.getOrder(anyString())).times(2);
         verify(service.getOrder(anything())).times(4);
+        verify(service.getOrder(5)).never();
 
         verify(service.getOrder(10)).atLeast(1);
 
         // Call order verify
         verify(service.getOrder('test2')).calledBefore(service.getOrder(10));
+        verify(service.getOrder(10)).calledAfter(service.getOrder('test2'));
     });
 
     it('capture', () => {
@@ -121,7 +124,8 @@ describe('ts-mockito', () => {
         service.getBar(3);
 
         // Call count verification
-        verify(mockedFoo.getBar(1)).once();               // was called with arg === 1 only once
+        const methodStubVerificator = verify(mockedFoo.getBar(1));
+        methodStubVerificator.once();               // was called with arg === 1 only once
         verify(mockedFoo.getBar(2)).twice();              // was called with arg === 2 exactly two times
         verify(mockedFoo.getBar(between(2, 3))).thrice(); // was called with arg between 2-3 exactly three times
         verify(mockedFoo.getBar(anyNumber())).times(4);    // was called with any number arg exactly four times
