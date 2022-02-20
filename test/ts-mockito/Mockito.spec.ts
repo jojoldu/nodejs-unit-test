@@ -75,17 +75,15 @@ describe('ts-mockito', () => {
         service.getOrder(10);
 
         // Call Count verify
-        const methodStubVerificator1 = verify(service.getOrder(anyNumber()));
-        methodStubVerificator1.times(1);
-        verify(service.getOrder(anyString())).times(2);
-        verify(service.getOrder(anything())).times(4);
-        verify(service.getOrder(5)).never();
-
-        verify(service.getOrder(10)).atLeast(1);
+        verify(mockService.getOrder(anyNumber())).times(2);
+        verify(mockService.getOrder(anyString())).times(2);
+        verify(mockService.getOrder(anything())).times(4);
+        verify(mockService.getOrder(5)).never();
+        verify(mockService.getOrder(10)).atLeast(1);
 
         // Call order verify
-        verify(service.getOrder('test2')).calledBefore(service.getOrder(10));
-        verify(service.getOrder(10)).calledAfter(service.getOrder('test2'));
+        verify(mockService.getOrder('test2')).calledBefore(mockService.getOrder(10));
+        verify(mockService.getOrder(10)).calledAfter(mockService.getOrder('test2'));
     });
 
     it('capture', () => {
@@ -101,36 +99,5 @@ describe('ts-mockito', () => {
         expect(capture(mockService.getOrder).byCallIndex(1)).toStrictEqual([2]);
         expect(capture(mockService.getOrder).beforeLast()).toStrictEqual(['test']);
         expect(capture(mockService.getOrder).last()).toStrictEqual([{ a: 0 }]);
-    });
-
-
-    class Foo {
-        getBar(num: number): any {
-            return num;
-        }
-    }
-
-    it('verify example', () => {
-        // Creating mock
-        let mockedFoo:Foo = mock(Foo);
-
-        // Getting instance
-        let service:Foo = instance(mockedFoo);
-
-        // Some calls
-        service.getBar(1);
-        service.getBar(2);
-        service.getBar(2);
-        service.getBar(3);
-
-        // Call count verification
-        const methodStubVerificator = verify(mockedFoo.getBar(1));
-        methodStubVerificator.once();               // was called with arg === 1 only once
-        verify(mockedFoo.getBar(2)).twice();              // was called with arg === 2 exactly two times
-        verify(mockedFoo.getBar(between(2, 3))).thrice(); // was called with arg between 2-3 exactly three times
-        verify(mockedFoo.getBar(anyNumber())).times(4);    // was called with any number arg exactly four times
-        verify(mockedFoo.getBar(2)).atLeast(2);           // was called with arg === 2 min two times
-        verify(mockedFoo.getBar(anything())).atMost(4);   // was called with any argument max four times
-        verify(mockedFoo.getBar(4)).never();
     });
 });
