@@ -1,4 +1,4 @@
-# jest.mock 보다 ts-mockito 사용하기
+# (NodeJS 환경에서) jest.mock 보다 ts-mockito 사용하기 
 
 NodeJS 기반의 백엔드에서는 [NestJS](https://docs.nestjs.com/providers#dependency-injection), [RoutingControllers](https://github.com/typestack/routing-controllers) 등 최근 대세가 되는 MVC 프레임워크들이 모두 **Class를 기반으로 한 DI (Dependency Injection)** 방식을 사용하고 있다.  
   
@@ -18,7 +18,7 @@ NodeJS 기반의 백엔드에서는 [NestJS](https://docs.nestjs.com/providers#d
 먼저 기존 Jest 방식이 왜 불편한지 보자.  
 
 > Jest로 객체 Mock/Stub 하는것에 대한 불편함만 다룬다.  
-> **Jest의 모든 점이 안좋다는 것을 이야기하는 것이 아니다**.
+> 이외에는 **Jest는 장점이 많은 테스트 프레임워크이다**.
   
 테스트할 메인 코드는 다음과 같다.  
 
@@ -55,7 +55,8 @@ it('[jest.mock] 주문이 완료되지 못했다면 에러가 발생한다', () 
     // given
     const mockRepository = new OrderRepository();
     jest.spyOn(mockRepository, 'findById')
-        .mockImplementation((orderId) => orderId === 1?
+        .mockImplementation((orderId) => 
+        orderId === 1?
             Order.create(1000, LocalDateTime.now(), 'jest.mock')
             : undefined);
 
@@ -92,14 +93,11 @@ it('[jest.mock] 주문이 완료되지 못했다면 에러가 발생한다', () 
   * Stubbing 메소드 지정을 **문자열**로 하기 때문에 IDE의 리팩토링, 자동완성 등을 지원받을 수 없다.
   * 특히 직접 메소드를 입력해야하니 오타 문제 등이 존재한다
 * **불편한 인터페이스**
-  * 위와 같이 Stub 발생 조건이 `orderId==1` 과 같이 특별한 값이 들어올때로 한정해야할 경우 **Stub 함수에서 처리해야한다**
+  * 위와 같이 Stub 발생 조건이 `orderId==1` 과 같이 특정 조건이 필요할 경우 **Stub 함수에서 처리해야한다**
   * 이렇게 되면 Stub 코드와 발생 조건이 한 함수에서 묶여있어 단일 책임원칙에서 크게 위반된다
   * 이를 해결하기 위해 [jest-when](https://www.npmjs.com/package/jest-when) 라는 다른 패키지가 추가로 필요하다.  
 * **Test Runner에 종속적인 Mocking**
-  * 테스트 코드가 이미 Jest의 Mock 코드를 쓰고 있어, 다른 테스트 러너 Karama, Mocha, Cypress 등으로 교체하려고 할경우 테스트 코드 전체를 수정해야만한다
-  * Mock 라이브러리가 별도로 있을 경우 테스트 코드의 교체가 필요하진 않다.
-
-반대로 ts-mockito에서는 어떻게 테스트 코드를 작성하는지 비교해보자.
+  * 테스트 코드가 이미 Jest의 Mock 코드를 쓰고 있어, 다른 테스트 러너 (Karama, Mocha, Cypress) 등으로 교체하려고 할경우 테스트 코드 전체를 수정해야만한다
 
 ### ts-mockito
 
@@ -145,7 +143,7 @@ it('[ts-mockito] 주문이 완료되지 못했다면 에러가 발생한다', ()
 * 타 언어와 비슷한 사용법
   * JVM의 Mockito, C#의 Nuget 등과 유사한 인터페이스를 가지고 있어, 다른 언어를 쓰다가 넘어온 개발자도 친숙하게 사용할 수 있다.
   
-특히 직관적인 사용법과 IDE의 지원을 100% 받을 수 있다는 점은 생산성 측면에서 큰 차이이다.  
+특히 **직관적인 사용법**과 **IDE의 지원을 100% 받을 수 있다**는 점은 생산성 측면에서 큰 차이이다.  
 그럼 이제 ts-mockito의 기본 사용법들을 알아보자.
 
 ## 2. ts-mockito 사용법
@@ -156,22 +154,29 @@ it('[ts-mockito] 주문이 완료되지 못했다면 에러가 발생한다', ()
 
 ### when
 
-when 
+when은 **특정 상황에서 어떤 반환값 / 행위를 할지** 지정할 수 있다.  
+즉, 아래와 같은 상황을 지정할 수 있다.
+
+* A 라는 값이
+* B 라는 메소드로 전달되면
+* C 라는 값이 반환되어야 한다
+
+여기서 A라고 불리는 **특정 메소드 인자**의 범위는 다음과 같다
+
+* `1`, `"a"`, `{"name":"jojoldu"} `  등의 고정된 값
+* `anyString()`, `anyNumber()` 등 **문자열, 숫자**등의 타입
+* `anyOfClass()`, `anyFunction()` 등의 클래스, 함수 타입
+* `between()`, `objectContaining` 등 범위 조건
+
+대표적인 사례로 특정 값을 반환하는 `thenReturn` 은 다음과 같이 여러 케이스로 사용할 수 있다.
+
 ```ts
 class TestClass {}
 const testFunction = () => true;
 
-    let mockService: OrderService;
-    beforeEach(() => {
-        mockService = mock(OrderService);
-    });
-
-    afterEach(() => {
-        reset(mockService);
-    });
-
 it('when', () => {
     /** given **/
+    const mockService: OrderService = mock(OrderService);
     // string
     when(mockService.getOrder(anyString())).thenReturn('anyString');
     when(mockService.getOrder('inflab')).thenReturn('inflab');
@@ -213,10 +218,85 @@ it('when', () => {
 });
 ```
 
+이 `thenReturn` 외에 지정할 수 있는 것들이 많다
+
+* `thenThrow`: throw Error
+* `thenCall`: 별도의 커스텀 메소드(함수)를 호출
+* `thenResolve`: resolve promise 
+* `thenReject`:  rejects promise
 
 ### verify
 
-verify 는 지정된 인자가 특정 조건 (파라미터 값, 타입, 총 호출된 횟수, 호출 순서 등) 에 맞춰 호출되었음을 검증할 수 있습니다.  
+verify 는 지정된 인자가 **특정 조건** (파라미터 값, 타입, 총 호출된 횟수, 호출 순서 등) 에 맞춰 **몇번, 몇번째 순서로 호출되었음**을 검증할 수 있다.  
 
+```ts
+it('verify', () => {
+    const mockService: OrderService = mock(OrderService);
+    const service: OrderService = instance(mockService);
+
+    service.getOrder(1);
+    service.getOrder('test1');
+    service.getOrder('test2');
+    service.getOrder(10);
+
+    // Call Count verify
+    verify(mockService.getOrder(anyNumber())).times(2);
+    verify(mockService.getOrder(anyString())).times(2);
+    verify(mockService.getOrder(anything())).times(4);
+    verify(mockService.getOrder(5)).never(); // 절대 호출 X
+    verify(mockService.getOrder(10)).atLeast(1); // 적어도 1번
+
+    // Call order verify
+    verify(mockService.getOrder('test2')).calledBefore(mockService.getOrder(10));
+    verify(mockService.getOrder(10)).calledAfter(mockService.getOrder('test2'));
+});
+```
+
+verify 를 쓸때 주의할 점은 다음과 같다
+
+* `verify` 의 인자는 `instance()` 의 결과가 아닌 `mock(OrderService)` 의 결과가 사용되어야 한다
+
+when 절처럼 `instance(mockService)` 를 통해 검증해버리면 오류가 발생한다.  
+verify 자체가 검증문이고, 이때는 `mock(OrderService)` 의 결과를 사용해야함을 주의해야한다. 
 
 ### capture
+
+마지막으로 `capture` 이다.  
+capture는 **Stub 메소드로 넘어온 메소드 인자를 캡쳐**한다.  
+이를 통해 **Stub 메소드가 의도한 대로 호출되었음**을 검증할 수 있다.
+
+```ts
+it('capture', () => {
+    const mockService: OrderService = mock(OrderService);
+    const service: OrderService = instance(mockService);
+
+    service.getOrder(1);
+    service.getOrder(2);
+    service.getOrder('test');
+    service.getOrder({ a: 0 });
+
+    expect(capture(mockService.getOrder).first()).toStrictEqual([1]);
+    expect(capture(mockService.getOrder).byCallIndex(1)).toStrictEqual([2]);
+    expect(capture(mockService.getOrder).beforeLast()).toStrictEqual(['test']);
+    expect(capture(mockService.getOrder).last()).toStrictEqual([{ a: 0 }]);
+});
+```
+
+하나의 메소드에 하나의 인자만 들어올 것이 아니기 때문에 `capture` 의 결과는 **배열**이다.  
+그래서 단언문 (assertion) 에서는 항상 배열로 검증해야만 한다.
+
+
+## 마무리
+
+기존 `jest.mock` 에 비해 ts-mockito는 굉장히 mocking / stubbing을 쉽게 해준다.  
+mocking / stubbing 의 코드가 단순해지면서 **테스트 코드는 더욱 직관적**으로 작성할 수 있게 되었다.  
+이로 인해서 **내가 작성하지 않은 테스트 코드를 분석**하는데 들어가는 시간을 절약하게 되어 팀 전체의 생산성에 크게 기여하는 라이브러리이다.  
+
+다만 ts-mockito는 더이상 커밋이 되지않는 프로젝트이다.  
+그래서 fork 되어 [@johanblumenberg/ts-mockito](https://www.npmjs.com/package/@johanblumenberg/ts-mockito) 에서 이어지고 있다.  
+  
+기존의 ts-mockito에서 아쉬운 점이 있거나, 버그를 발견하게 된다면 위 fork 프로젝트로 전환을 할 수도 있다.  
+혹은 다른 mock 라이브러리가 좀 더 클래스 기반의 프로젝트를 쉽게 처리해준다면 해당 라이브러리로 환승할 수도 있다.  
+  
+그 전까지는 테스트 코드를 쉽게 작성하도록 도와주기 때문에 추천한다. 
+
