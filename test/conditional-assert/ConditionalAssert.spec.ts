@@ -1,6 +1,8 @@
 import { Calculator } from '../../src/calculator/Calculator';
 import { DateTimeFormatter, LocalDateTime } from 'js-joda';
 import { TimeDisplay } from '../../src/time-display/TimeDisplay';
+import { OrderStatus } from '../../src/order/OrderStatus';
+import { Order } from '../../src/order/Order';
 
 describe('조건부 검증 피하기', () => {
     it('가변결과 검증하는 경우', () => {
@@ -38,4 +40,29 @@ describe('조건부 검증 피하기', () => {
             }
         }
     });
+
+    describe('주문 상태 검증', () => {
+        it('추출된 중복 테스트 코드#1', () => {
+            testOrder(OrderStatus.COMPLETED);
+        });
+
+        it('추출된 중복 테스트 코드#2', () => {
+            testOrder(OrderStatus.CANCEL);
+        });
+
+        function testOrder(status: OrderStatus): void {
+            const order = new Order();
+            order.status = status;
+
+            if(status === OrderStatus.COMPLETED) {
+                expect(order.isCompleted()).toBeTruthy();
+            } else if (status === OrderStatus.CANCEL) {
+                expect(order.isCanceled()).toBeTruthy();
+            }
+        }
+    });
+
 });
+
+
+
