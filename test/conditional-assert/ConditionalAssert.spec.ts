@@ -5,7 +5,7 @@ import { OrderStatus } from '../../src/order/OrderStatus';
 import { Order } from '../../src/order/Order';
 
 describe('조건부 검증 피하기', () => {
-    it('가변결과 검증하는 경우', () => {
+    it('[Bad] 가변결과 검증하는 경우', () => {
         const now = LocalDateTime.now();
         const sut = new TimeDisplay();
         const result = sut.display(now);
@@ -23,6 +23,28 @@ describe('조건부 검증 피하기', () => {
 
         expect(result).toBe(actual);
     });
+
+
+    describe('[Good] 가변결과 검증하는 경우', () => {
+      it.each([
+          [0, 0, 'Midnight'],
+          [12, 0, 'Noon'],
+          [1, 1, '01:01:00'],
+      ])("hour=%s, minute=%s 이면 actual=%s", (hour, minute, actual) => {
+          const time = LocalDateTime.now()
+              .withHour(hour)
+              .withMinute(minute)
+              .withSecond(0);
+          const sut = new TimeDisplay();
+
+          const result = sut.display(time);
+
+          expect(result).toBe(actual);
+      });
+    });
+
+
+
 
     it('프로덕션 로직을 테스트에서 사용하는 경우', () => {
         const sut = new Calculator();
