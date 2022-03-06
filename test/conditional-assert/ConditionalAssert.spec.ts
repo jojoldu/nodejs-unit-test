@@ -11,7 +11,7 @@ describe('조건부 검증 피하기', () => {
         const result = sut.display(now);
 
         let actual;
-        if(now.hour() === 0 && now.minute() === 0) {
+        if (now.hour() === 0 && now.minute() === 0) {
             actual = 'Midnight';
         } else if (now.hour() === 12 && now.minute() === 0) {
             actual = 'Noon';
@@ -24,43 +24,55 @@ describe('조건부 검증 피하기', () => {
         expect(result).toBe(actual);
     });
 
-
     describe('[Good] 가변결과 검증하는 경우', () => {
-      it.each([
-          [0, 0, 'Midnight'],
-          [12, 0, 'Noon'],
-          [1, 1, '01:01:00'],
-      ])("hour=%s, minute=%s 이면 actual=%s", (hour, minute, actual) => {
-          const time = LocalDateTime.now()
-              .withHour(hour)
-              .withMinute(minute)
-              .withSecond(0);
-          const sut = new TimeDisplay();
 
-          const result = sut.display(time);
+        it('자정인경우 Midnight가 반환된다', () => {
+            const time = LocalDateTime.of(2022, 1, 1)
+                .withHour(0)
+                .withMinute(0)
+                .withSecond(0);
+            const sut = new TimeDisplay();
 
-          expect(result).toBe(actual);
-      });
+            const result = sut.display(time);
+
+            expect(result).toBe('Midnight');
+        });
+
+        it.each([
+            [0, 0, 'Midnight'],
+            [12, 0, 'Noon'],
+            [1, 1, '01:01:00'],
+        ])("hour=%s, minute=%s 이면 actual=%s", (hour, minute, actual) => {
+            const time = LocalDateTime.of(2022, 1, 1)
+                .withHour(hour)
+                .withMinute(minute)
+                .withSecond(0);
+            const sut = new TimeDisplay();
+
+            const result = sut.display(time);
+
+            expect(result).toBe(actual);
+        });
     });
 
-    it('[Bad] 프로덕션 로직을 테스트에서 사용하는 경우', () => {
+    it('[Bad] 테스트에서 프로덕션 로직 사용', () => {
         const sut = new Calculator();
         let result;
         for (let i = 0; i < 10; i++) {
             for (let j = 0; j < 10; j++) {
                 const actual = sut.calculate(i, j);
 
-                if (i==3 && j==4)  // 특이케이스
+                if (i == 3 && j == 4)  // 특이케이스
                     result = 8;
                 else
-                    result = i+j;
+                    result = i + j;
 
                 expect(result).toBe(actual);
             }
         }
     });
 
-    describe('[Good] 프로덕션 로직을 테스트에서 사용하는 경우', () => {
+    describe('[Good] 테스트에서 프로덕션 로직 사용', () => {
         it('[Good] Calculator 에 3, 4가 입력되면 8이 반환된다', () => {
             const sut = new Calculator();
 
@@ -95,7 +107,7 @@ describe('조건부 검증 피하기', () => {
             const order = new Order();
             order.status = status;
 
-            if(status === OrderStatus.COMPLETED) {
+            if (status === OrderStatus.COMPLETED) {
                 expect(order.isCompleted()).toBe(true); // boolean 타입까지 일치하는 것을 확인하기 위해
             } else if (status === OrderStatus.CANCEL) {
                 expect(order.isCanceled()).toBe(true);
@@ -119,9 +131,7 @@ describe('조건부 검증 피하기', () => {
             order.status = status;
             return order;
         }
-
     });
-
 });
 
 
