@@ -144,16 +144,16 @@ it('[Good] Calculator 에 3, 4가 입력되면 8이 반환된다', () => {
 다양한 케이스를 검증하고 싶다면, 1과 마찬가지로 **Parameterized Test** 를 사용해서 검증할 수 있다.
 
 ```ts
-    it.each([
-        [3, 4, 8],
-        [1, 1, 2],
-    ])("num1=%s, num2=%s 이면 actual=%s", (num1, num2, actual) => {
-        const sut = new Calculator();
+it.each([
+    [3, 4, 8],
+    [1, 1, 2],
+])("num1=%s, num2=%s 이면 actual=%s", (num1, num2, actual) => {
+    const sut = new Calculator();
 
-        const result = sut.calculate(num1, num2);
+    const result = sut.calculate(num1, num2);
 
-        expect(result).toBe(actual);
-    });
+    expect(result).toBe(actual);
+});
 ```
 
 ## 3. 중복 코드 추출로 인한 다중 검증
