@@ -1,4 +1,8 @@
-# 소나큐브를 통한 정적 분석
+# SonarCloud를 통한 Node.js & Jest 프로젝트 정적 분석하기
+
+> **회사에서 사용한다면 SonarQube를 추천한다**.  
+> 아직까지 SonarQube 만큼의 기능이 SonarCloud에서 지원하지 못하고 있다.
+> [SonarCloud or SonarQube? - Guidance on Choosing One for Your Team](https://blog.sonarsource.com/sq-sc_guidance)
 
 ```bash
 yarn add --dev jest-sonar-reporter sonarqube-scanner
