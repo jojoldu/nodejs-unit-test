@@ -49,8 +49,8 @@ export class OrderService {
 it('[Stub Class] 주문이 완료되지 못했다면 에러가 발생한다', () => {
   // given
   const stubRepository = new class extends OrderRepository {
-    override findById(id: number): MyOrder | undefined {
-      return MyOrder.create(1000, LocalDateTime.now(), '');
+    override findById(id: number): Order | undefined {
+      return Order.create(1000, LocalDateTime.now(), '');
     }
   }
 
@@ -77,8 +77,8 @@ export class OrderRepositoryStub extends OrderRepository {
     super();
   }
 
-  override findById(id: number): MyOrder | undefined {
-    return MyOrder.create(1000, LocalDateTime.now(), '');
+  override findById(id: number): Order | undefined {
+    return Order.create(1000, LocalDateTime.now(), '');
   }
 }
 ```
@@ -105,7 +105,7 @@ it('[Stub Class2] 주문이 완료되지 못했다면 에러가 발생한다', (
 ```ts
 it('[ts-mockito] 주문이 완료되지 못했다면 에러가 발생한다', () => {
   // given
-  const order = MyOrder.create(1000, LocalDateTime.now(), '');
+  const order = Order.create(1000, LocalDateTime.now(), '');
 
   const stubRepository: OrderRepository = mock(OrderRepository);
   when(stubRepository.findById(anyNumber())).thenReturn(order);
@@ -204,8 +204,8 @@ export class OrderService {
 ```ts
 export class BillingApiStub extends BillingApi {
   billingStatus: string;
-  completedOrder: MyOrder;
-  canceledOrder: MyOrder;
+  completedOrder: Order;
+  canceledOrder: Order;
 
   constructor(billingStatus: string) {
     super();
@@ -216,11 +216,11 @@ export class BillingApiStub extends BillingApi {
     return this.billingStatus;
   }
 
-  complete(order: MyOrder): void {
+  complete(order: Order): void {
     this.completedOrder = order;
   }
 
-  cancel(order: MyOrder): void {
+  cancel(order: Order): void {
     this.canceledOrder = order;
   }
 }
@@ -244,7 +244,7 @@ export class BillingApiStub extends BillingApi {
 it('주문이 완료인데, 결제가 아닐경우 결제 완료 요청을 한다', () => {
   // given
   const orderStatus = OrderStatus.COMPLETED;
-  const order = MyOrder.of(1000, orderStatus);
+  const order = Order.of(1000, orderStatus);
 
   const billingStatus = "CANCEL";
   const billingApiStub = new BillingApiStub(billingStatus);
@@ -274,7 +274,7 @@ it('주문이 완료인데, 결제가 아닐경우 결제 완료 요청을 한�
 it('주문이 취소인데, 결제가 아닐경우 결제 취소 요청을 한다', () => {
   // given
   const orderStatus = OrderStatus.CANCEL;
-  const order = MyOrder.of(1000, orderStatus);
+  const order = Order.of(1000, orderStatus);
 
   const billingStatus = "COMPLETED";
   const billingApiStub = new BillingApiStub(billingStatus);
@@ -300,7 +300,7 @@ it('주문이 취소인데, 결제가 아닐경우 결제 취소 요청을 한�
 it('주문과 결제가 동일한 상태일경우 추가결제요청은 하지 않는다', () => {
   // given     
   const orderStatus = OrderStatus.COMPLETED;
-  const order = MyOrder.of(1000, orderStatus);
+  const order = Order.of(1000, orderStatus);
 
   const billingStatus = "COMPLETED";
   const billingApiStub = new BillingApiStub(billingStatus);

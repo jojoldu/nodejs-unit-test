@@ -14,14 +14,14 @@ xUnit에서는 테스트 대상 시스템 (System Under Test, 이하 **SUT**) �
 
 ```typescript
 describe('Order1', () => {
-  let sut: MyOrder;
+  let sut: Order;
 
   beforeEach(() => {
-    sut = MyOrder.create(1000, LocalDateTime.of(2021, 10, 30, 10, 0, 0), "배민주문");
+    sut = Order.create(1000, LocalDateTime.of(2021, 10, 30, 10, 0, 0), "배민주문");
   });
 
   it('주문취소1', () => {
-    const cancelOrder: MyOrder = sut.cancel(LocalDateTime.of(2021, 10, 31, 0, 0, 0));
+    const cancelOrder: Order = sut.cancel(LocalDateTime.of(2021, 10, 31, 0, 0, 0));
 
     expect(cancelOrder.status).toBe(OrderStatus.CANCEL);
     expect(cancelOrder.amount).toBe(-1000);
@@ -106,7 +106,7 @@ describe('Order2', () => {
     const description = "배민주문";
     const sut = createOrder(amount, description);
 
-    const cancelOrder: MyOrder = sut.cancel(LocalDateTime.of(2021, 10, 31, 0, 0, 0));
+    const cancelOrder: Order = sut.cancel(LocalDateTime.of(2021, 10, 31, 0, 0, 0));
 
     expect(cancelOrder.status).toBe(OrderStatus.CANCEL);
     expect(cancelOrder.amount).toBe(-amount);
@@ -121,7 +121,7 @@ describe('Order2', () => {
 });
 
 function createOrder(amount: number = 1000, description: string = "배민주문") {
-  return MyOrder.create(amount, LocalDateTime.of(2021, 10, 30, 10, 0, 0), description);
+  return Order.create(amount, LocalDateTime.of(2021, 10, 30, 10, 0, 0), description);
 }
 ```
 
@@ -138,7 +138,7 @@ describe('Order2', () => {
     const description = "배민주문";
     const sut = TestOrderFactory.create(amount, description);
 
-    const cancelOrder: MyOrder = sut.cancel(LocalDateTime.of(2021, 10, 31, 0, 0, 0));
+    const cancelOrder: Order = sut.cancel(LocalDateTime.of(2021, 10, 31, 0, 0, 0));
 
     expect(cancelOrder.status).toBe(OrderStatus.CANCEL);
     expect(cancelOrder.amount).toBe(-amount);

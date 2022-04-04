@@ -231,7 +231,7 @@ it('[Good] 추출된 중복 테스트 코드#2', () => {
   expect(sut.isCanceled()).toBe(true);
 });
 
-function createOrder(status: OrderStatus): MyOrder {
+function createOrder(status: OrderStatus): Order {
   const order = new Order();
   order.status = status;
   return order;

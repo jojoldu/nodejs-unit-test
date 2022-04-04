@@ -57,7 +57,7 @@ it('[jest.mock] 주문이 완료되지 못했다면 에러가 발생한다', () 
   jest.spyOn(mockRepository, 'findById')
     .mockImplementation((orderId) =>
       orderId === 1 ?
-        MyOrder.create(1000, LocalDateTime.now(), 'jest.mock')
+        Order.create(1000, LocalDateTime.now(), 'jest.mock')
         : undefined);
 
   const sut = new OrderService(mockRepository);
@@ -106,7 +106,7 @@ ts-mockito 를 통해 위의 테스트를 다시 구현해보자.
 ```ts
 it('[ts-mockito] 주문이 완료되지 못했다면 에러가 발생한다', () => {
   // given
-  const order = MyOrder.create(1000, LocalDateTime.now(), 'ts-mockito');
+  const order = Order.create(1000, LocalDateTime.now(), 'ts-mockito');
 
   const stubRepository: OrderRepository = mock(OrderRepository); // stub 객체 생성
   when(stubRepository.findById(1)).thenReturn(order); // when
