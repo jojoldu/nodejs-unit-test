@@ -48,27 +48,27 @@ export class OrderService {
 Jest는 기본적으로 **함수 혹은 모듈을 Mocking** 할 수 있다.  
 다만 클래스를 기반으로 하는 객체를 Stub, Mock 하는 것이 상대적으로 매끄럽지 못하다.  
   
-이를테면 일반적인 DI 기반의 NodeJS 백엔드 프레임워크에서 **특정 객체의 특정 메소드만 의도한 대로 작동**하도록 하기 위해서 Jest는 다음과 같이 `spyOn` 방법을 지원한다.  
-  
+이를테면 일반적인 DI 기반의 NodeJS 백엔드 프레임워크에서 **특정 객체의 특정 메소드만 의도한 대로 작동**하도록 하기 위해서 Jest는 다음과 같이 `spyOn` 방법을 지원한다.
+
 ```ts
 it('[jest.mock] 주문이 완료되지 못했다면 에러가 발생한다', () => {
-    // given
-    const mockRepository = new OrderRepository();
-    jest.spyOn(mockRepository, 'findById')
-        .mockImplementation((orderId) => 
-        orderId === 1?
-            Order.create(1000, LocalDateTime.now(), 'jest.mock')
-            : undefined);
+  // given
+  const mockRepository = new OrderRepository();
+  jest.spyOn(mockRepository, 'findById')
+    .mockImplementation((orderId) =>
+      orderId === 1 ?
+        MyOrder.create(1000, LocalDateTime.now(), 'jest.mock')
+        : undefined);
 
-    const sut = new OrderService(mockRepository);
+  const sut = new OrderService(mockRepository);
 
-    // when
-    const actual = () => {
-        sut.validateCompletedOrder(1)
-    };
+  // when
+  const actual = () => {
+    sut.validateCompletedOrder(1)
+  };
 
-    // then
-    expect(actual).toThrow('아직 완료처리되지 못했습니다.');
+  // then
+  expect(actual).toThrow('아직 완료처리되지 못했습니다.');
 });
 ```
 
@@ -105,21 +105,21 @@ ts-mockito 를 통해 위의 테스트를 다시 구현해보자.
 
 ```ts
 it('[ts-mockito] 주문이 완료되지 못했다면 에러가 발생한다', () => {
-    // given
-    const order = Order.create(1000, LocalDateTime.now(), 'ts-mockito');
+  // given
+  const order = MyOrder.create(1000, LocalDateTime.now(), 'ts-mockito');
 
-    const stubRepository: OrderRepository = mock(OrderRepository); // stub 객체 생성
-    when(stubRepository.findById(1)).thenReturn(order); // when
+  const stubRepository: OrderRepository = mock(OrderRepository); // stub 객체 생성
+  when(stubRepository.findById(1)).thenReturn(order); // when
 
-    const sut = new OrderService(instance(stubRepository));
+  const sut = new OrderService(instance(stubRepository));
 
-    // when
-    const actual = () => {
-        sut.validateCompletedOrder(1)
-    };
+  // when
+  const actual = () => {
+    sut.validateCompletedOrder(1)
+  };
 
-    // then
-    expect(actual).toThrow('아직 완료처리되지 못했습니다.');
+  // then
+  expect(actual).toThrow('아직 완료처리되지 못했습니다.');
 });
 ```
 

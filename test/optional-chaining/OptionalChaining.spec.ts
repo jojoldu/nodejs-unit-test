@@ -1,4 +1,4 @@
-describe('Optional chaining', () => {
+describe.skip('Optional chaining', () => {
     it('?가 있는 경우 #1', () => {
         const amount = 0;
         const sut = createOrder(amount);
@@ -33,10 +33,10 @@ function createOrder(amount?) {
         return undefined;
     }
 
-    return new Order(amount);
+    return new MyOrder(amount);
 }
 
-class Order {
+class MyOrder {
     pay;
 
     constructor(amount?) {

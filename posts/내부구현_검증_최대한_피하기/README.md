@@ -126,17 +126,25 @@ describe('OrderAmountSum2', () => {
 
 ```javascript
 export class OrderService {
-    constructor(private readonly orderRepository: OrderRepository) {
-    }
+  constructor(private
 
-    saveOrUpdate(order: Order): void {
-        const savedOrder = this.orderRepository.findById(order.id);
-        if (savedOrder) {
-            this.orderRepository.update(order);
-        } else {
-            this.orderRepository.save(order);
-        }
-    }
+  readonly
+  orderRepository: OrderRepository
+) {
+}
+
+saveOrUpdate(order
+:
+MyOrder
+):
+void {
+  const savedOrder = this.orderRepository.findById(order.id);
+  if(savedOrder) {
+    this.orderRepository.update(order);
+  } else {
+    this.orderRepository.save(order);
+  }
+}
 }
 ```
 
@@ -144,13 +152,13 @@ export class OrderService {
 
 ```javascript
 it('기존 주문이 있으면 새 정보로 갱신된다', () => {
-    const savedOrder = Order.create(1000, LocalDateTime.now(), '');
-    when(mockedRepository.findById(anyNumber())).thenReturn(savedOrder);
-    const sut = new OrderService(instance(mockedRepository));
+  const savedOrder = MyOrder.create(1000, LocalDateTime.now(), '');
+  when(mockedRepository.findById(anyNumber())).thenReturn(savedOrder);
+  const sut = new OrderService(instance(mockedRepository));
 
-    sut.saveOrUpdate(createOrder(savedOrder, 200));
+  sut.saveOrUpdate(createOrder(savedOrder, 200));
 
-    verify(mockedRepository.update(anything())).called();
+  verify(mockedRepository.update(anything())).called();
 });
 ```
 
@@ -161,8 +169,12 @@ it('기존 주문이 있으면 새 정보로 갱신된다', () => {
 만약 `saveOrUpdate` 의 내부가 다음처럼 변경되면 어떻게 될까?
 
 ```javascript
-saveOrUpdate(order: Order): void {
-    this.orderRepository.saveOrUpdate(order);
+saveOrUpdate(order
+:
+MyOrder
+):
+void {
+  this.orderRepository.saveOrUpdate(order);
 }
 ```
 
@@ -172,15 +184,15 @@ saveOrUpdate(order: Order): void {
 
 ```javascript
 it('[After] 기존 주문이 있으면 새 정보로 갱신된다', () => {
-    const savedOrder = realRepository.save(Order.create(1000, LocalDateTime.now(), ''));
-    const expectAmount = 200;
+  const savedOrder = realRepository.save(MyOrder.create(1000, LocalDateTime.now(), ''));
+  const expectAmount = 200;
 
-    const sut = new OrderService(realRepository);
-    sut.saveOrUpdate2(createOrder(savedOrder, expectAmount));
+  const sut = new OrderService(realRepository);
+  sut.saveOrUpdate2(createOrder(savedOrder, expectAmount));
 
-    const result = realRepository.findById(savedOrder.id);
+  const result = realRepository.findById(savedOrder.id);
 
-    expect(result.amount).toBe(expectAmount);
+  expect(result.amount).toBe(expectAmount);
 });
 ```
 

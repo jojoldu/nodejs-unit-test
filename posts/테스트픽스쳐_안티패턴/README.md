@@ -14,19 +14,19 @@ xUnit에서는 테스트 대상 시스템 (System Under Test, 이하 **SUT**) �
 
 ```typescript
 describe('Order1', () => {
-    let sut: Order;
+  let sut: MyOrder;
 
-    beforeEach(() => {
-        sut = Order.create(1000, LocalDateTime.of(2021,10,30, 10,0,0), "배민주문");
-    });
+  beforeEach(() => {
+    sut = MyOrder.create(1000, LocalDateTime.of(2021, 10, 30, 10, 0, 0), "배민주문");
+  });
 
-    it('주문취소1', () => {
-        const cancelOrder: Order = sut.cancel(LocalDateTime.of(2021,10,31,0,0,0));
+  it('주문취소1', () => {
+    const cancelOrder: MyOrder = sut.cancel(LocalDateTime.of(2021, 10, 31, 0, 0, 0));
 
-        expect(cancelOrder.status).toBe(OrderStatus.CANCEL);
-        expect(cancelOrder.amount).toBe(-1000);
-        expect(cancelOrder.description).toBe('배민주문');
-    });
+    expect(cancelOrder.status).toBe(OrderStatus.CANCEL);
+    expect(cancelOrder.amount).toBe(-1000);
+    expect(cancelOrder.description).toBe('배민주문');
+  });
 });
 ```
 
@@ -101,55 +101,55 @@ setup을 통하는 모든 테스트 메소드들이 10,000원이 15,000원이 �
 ```typescript
 describe('Order2', () => {
 
-    it('주문취소1', () => {
-        const amount = 1000;
-        const description = "배민주문";
-        const sut = createOrder(amount,  description);
+  it('주문취소1', () => {
+    const amount = 1000;
+    const description = "배민주문";
+    const sut = createOrder(amount, description);
 
-        const cancelOrder: Order = sut.cancel(LocalDateTime.of(2021,10,31,0,0,0));
+    const cancelOrder: MyOrder = sut.cancel(LocalDateTime.of(2021, 10, 31, 0, 0, 0));
 
-        expect(cancelOrder.status).toBe(OrderStatus.CANCEL);
-        expect(cancelOrder.amount).toBe(-amount);
-        expect(cancelOrder.description).toBe(description);
-    });
+    expect(cancelOrder.status).toBe(OrderStatus.CANCEL);
+    expect(cancelOrder.amount).toBe(-amount);
+    expect(cancelOrder.description).toBe(description);
+  });
 
-    it('주문취소2', () => {
-        const amount = 1000;
-        const sut = createOrder(amount);
-        expect(sut.cancel(LocalDateTime.of(2021,10,31,0,0,0)).amount).toBe(-amount);
-    });
+  it('주문취소2', () => {
+    const amount = 1000;
+    const sut = createOrder(amount);
+    expect(sut.cancel(LocalDateTime.of(2021, 10, 31, 0, 0, 0)).amount).toBe(-amount);
+  });
 });
 
 function createOrder(amount: number = 1000, description: string = "배민주문") {
-    return Order.create(amount, LocalDateTime.of(2021, 10, 30, 10, 0, 0), description);
+  return MyOrder.create(amount, LocalDateTime.of(2021, 10, 30, 10, 0, 0), description);
 }
 ```
 
 * 여기서는 테스트 환경을 의도적으로 구성할 수 있도록 ` createOrder(amount,  description)` 혹은 `createOrder(amount)` 와 같이 테스트에 사용되는 값만 설정한다.
 * 테스트에 필요하지 않은 값들은 **기본 값들로 구성한다**
 
-만약 여러 곳에서 사용될 수 있는 픽스처라고 한다면 아래와 같이 아예 별도의 팩토리 클래스로 추출해서 사용하는 것도 좋다. 
+만약 여러 곳에서 사용될 수 있는 픽스처라고 한다면 아래와 같이 아예 별도의 팩토리 클래스로 추출해서 사용하는 것도 좋다.
 
 ```typescript
 describe('Order2', () => {
 
-    it('주문취소1', () => {
-        const amount = 1000;
-        const description = "배민주문";
-        const sut = TestOrderFactory.create(amount,  description);
+  it('주문취소1', () => {
+    const amount = 1000;
+    const description = "배민주문";
+    const sut = TestOrderFactory.create(amount, description);
 
-        const cancelOrder: Order = sut.cancel(LocalDateTime.of(2021,10,31,0,0,0));
+    const cancelOrder: MyOrder = sut.cancel(LocalDateTime.of(2021, 10, 31, 0, 0, 0));
 
-        expect(cancelOrder.status).toBe(OrderStatus.CANCEL);
-        expect(cancelOrder.amount).toBe(-amount);
-        expect(cancelOrder.description).toBe(description);
-    });
+    expect(cancelOrder.status).toBe(OrderStatus.CANCEL);
+    expect(cancelOrder.amount).toBe(-amount);
+    expect(cancelOrder.description).toBe(description);
+  });
 
-    it('주문취소2', () => {
-        const amount = 1000;
-        const sut = TestOrderFactory.create(amount);
-        expect(sut.cancel(LocalDateTime.of(2021,10,31,0,0,0)).amount).toBe(-amount);
-    });
+  it('주문취소2', () => {
+    const amount = 1000;
+    const sut = TestOrderFactory.create(amount);
+    expect(sut.cancel(LocalDateTime.of(2021, 10, 31, 0, 0, 0)).amount).toBe(-amount);
+  });
 });
 ```
 

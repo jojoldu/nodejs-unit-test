@@ -5,7 +5,7 @@ describe('toBe(false)와 toBeFalsy() 구분하기', () => {
     expect(result).toBeFalsy();
   });
 
-  it('toBe(false)로 검증하면 0은 통과되지 못한다', () => {
+  it.skip('toBe(false)로 검증하면 0은 통과되지 못한다', () => {
     const result = calculate();
 
     expect(result).toBe(false);

@@ -43,26 +43,26 @@ export class OrderService {
 
 2가지 방식을 다 확인해볼텐데요.  
   
-먼저 직접 Stub 객체를 구현할 경우 **익명 클래스**를 이용하거나 **일반 클래스**를 구현해서 만들수 있습니다.  
+먼저 직접 Stub 객체를 구현할 경우 **익명 클래스**를 이용하거나 **일반 클래스**를 구현해서 만들수 있습니다.
 
 ```ts
 it('[Stub Class] 주문이 완료되지 못했다면 에러가 발생한다', () => {
-    // given
-    const stubRepository = new class extends OrderRepository {
-        override findById(id: number): Order | undefined {
-            return Order.create(1000, LocalDateTime.now(), '');
-        }
+  // given
+  const stubRepository = new class extends OrderRepository {
+    override findById(id: number): MyOrder | undefined {
+      return MyOrder.create(1000, LocalDateTime.now(), '');
     }
+  }
 
-    const sut = new OrderService(stubRepository);
+  const sut = new OrderService(stubRepository);
 
-    // when
-    const actual = () => {
-        sut.validateCompletedOrder(1)
-    };
+  // when
+  const actual = () => {
+    sut.validateCompletedOrder(1)
+  };
 
-    // then
-    expect(actual).toThrow('아직 완료처리되지 못했습니다.');
+  // then
+  expect(actual).toThrow('아직 완료처리되지 못했습니다.');
 });
 ```
 
@@ -73,13 +73,13 @@ it('[Stub Class] 주문이 완료되지 못했다면 에러가 발생한다', ()
 
 ```ts
 export class OrderRepositoryStub extends OrderRepository {
-    constructor() {
-        super();
-    }
+  constructor() {
+    super();
+  }
 
-    override findById(id: number): Order | undefined {
-        return Order.create(1000, LocalDateTime.now(), '');
-    }
+  override findById(id: number): MyOrder | undefined {
+    return MyOrder.create(1000, LocalDateTime.now(), '');
+  }
 }
 ```
 
@@ -104,21 +104,21 @@ it('[Stub Class2] 주문이 완료되지 못했다면 에러가 발생한다', (
 
 ```ts
 it('[ts-mockito] 주문이 완료되지 못했다면 에러가 발생한다', () => {
-    // given
-    const order = Order.create(1000, LocalDateTime.now(), '');
+  // given
+  const order = MyOrder.create(1000, LocalDateTime.now(), '');
 
-    const stubRepository: OrderRepository = mock(OrderRepository);
-    when(stubRepository.findById(anyNumber())).thenReturn(order);
+  const stubRepository: OrderRepository = mock(OrderRepository);
+  when(stubRepository.findById(anyNumber())).thenReturn(order);
 
-    const sut = new OrderService(instance(stubRepository));
+  const sut = new OrderService(instance(stubRepository));
 
-    // when
-    const actual = () => {
-        sut.validateCompletedOrder(1)
-    };
+  // when
+  const actual = () => {
+    sut.validateCompletedOrder(1)
+  };
 
-    // then
-    expect(actual).toThrow('아직 완료처리되지 못했습니다.');
+  // then
+  expect(actual).toThrow('아직 완료처리되지 못했습니다.');
 });
 
 ```
@@ -199,30 +199,30 @@ export class OrderService {
 
 ### 예제 2. 테스트 코드
 
-첫번째 예제에서 사용한 **직접 구현한 Stub 객체** 을 이용하면 쉽게 해결할 수 있습니다.  
+첫번째 예제에서 사용한 **직접 구현한 Stub 객체** 을 이용하면 쉽게 해결할 수 있습니다.
 
 ```ts
 export class BillingApiStub extends BillingApi {
-    billingStatus: string;
-    completedOrder: Order;
-    canceledOrder: Order;
+  billingStatus: string;
+  completedOrder: MyOrder;
+  canceledOrder: MyOrder;
 
-    constructor(billingStatus: string) {
-        super();
-        this.billingStatus = billingStatus;
-    }
+  constructor(billingStatus: string) {
+    super();
+    this.billingStatus = billingStatus;
+  }
 
-    getBillingStatus(orderId: number): string {
-        return this.billingStatus;
-    }
+  getBillingStatus(orderId: number): string {
+    return this.billingStatus;
+  }
 
-    complete(order: Order): void {
-        this.completedOrder = order;
-    }
+  complete(order: MyOrder): void {
+    this.completedOrder = order;
+  }
 
-    cancel(order: Order): void {
-        this.canceledOrder = order;
-    }
+  cancel(order: MyOrder): void {
+    this.canceledOrder = order;
+  }
 }
 ```
 
@@ -242,25 +242,25 @@ export class BillingApiStub extends BillingApi {
 
 ```ts
 it('주문이 완료인데, 결제가 아닐경우 결제 완료 요청을 한다', () => {
-    // given
-    const orderStatus = OrderStatus.COMPLETED;
-    const order = Order.of(1000, orderStatus);
+  // given
+  const orderStatus = OrderStatus.COMPLETED;
+  const order = MyOrder.of(1000, orderStatus);
 
-    const billingStatus = "CANCEL";
-    const billingApiStub = new BillingApiStub(billingStatus);
+  const billingStatus = "CANCEL";
+  const billingApiStub = new BillingApiStub(billingStatus);
 
-    const stubRepository: OrderRepository = mock(OrderRepository);
-    when(stubRepository.findById(anyNumber())).thenReturn(order);
+  const stubRepository: OrderRepository = mock(OrderRepository);
+  when(stubRepository.findById(anyNumber())).thenReturn(order);
 
-    const sut = new OrderService(instance(stubRepository), billingApiStub);
+  const sut = new OrderService(instance(stubRepository), billingApiStub);
 
-    // when
-    sut.compareBilling(order.id);
+  // when
+  sut.compareBilling(order.id);
 
-    // then
-    expect(billingApiStub.completedOrder.id).toBe(order.id);
-    expect(billingApiStub.completedOrder.status).toBe(orderStatus);
-    expect(billingApiStub.canceledOrder).toBeUndefined();
+  // then
+  expect(billingApiStub.completedOrder.id).toBe(order.id);
+  expect(billingApiStub.completedOrder.status).toBe(orderStatus);
+  expect(billingApiStub.canceledOrder).toBeUndefined();
 });
 ```
 
@@ -272,25 +272,25 @@ it('주문이 완료인데, 결제가 아닐경우 결제 완료 요청을 한�
 
 ```ts
 it('주문이 취소인데, 결제가 아닐경우 결제 취소 요청을 한다', () => {
-    // given
-    const orderStatus = OrderStatus.CANCEL;
-    const order = Order.of(1000, orderStatus);
+  // given
+  const orderStatus = OrderStatus.CANCEL;
+  const order = MyOrder.of(1000, orderStatus);
 
-    const billingStatus = "COMPLETED";
-    const billingApiStub = new BillingApiStub(billingStatus);
+  const billingStatus = "COMPLETED";
+  const billingApiStub = new BillingApiStub(billingStatus);
 
-    const stubRepository: OrderRepository = mock(OrderRepository);
-    when(stubRepository.findById(anyNumber())).thenReturn(order);
+  const stubRepository: OrderRepository = mock(OrderRepository);
+  when(stubRepository.findById(anyNumber())).thenReturn(order);
 
-    const sut = new OrderService(instance(stubRepository), billingApiStub);
+  const sut = new OrderService(instance(stubRepository), billingApiStub);
 
-    // when
-    sut.compareBilling(order.id);
+  // when
+  sut.compareBilling(order.id);
 
-    // then
-    expect(billingApiStub.canceledOrder.id).toBe(order.id);
-    expect(billingApiStub.canceledOrder.status).toBe(orderStatus);
-    expect(billingApiStub.completedOrder).toBeUndefined();
+  // then
+  expect(billingApiStub.canceledOrder.id).toBe(order.id);
+  expect(billingApiStub.canceledOrder.status).toBe(orderStatus);
+  expect(billingApiStub.completedOrder).toBeUndefined();
 });
 ```
 
@@ -298,24 +298,24 @@ it('주문이 취소인데, 결제가 아닐경우 결제 취소 요청을 한�
 
 ```ts
 it('주문과 결제가 동일한 상태일경우 추가결제요청은 하지 않는다', () => {
-    // given     
-    const orderStatus = OrderStatus.COMPLETED;
-    const order = Order.of(1000, orderStatus);
+  // given     
+  const orderStatus = OrderStatus.COMPLETED;
+  const order = MyOrder.of(1000, orderStatus);
 
-    const billingStatus = "COMPLETED";
-    const billingApiStub = new BillingApiStub(billingStatus);
+  const billingStatus = "COMPLETED";
+  const billingApiStub = new BillingApiStub(billingStatus);
 
-    const stubRepository: OrderRepository = mock(OrderRepository);
-    when(stubRepository.findById(anyNumber())).thenReturn(order);
+  const stubRepository: OrderRepository = mock(OrderRepository);
+  when(stubRepository.findById(anyNumber())).thenReturn(order);
 
-    const sut = new OrderService(instance(stubRepository), billingApiStub);
+  const sut = new OrderService(instance(stubRepository), billingApiStub);
 
-    // when
-    sut.compareBilling(order.id);
+  // when
+  sut.compareBilling(order.id);
 
-    // then
-    expect(billingApiStub.completedOrder).toBeUndefined();
-    expect(billingApiStub.canceledOrder).toBeUndefined();
+  // then
+  expect(billingApiStub.completedOrder).toBeUndefined();
+  expect(billingApiStub.canceledOrder).toBeUndefined();
 });
 ```
 

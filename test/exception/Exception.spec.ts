@@ -1,4 +1,4 @@
-describe('Exception', () => {
+describe.skip('Exception', () => {
     describe('1. 의도한 대로 수행되는 테스트', () => {
         it("[try/catch] 주문금액이 -이면 BadParameter Exception 을 던진다.", async () => {
             try {

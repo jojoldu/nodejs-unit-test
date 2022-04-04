@@ -47,7 +47,7 @@ describe('OrderService', () => {
             expect(actual).toThrow('아직 완료처리되지 못했습니다.');
         });
 
-        it('[jest.mock3] 주문이 완료되지 못했다면 에러가 발생한다', () => {
+        it.skip('[jest.mock3] 주문이 완료되지 못했다면 에러가 발생한다', () => {
             // given
             const mockRepository = new OrderRepository();
             jest.spyOn(mockRepository, 'findById')

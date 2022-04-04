@@ -220,21 +220,21 @@ function testOrder(status: OrderStatus): void {
 
 ```ts
 it('[Good] 추출된 중복 테스트 코드#1', () => {
-    const sut = createOrder(OrderStatus.COMPLETED);
+  const sut = createOrder(OrderStatus.COMPLETED);
 
-    expect(sut.isCompleted()).toBe(true);
+  expect(sut.isCompleted()).toBe(true);
 });
 
 it('[Good] 추출된 중복 테스트 코드#2', () => {
-    const sut = createOrder(OrderStatus.CANCEL);
+  const sut = createOrder(OrderStatus.CANCEL);
 
-    expect(sut.isCanceled()).toBe(true);
+  expect(sut.isCanceled()).toBe(true);
 });
 
-function createOrder(status: OrderStatus): Order {
-    const order = new Order();
-    order.status = status;
-    return order;
+function createOrder(status: OrderStatus): MyOrder {
+  const order = new Order();
+  order.status = status;
+  return order;
 }
 ```
 
