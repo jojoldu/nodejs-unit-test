@@ -1,4 +1,8 @@
-# toBe(true) 보다는 toBe(b)
+# expect안에서 검증하지 않기
+
+간혹 코드를 보면 **expect 안에서 검증을 하는 코드**를 보곤 한다.  
+
+
 
 ```ts
 expect(a==b).toBe(true) 보다는 expect(a).toBe(b)
