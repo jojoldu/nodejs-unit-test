@@ -1,6 +1,6 @@
 describe('toBe(false)와 toBeFalsy() 구분하기', () => {
   it('falsy로 검증하면 0도 통과된다', () => {
-    const result = calculate();
+    const result = calculate(); // result가 0임에도
 
     expect(result).toBeFalsy();
   });
@@ -17,11 +17,10 @@ describe('toBe(false)와 toBeFalsy() 구분하기', () => {
     expect(result).toBeFalsy();
   });
 
-  it.skip('toBe(false)로 검증하면 0은 통과되지 못한다', () => {
+  it('toBe(false)로 검증하면 0은 통과되지 못한다', () => {
     const result = calculate(0);
 
     expect(result).toBe(false);
-
   });
 
 
