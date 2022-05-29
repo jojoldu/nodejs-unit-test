@@ -84,7 +84,7 @@
 다음과 같은 코드는 **테스트 작성이 너무나 어렵다**.
 
 ```sql
-sql.query(`
+query(`
   SELECT *
   FROM table
   WHERE created_at <= NOW()
