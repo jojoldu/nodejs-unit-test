@@ -2,7 +2,7 @@ import { LocalDateTime } from 'js-joda';
 import { OrderStatus } from './OrderStatus';
 import { Pay } from './Pay';
 
-export class Order {
+export default class Order {
 
     private _id: number;
     private _amount: number;
@@ -45,6 +45,16 @@ export class Order {
         newOrder._orderDateTime = orderTime;
         newOrder._description = description;
         return newOrder;
+    }
+
+    validateAccept(): void {
+        if(this.amount < 0) {
+            throw new Error(`주문시 -금액은 될 수 없습니다. amount=${amount}`);
+        }
+
+        if(!this.description) {
+            throw new Error(`주문명은 필수입니다.`);
+        }
     }
 
     cancel(cancelTime:LocalDateTime): Order {

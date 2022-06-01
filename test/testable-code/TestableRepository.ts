@@ -1,6 +1,11 @@
 import Posts from './Posts';
+import Order from 'src/order/Order';
 
 export default class TestableRepository {
+
+  async acceptOrder(order: Order): Promise<void> {
+
+  }
 
   write(posts: Posts): void {
   }
