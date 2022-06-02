@@ -2,24 +2,25 @@ import Posts from './Posts';
 import Order from 'src/order/Order';
 
 export default class TestableRepository {
+  constructor() {
+  }
 
   async acceptOrder(order: Order): Promise<void> {
-
   }
 
-  write(posts: Posts): void {
+  async write(posts: Posts): Promise<void> {
   }
 
-  recentItems():string {
-    return query(`
-      SELECT *
-      FROM table
-      WHERE created_at <= NOW()
+  async recentItems(): Promise<string> {
+    return this.query(`
+        SELECT *
+        FROM table
+        WHERE created_at <= NOW()
     `);
   }
-}
 
-export function query(sql: string) {
-  console.log(sql);
-  return sql;
+  query(sql: string) {
+    console.log(sql);
+    return new Promise(sql);
+  }
 }
