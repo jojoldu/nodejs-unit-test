@@ -84,8 +84,27 @@
 이를테면 다음과 같은 함수일 경우 테스트 작성이 어렵다.
 
 ```ts
+public async acceptOrder(amount: number, description: string) {
+  if(amount < 0) {
+    throw new Error(`주문시 -금액은 될 수 없습니다. amount=${amount}`);
+  }
 
+  if(!description) {
+    throw new Error(`주문명은 필수입니다.`);
+  }
+
+  const order = Order.create(amount, LocalDateTime.now(), description);
+
+  await this.repository.acceptOrder(order);
+}
 ```
+
+여기서 테스트를 어렵게 만드는 부분은 2군데이다.
+
+* `Order.create(amount, LocalDateTime.now(), description)`
+* `await this.repository.acceptOrder(order)`
+
+이 둘이 테스트
 
 ### 외부에 영향을 주는 코드
 
@@ -100,7 +119,7 @@
 그런면에 있어서 TS와 같이 **외부와의 연동이 필요한 경우** 항상 `async`가 필요한 경우는 구분하기가 편하다.  
 **외부의 세상에 영향을 주는 것**인지 구분을 `async` 함수인지로 구분하면 되기 때문이다.  
 
-즉, (TypeScript 등의 경우) `async` 함수는 테스트하기 어려운 코드로 봐도 무방하기 때문에 `async` 함수를 **얼마나 핵심 로직에서 벗어나게 하느냐**가 프로젝트 전체의 테스트 용이성을 결정한다.
+즉, C#, TypeScript와 같이 외부와의 연동에 있어서는 `async` 함수는 테스트하기 어려운 코드로 봐도 무방하기 때문에 `async` 함수를 **얼마나 핵심 로직에서 벗어나게 하느냐**가 프로젝트 전체의 테스트 용이성을 결정한다.
 
 ### 2-3. 실제 예제
 
