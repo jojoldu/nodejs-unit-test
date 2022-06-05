@@ -19,8 +19,10 @@ export default class TestableRepository {
     `);
   }
 
-  query(sql: string) {
-    console.log(sql);
-    return new Promise(sql);
-  }
+  query(sql: string): Promise<string> {
+    console.log();
+    return new Promise((resolve, reject) => {
+        resolve(`성공: ${sql}`) 
+    });
+  };
 }

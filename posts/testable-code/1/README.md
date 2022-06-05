@@ -106,7 +106,7 @@ public async acceptOrder(amount: number, description: string) {
 
 이 둘이 테스트
 
-### 외부에 영향을 주는 코드
+### 2-2. 외부에 영향을 주는 코드
 
 두번째로 
 
