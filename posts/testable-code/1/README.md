@@ -81,30 +81,31 @@
 * `readLine` 등과 같은 사용자들의 입력에 의존하는 경우
 * **데이터베이스/API** 등 외부에서 가져온 결과를 사용하는 코드
 
-이를테면 다음과 같은 함수일 경우 테스트 작성이 어렵다.
+이를테면 다음과 같은 도메인 로직의 경우 테스트 작성이 어렵다.
 
 ```ts
-public async acceptOrder(amount: number, description: string) {
-  if(amount < 0) {
-    throw new Error(`주문시 -금액은 될 수 없습니다. amount=${amount}`);
-  }
-
-  if(!description) {
-    throw new Error(`주문명은 필수입니다.`);
-  }
-
-  const order = Order.create(amount, LocalDateTime.now(), description);
-
-  await this.repository.acceptOrder(order);
+export default class Order {
+    ...
+    createCancel(): Order {
+        const cancelTime = LocalDateTime.now();
+        if(this._orderDateTime >= cancelTime) {
+            throw new Error('주문 시간이 주문 취소 시간보다 늦을 수 없습니다.');
+        }
+        
+        const cancelOrder = new Order();
+        cancelOrder._amount = this._amount * -1;
+        cancelOrder._status = OrderStatus.CANCEL;
+        cancelOrder._orderDateTime = cancelTime;
+        cancelOrder._description = this._description;
+        cancelOrder._parentId = this._id;
+        return cancelOrder;
+    }
 }
 ```
 
-여기서 테스트를 어렵게 만드는 부분은 2군데이다.
+여기서 테스트를 어렵게 만드는 부분은 어디일까?  
+바로 
 
-* `Order.create(amount, LocalDateTime.now(), description)`
-* `await this.repository.acceptOrder(order)`
-
-이 둘이 테스트
 
 ### 2-2. 외부에 영향을 주는 코드
 
