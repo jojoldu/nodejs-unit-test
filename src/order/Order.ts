@@ -1,4 +1,4 @@
-import { LocalDateTime } from 'js-joda';
+import { DayOfWeek, LocalDateTime } from 'js-joda';
 import { OrderStatus } from './OrderStatus';
 import { Pay } from './Pay';
 
@@ -80,6 +80,19 @@ export default class Order {
         cancelOrder._description = this._description;
         cancelOrder._parentId = this._id;
         return cancelOrder;
+    }
+
+    discount() {
+        const now = LocalDateTime.now()
+        if (now.dayOfWeek() == DayOfWeek.SUNDAY) {
+            this._amount = this._amount * 0.9
+        }
+    }
+
+    discountWith(now: LocalDateTime) {
+        if (now.dayOfWeek() == DayOfWeek.SUNDAY) {
+            this._amount = this._amount * 0.9
+        }
     }
 
     update(other: Order): void {
