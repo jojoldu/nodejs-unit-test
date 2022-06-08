@@ -86,25 +86,37 @@
 ```ts
 export default class Order {
     ...
-    createCancel(): Order {
-        const cancelTime = LocalDateTime.now();
-        if(this._orderDateTime >= cancelTime) {
-            throw new Error('주문 시간이 주문 취소 시간보다 늦을 수 없습니다.');
+    discount() {
+        const now = LocalDateTime.now();
+        if (now.dayOfWeek() == DayOfWeek.SUNDAY) {
+            this._amount = this._amount * 0.9
         }
-        
-        const cancelOrder = new Order();
-        cancelOrder._amount = this._amount * -1;
-        cancelOrder._status = OrderStatus.CANCEL;
-        cancelOrder._orderDateTime = cancelTime;
-        cancelOrder._description = this._description;
-        cancelOrder._parentId = this._id;
-        return cancelOrder;
     }
 }
 ```
 
 여기서 테스트를 어렵게 만드는 부분은 어디일까?  
-바로 
+바로 `const now = LocalDateTime.now();` 이다.  
+이 코드가 테스트를 어렵게 만드는 이유는 **제어할 수 없는 값**이기 때문이다.  
+이 메소드의 테스트 코드를 작성한다고 해보자.  
+그럼 다음과 같이 작성될 것이다.
+
+```ts
+it('일요일에는 주문 금액이 10% 할인된다', () => {
+    const sut = Order.of(10_000, OrderStatus.APPROVAL);
+    
+    sut.discount();
+    
+    expect(sut.amount).toBe(9_000);
+});
+```
+
+이 테스트는 **언제나 통과할까?**  
+이 테스트는 **매주 일요일에 수행할때만 통과**할 수 있는 테스트이다.  
+
+
+
+
 
 
 ### 2-2. 외부에 영향을 주는 코드
