@@ -25,11 +25,14 @@
     "@nestjs/core": "^8.0.0",
     "@nestjs/platform-express": "^8.0.0",
     "js-joda": "^1.11.0",
+    "pg": "^8.7.3",
+    "pg-types": "^4.0.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
     "time-unit": "^1.1.0",
-    "ts-jenum": "^2.2.2"
+    "ts-jenum": "^2.2.2",
+    "typeorm": "^0.3.6"
   },
   "devDependencies": {
     "@faker-js/faker": "^6.1.2",
