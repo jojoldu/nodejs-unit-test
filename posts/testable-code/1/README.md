@@ -1,4 +1,4 @@
-# 1. 테스트하기 좋은 코드 - 
+# 1. 테스트하기 좋은 코드 - 테스트하기 어려운 코
 
 팀 분들과 함께 [NextStep - 이펙티브 코틀린 강좌](https://edu.nextstep.camp/c/Z9QeJlCi)를 수강하고 있다.    
 최근에 과제 회고를 처음 진행했는데, 이때 나온 주제가 **테스트 하기 좋은 코드**였다.  
@@ -66,8 +66,7 @@
 
 그렇다면 테스트하기 좋은 코드란 무엇일까?  
   
-경험상 **멱등성이 보장되는 순수 함수**가 테스트 하기 좋은 코드였다.  
-즉, **몇번을 수행해도 항상 같은 결과**가 발생하는 함수이다.  
+경험상 **몇번을 수행해도 항상 같은 결과**가 반환되는 함수 (`멱등성이 보장되는 순수함수`) 가 테스트하기 좋은 코드였다.  
   
 몇번을 수행해도 항상 같은 결과가 나오기 위해서는 아래 2가지 요소를 최대한 피해해야만 한다.
 
@@ -76,7 +75,7 @@
 아래와 같이 **개발자가 제어할 수 없는 값에 의존**하는 함수인 경우는 테스트하기가 어렵다.
 
 * `Random()`, `new Date()` (`LocalDate.now()`) 와 같이 실행할때마다 결과가 다른 함수에 의존하는 경우
-* `readLine` 등과 같은 사용자들의 입력에 의존하는 경우
+* `readLine` 혹은 `inputBox` 등 사용자들의 입력에 의존하는 경우
 * **데이터베이스/API** 등 외부에서 가져온 결과를 사용하는 코드
 
 이를테면 다음과 같은 도메인 로직의 경우 테스트 작성이 어렵다.
@@ -92,6 +91,8 @@ export default class Order {
     }
 }
 ```
+
+* 주문일이 일요일이면 주문 금액의 10%를 할인 하는 함수이다.
 
 여기서 테스트를 어렵게 만드는 부분은 어디일까?  
 바로 `const now = LocalDateTime.now();` 이다.  
@@ -112,36 +113,61 @@ it('일요일에는 주문 금액이 10% 할인된다', () => {
 
 언제 수행하냐에 따라 테스트 대상인 `discount` 의 결과는 달라진다.  
 테스트 대상인 `discount`가 **언제나 동일한 결과를 보장하지 못하기 때문에** 테스트 코드 작성을 굉장히 어렵게 만든다.  
+  
+이 코드를 테스트 하기 위해서는 `LocalDateTime.now()` 를 Mocking 해야만 수행가능한데, 이 역시 쉽지 않다.
 
 
 ### 2-2. 외부에 영향을 주는 코드
 
-두번째로 
+순수 함수를 만드는데 방해하는 두번째는 **외부에 영향을 주는 코드**이다.
 
 * `console.log`, `System.out.println()` 과 같은 표준 출력
 * 로깅
 * 이메일 발송, 메세지큐 등 외부로의 메세지 발송
-* 데이터베이스 등으로 외부에 데이터를 저장하는 경우
+* 데이터베이스 등 외부의 데이터를 조작
 
-
-
-(아래는 TypeORM의 [Active Record pattern 예제 코드](https://orkhan.gitbook.io/typeorm/docs/active-record-data-mapper#what-is-the-active-record-pattern)이다.)
+이런식의 코드는 테스트를 하기 위해서는 항상 외부의 환경에 의존하게 된다.  
+  
+다음의 코드는 테스트하기가 어렵다.
 
 ```ts
-@Entity()
-export class User extends BaseEntity {
-
-    static findByName(firstName: string, lastName: string) {
-        return this.createQueryBuilder("user")
-            .where("user.firstName = :firstName", { firstName })
-            .andWhere("user.lastName = :lastName", { lastName })
-            .getMany();
+export default class Order {
+    ...
+    async cancelOrder(cancelTime): void {
+        const cancelOrder = new Order();
+        cancelOrder._amount = this._amount * -1;
+        cancelOrder._status = OrderStatus.CANCEL;
+        cancelOrder._orderDateTime = cancelTime;
+        cancelOrder._description = this._description;
+        cancelOrder._parentId = this._id;
+        
+        await getConnection()
+          .getRepository(Order)
+          .save(cancelOrder);
     }
-
 }
 ```
 
+* 주문이 취소되면 원본 주문을 통해 취소 주문을 만들어 데이터베이스에 적재하는 함수이다.
 
+여기서 테스트를 어렵게 만드는 부분이 `await getConnection().getRepository(Order).save(cancelOrder);` 이다.  
+**의도한대로 취소 주문이 생성되었는지** 확인 하기 위해서는 항상 데이터베이스가 필요하다.  
+  
+이 함수는 여러 비지니스 로직을 포함하고 있다. 
+
+* 주문취소금액은 `원 주문 금액 * -1` 이어야 한다
+* 주문 상태는 `OrderStatus.CANCEL` 이어야 한다
+* 주문 취소 시간은 입력 받은 값을 사용한다
+* 나머지 상태는 원 주문을 따라간다.
+* 생성이 끝난 주문 취소 객체는 데이터베이스에 적재한다.
+  * 이 부분은 **비지니스 로직은 아니다**.
+  * 다만, 현재 함수의 로직이라 이 자리에서 소개된다.
+
+이 중 데이터베이스 적재를 제외한 나머지 로직들이 모두 **데이터베이스 적재 로직으로 인해 검증을 하기가 어려워졌다**.
+
+
+
+### 2-3. async/await
 
 그런면에 있어서 TS와 같이 **외부와의 연동이 필요한 경우** 항상 `async`가 필요한 경우는 구분하기가 편하다.  
 **외부의 세상에 영향을 주는 것**인지 구분을 `async` 함수인지로 구분하면 되기 때문이다.  

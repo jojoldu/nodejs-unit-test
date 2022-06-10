@@ -1,6 +1,7 @@
 import { DayOfWeek, LocalDateTime } from 'js-joda';
 import { OrderStatus } from './OrderStatus';
 import { Pay } from './Pay';
+import { getConnection, getManager } from 'typeorm';
 
 export default class Order {
 
@@ -80,6 +81,24 @@ export default class Order {
         cancelOrder._description = this._description;
         cancelOrder._parentId = this._id;
         return cancelOrder;
+    }
+
+    async cancelOrder(): void {
+        const cancelTime = LocalDateTime.now();
+        if(this._orderDateTime >= cancelTime) {
+            throw new Error('주문 시간이 주문 취소 시간보다 늦을 수 없습니다.');
+        }
+
+        const cancelOrder = new Order();
+        cancelOrder._amount = this._amount * -1;
+        cancelOrder._status = OrderStatus.CANCEL;
+        cancelOrder._orderDateTime = cancelTime;
+        cancelOrder._description = this._description;
+        cancelOrder._parentId = this._id;
+
+        await getConnection()
+          .getRepository(Order)
+          .save(cancelOrder);
     }
 
     discount() {
