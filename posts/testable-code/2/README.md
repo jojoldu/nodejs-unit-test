@@ -6,7 +6,38 @@
 다음과 같은 코드는 **테스트 작성이 너무나 어렵다**.
 
 
+## 2-1. 리팩토링
 
+```ts
+export default class Order {
+    ...
+    discount() {
+        const now = LocalDateTime.now();
+        if (now.dayOfWeek() == DayOfWeek.SUNDAY) {
+            this._amount = this._amount * 0.9
+        }
+    }
+}
+```
+
+
+```ts
+export default class Order {
+    ...
+    async cancelOrder(cancelTime): void {
+        const cancelOrder = new Order();
+        cancelOrder._amount = this._amount * -1;
+        cancelOrder._status = OrderStatus.CANCEL;
+        cancelOrder._orderDateTime = cancelTime;
+        cancelOrder._description = this._description;
+        cancelOrder._parentId = this._id;
+        
+        await getConnection()
+          .getRepository(Order)
+          .save(cancelOrder);
+    }
+}
+```
 
 이 테스트는 왜 테스트 작성이 너무나 어려운것일까?
 
