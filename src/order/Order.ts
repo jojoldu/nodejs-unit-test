@@ -1,9 +1,9 @@
 import { DayOfWeek, LocalDateTime } from 'js-joda';
 import { OrderStatus } from './OrderStatus';
 import { Pay } from './Pay';
-import { getConnection, getManager } from 'typeorm';
+import { getConnection } from 'typeorm';
 
-export default class Order {
+export class Order {
 
     private _id: number;
     private _amount: number;
@@ -83,7 +83,7 @@ export default class Order {
         return cancelOrder;
     }
 
-    async cancelOrder(): void {
+    async cancelOrder() {
         const cancelTime = LocalDateTime.now();
         if(this._orderDateTime >= cancelTime) {
             throw new Error('주문 시간이 주문 취소 시간보다 늦을 수 없습니다.');

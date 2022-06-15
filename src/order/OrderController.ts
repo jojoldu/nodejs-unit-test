@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Post } from '@nestjs/common';
 import { OrderService } from './OrderService';
 
 @Controller('/order')
@@ -8,5 +8,10 @@ export class OrderController {
     @Get('/accept')
     accept(orderId: number): void {
         return this.orderService.accept(orderId);
+    }
+
+    @Post('/discount')
+    discount(orderId: number): void {
+        return this.orderService.discount(orderId);
     }
 }

@@ -27,7 +27,7 @@ export class OrderRepository {
         }
     }
 
-    findById(id: number): Order | undefined {
+    findById(id: number): Order {
         return OrderRepository.database.get(id);
     }
 }

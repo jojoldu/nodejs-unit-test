@@ -11,9 +11,15 @@ export class OrderService {
         ) {
     }
 
-    validateCompletedOrder(orderId: number): void {
-        const order = this.orderRepository.findById(orderId);
-        if(order.isNotCompleted()) {
+    discount(orderId: number) {
+        const order:Order = this.orderRepository.findById(orderId);
+        order.discount();
+        this.orderRepository.save(order);
+    }
+
+    async validateCompletedOrder(orderId: number): Promise<void> {
+        const order = await this.orderRepository.findById(orderId);
+        if (order.isNotCompleted()) {
             throw new Error('아직 완료처리되지 못했습니다.');
         }
     }

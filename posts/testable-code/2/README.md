@@ -1,14 +1,11 @@
 # 2. 테스트하기 좋은 코드 - 테스트하기 좋은 코드로 개선
 
 [1편](https://jojoldu.tistory.com/674) 을 통해 테스트하기 어려운 코드에 대해 이야기를 나눴다.  
-이번 편에서는 테스트하기 어려운 코드를 어떻게 테스트 하기 좋은 형태로 개선하는지 
-
-특히 오래된 프로젝트를 보면, 다음과 같이 **제어할 수 없는 함수**가 굉장히 많다.
-
-다음과 같은 코드는 **테스트 작성이 너무나 어렵다**.
-
+이번 편에서는 테스트하기 어려운 코드를 어떻게 테스트 하기 좋은 형태로 개선하는지 이야기해보려고 한다.
 
 ## 2-1. 리팩토링
+
+먼저 앞에서 보았던 `discount()` 코드를 다시 보자.   
 
 ```ts
 export default class Order {
@@ -22,6 +19,46 @@ export default class Order {
 }
 ```
 
+여기서 `discount()`는 **도메인의 로직** (`Order`) 으로 되어있다.  
+이렇게 작성되면 이 함수의 테스트가 어려운 것도 문제지만, **계층 전반의 테스트가 어려워진다**는 더 큰 문제가 있다.  
+  
+예를 들어 위 코드를 Spring, Nest.js 등의 MVC 프레임워크로 API로 만들어낸다고 가정해보면 다음과 같다.  
+  
+**Service.ts**
+
+```ts
+export class OrderService {
+    constructor(
+        private readonly orderRepository: OrderRepository,
+        ...
+        ) {
+    }
+    async discount(orderId: number) {
+        const order:Order = await this.orderRepository.findById(orderId);
+        order.discount();
+        await this.orderRepository.save(order);
+    }
+    ...
+}
+```
+
+**Controller.ts**
+
+```ts
+@Controller('/order')
+export class OrderController {
+    constructor(private readonly orderService: OrderService) {}
+
+    @Post('/discount')
+    discount(orderId: number): void {
+        return this.orderService.discount(orderId);
+    }
+}
+
+```
+
+
+![layer](./images/layer.png)
 
 ```ts
 export default class Order {
@@ -69,6 +106,10 @@ public async acceptOrder(amount: number, description: string) {
 * `await this.repository.acceptOrder(order)`
 
 이 둘이 테스트
+
+테스트 하기 어려운 코드들은 최대한 한 곳에서 관리하고,  
+이 코드들이 전파되지 않도록 해야한다.
+
 
 ## 테스트 하기 좋은 코드로 리팩토링
 
