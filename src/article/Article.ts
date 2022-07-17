@@ -4,8 +4,7 @@ export class Article {
   private _content: string;
   private _publishedAt: Date;
 
-  constructor() {
-  }
+  constructor() {}
 
   of(id: number, title: string, content: string, publishedAt: Date): Article {
     this._id = id;
@@ -30,4 +29,5 @@ export class Article {
   get publishedAt(): Date {
     return this._publishedAt;
   }
+
 }

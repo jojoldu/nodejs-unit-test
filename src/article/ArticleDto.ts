@@ -1,6 +1,6 @@
 import { Article } from './Article';
 
-export class ArticleResponse {
+export class ArticleDto {
   private _id: number;
   private _title: string;
   private _content: string;
@@ -9,10 +9,11 @@ export class ArticleResponse {
   constructor() {}
 
   static from (entity: Article) {
-    const response = new ArticleResponse();
+    const response = new ArticleDto();
     response._id = entity.id;
     response._title = entity.title;
     response._content = entity.content;
+    response._publishedAt = entity.publishedAt.toISOString();
     return response;
   }
 }

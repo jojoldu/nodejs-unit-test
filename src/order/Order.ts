@@ -3,7 +3,7 @@ import { OrderStatus } from './OrderStatus';
 import { Pay } from './Pay';
 import { getConnection } from 'typeorm';
 
-export class Order {
+export default class Order {
 
     private _id: number;
     private _amount: number;
