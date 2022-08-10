@@ -3,7 +3,7 @@
 [1편](https://jojoldu.tistory.com/674) 을 통해 테스트하기 어려운 코드에 대해 이야기를 나눴다.  
 이번 편에서는 테스트하기 어려운 코드를 어떻게 테스트 하기 좋은 형태로 개선하는지 이야기해보려고 한다.
 
-## 2-1. 리팩토링
+## 2-1. 제어할 수 없는 코드 리팩토링
 
 먼저 앞에서 보았던 `discount()` 코드를 다시 보자.   
 
@@ -36,8 +36,8 @@ export class OrderService {
     constructor(
         private readonly orderRepository: OrderRepository,
         ...
-        ) {
-    }
+    ) {}
+  
     async discount(orderId: number) {
         const order:Order = await this.orderRepository.findById(orderId);
         order.discount();
@@ -64,12 +64,18 @@ export class OrderController {
 
 위 3개의 계층 (도메인, 서비스, 프레젠테이션) 코드들을 단위 테스트를 작성해보면, **도메인 계층외에도 모든 계층이 테스트 작성이 어렵다**는 것을 알 수 있다.  
 
-이는 다음과 같이 **테스트의 어려움은 전파**가 되기 때문이다.  
-즉, 테스트하기 어려운 로직에 의존하는 모든 코드가 테스트가 어렵다.  
-
-
+이는 **테스트의 어려움은 전파**가 되기 때문이다.  
+  
 ![layer](./images/layer.png)
 
+즉, 테스트하기 어려운 코드가 있다면 해당 코드에 의존하는 모든 코드들이 다 테스트하기 어려워진다는 것을 의미한다.  
+  
+그렇다면 여기서 이 제어하기 어려운 코드인 **제어할 수 없는 코드**가 필요한 경우 어떻게 해야할까?  
+  
+바로 최대한 **제어할 수 없는 코드를 바깥으로 밀어내는 것**이다.  
+
+
+## 2-2. 외부에 의존하는 코드 리팩토링
 
 ```ts
 export default class Order {
