@@ -27,7 +27,7 @@ export default class Order {
   
 예를 들어 위 코드를 Spring, Nest.js 등의 MVC 프레임워크에서 사용한다고 가정해보자.  
   
-그럼 다음과 같은 코드가 나오게 된다.  
+그럼 다음과 같은 코드가 된다.  
   
 **Service.ts**
 
@@ -62,18 +62,78 @@ export class OrderController {
 
 ```
 
-위 3개의 계층 (도메인, 서비스, 프레젠테이션) 코드들을 단위 테스트를 작성해보면, **도메인 계층외에도 모든 계층이 테스트 작성이 어렵다**는 것을 알 수 있다.  
-
-이는 **테스트의 어려움은 전파**가 되기 때문이다.  
+위 3계층의 테스트를 작성한다고 가정해보자.  
+Order 의 테스트와 마찬가지로 **제어할 수 없는 now로 인해** 테스트 작성이 어렵게 된다.  
+**도메인 계층외에도 모든 계층이 테스트 작성이 어렵다**는 것이다.  
+  
+이는 **테스트의 어려움은 전파** 되기 때문이다.  
   
 ![layer](./images/layer.png)
 
-즉, 테스트하기 어려운 코드가 있다면 해당 코드에 의존하는 모든 코드들이 다 테스트하기 어려워진다는 것을 의미한다.  
+즉, 테스트하기 어려운 코드가 있다면 해당 코드에 의존하는 모든 코드들이 다 테스트하기 어려워진다.  
   
 그렇다면 여기서 이 제어하기 어려운 코드인 **제어할 수 없는 코드**가 필요한 경우 어떻게 해야할까?  
   
-바로 최대한 **제어할 수 없는 코드를 바깥으로 밀어내는 것**이다.  
+바로 최대한 **제어할 수 없는 코드를 바깥으로 밀어내, 최대한 테스트가 어려운 코드에 의존하는 범위를 좁히는 것**이다.  
 
+```ts
+export default class Order {
+    ...
+    discount(now: LocalDateTimw) {
+        if (now.dayOfWeek() == DayOfWeek.SUNDAY) {
+            this._amount = this._amount * 0.9
+        }
+    }
+}
+```
+
+* 언어에 따라 지원여부가 다르지만, TS의 경우 인자의 기본값이 보장되니 다음과 같이 구현한다면 생산성도 함께 챙길 수 있다.
+
+```ts
+export default class Order {
+    ...
+    discount(now = LocalDateTime.now()) {
+        if (now.dayOfWeek() == DayOfWeek.SUNDAY) {
+            this._amount = this._amount * 0.9
+        }
+    }
+}
+```
+
+그럼 이 테스트하기 어려운 부분을 어디까지 미루면 좋을까?  
+구조를 해치지 않는 범위 내에선 가장 바깥쪽으로 밀어내는게 좋다.
+
+**Service.ts**
+
+```ts
+export class OrderService {
+    constructor(
+        private readonly orderRepository: OrderRepository,
+        ...
+    ) {}
+  
+    async discount(orderId: number, now = LocalDateTime.now()) {
+        const order:Order = await this.orderRepository.findById(orderId);
+        order.discount(now);
+        await this.orderRepository.save(order);
+    }
+    ...
+}
+```
+
+**Controller.ts**
+
+```ts
+@Controller('/order')
+export class OrderController {
+    constructor(private readonly orderService: OrderService) {}
+
+    @Post('/discount')
+    discount(orderId: number): void {
+        return this.orderService.discount(orderId, now());
+    }
+}
+```
 
 ## 2-2. 외부에 의존하는 코드 리팩토링
 
