@@ -75,11 +75,13 @@ Order 의 테스트와 마찬가지로 **제어할 수 없는 now로 인해** �
 그렇다면 여기서 이 제어하기 어려운 코드인 **제어할 수 없는 코드**가 필요한 경우 어떻게 해야할까?  
   
 바로 최대한 **제어할 수 없는 코드를 바깥으로 밀어내, 최대한 테스트가 어려운 코드에 의존하는 범위를 좁히는 것**이다.  
+  
+이번같은 경우 `Order.discount` 에서 **제어할 수 없는 값을 외부에서 주입**받도록 한다.
 
 ```ts
 export default class Order {
     ...
-    discount(now: LocalDateTimw) {
+    discount(now: LocalDateTimw) { // 현재시간(now)를 밖에서 주입받도록 한다.
         if (now.dayOfWeek() == DayOfWeek.SUNDAY) {
             this._amount = this._amount * 0.9
         }
@@ -87,7 +89,7 @@ export default class Order {
 }
 ```
 
-* 언어에 따라 지원여부가 다르지만, TS의 경우 인자의 기본값이 보장되니 다음과 같이 구현한다면 생산성도 함께 챙길 수 있다.
+언어에 따라 다르지만, TS의 경우 인자의 기본값이 보장되니 다음과 같이 구현한다면 생산성도 함께 챙길 수 있다.
 
 ```ts
 export default class Order {
@@ -100,7 +102,23 @@ export default class Order {
 }
 ```
 
-그럼 이 테스트하기 어려운 부분을 어디까지 미루면 좋을까?  
+이렇게 할 경우 기존의 테스트 코드는 다음처럼 편하게 테스트가 가능하다.
+
+```ts
+import { LocalDateTime } from "js-joda";
+
+it('일요일에는 주문 금액이 10% 할인된다', () => {
+  const sut = Order.of(10_000, OrderStatus.APPROVAL);
+  const now = LocalDateTime.now(2022,8,12,10,15,0); // 2022-08-12 10:15:00 시로 고정
+  sut.discount(now);
+
+  expect(sut.amount).toBe(9_000);
+});
+```
+
+이렇게 될 경우 `Order.discount()` 함수는 **항상 일괄된 결과**를 뱉어내고, **테스트 역시 항상 일관된 결과**를 출력하게 된다.   
+  
+그럼 이 테스트하기 어려운 코드 (`now()`) 을 어디까지 미루면 좋을까?    
 구조를 해치지 않는 범위 내에선 가장 바깥쪽으로 밀어내는게 좋다.
 
 **Service.ts**
