@@ -81,7 +81,8 @@ Order 의 테스트와 마찬가지로 **제어할 수 없는 now로 인해** �
 ```ts
 export default class Order {
     ...
-    discount(now: LocalDateTimw) { // 현재시간(now)를 밖에서 주입받도록 한다.
+    // 현재시간(now)를 밖에서 주입받도록 한다.
+    discountWith(now: LocalDateTimw) { 
         if (now.dayOfWeek() == DayOfWeek.SUNDAY) {
             this._amount = this._amount * 0.9
         }
@@ -89,12 +90,14 @@ export default class Order {
 }
 ```
 
-언어에 따라 다르지만, TS의 경우 인자의 기본값이 보장되니 다음과 같이 구현한다면 생산성도 함께 챙길 수 있다.
+언어에 따라 다르지만, TS의 경우 인자의 기본값을 보장할 수 있는 방법을 지원한다.  
+그래서 다음과 같이 구현한다면 기존과 동일하게 `discount()` 로 호출할 수도 있다.
 
 ```ts
 export default class Order {
     ...
-    discount(now = LocalDateTime.now()) {
+    // 인자가 없을 경우 LocalDateTime.now()를 사용
+    discountWith(now = LocalDateTime.now()) { 
         if (now.dayOfWeek() == DayOfWeek.SUNDAY) {
             this._amount = this._amount * 0.9
         }
@@ -109,8 +112,8 @@ import { LocalDateTime } from "js-joda";
 
 it('일요일에는 주문 금액이 10% 할인된다', () => {
   const sut = Order.of(10_000, OrderStatus.APPROVAL);
-  const now = LocalDateTime.now(2022,8,12,10,15,0); // 2022-08-12 10:15:00 시로 고정
-  sut.discount(now);
+  const now = LocalDateTime.of(2022,8,14,10,15,0); // 2022-08-14 10:15:00 시로 고정
+  sut.discountWith(now);
 
   expect(sut.amount).toBe(9_000);
 });
