@@ -1,4 +1,4 @@
-import { Order } from './Order';
+import Order from './Order';
 import { OrderRepository } from './OrderRepository';
 import { NotFoundException } from '@nestjs/common';
 import { LocalDateTime } from 'js-joda';
@@ -11,10 +11,16 @@ export class OrderService {
         ) {
     }
 
-    discount(orderId: number) {
-        const order:Order = this.orderRepository.findById(orderId);
+    async discount(orderId: number) {
+        const order: Order = await this.orderRepository.findById(orderId);
         order.discount();
-        this.orderRepository.save(order);
+        await this.orderRepository.save(order);
+    }
+
+    async discountWith(orderId: number, now = LocalDateTime.now()) {
+        const order: Order = await this.orderRepository.findById(orderId);
+        order.discountWith(now);
+        await this.orderRepository.save(order);
     }
 
     async validateCompletedOrder(orderId: number): Promise<void> {

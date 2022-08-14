@@ -135,7 +135,7 @@ export class OrderService {
   
     async discount(orderId: number, now = LocalDateTime.now()) {
         const order:Order = await this.orderRepository.findById(orderId);
-        order.discount(now);
+        order.discountWith(now);
         await this.orderRepository.save(order);
     }
     ...
