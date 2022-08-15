@@ -1,5 +1,6 @@
 import { Controller, Get, Post } from '@nestjs/common';
 import { OrderService } from './OrderService';
+import { LocalDateTime } from "js-joda";
 
 @Controller('/order')
 export class OrderController {
@@ -11,7 +12,11 @@ export class OrderController {
     }
 
     @Post('/discount')
-    discount(orderId: number): void {
-        return this.orderService.discount(orderId);
+    async discount(orderId: number): Promise<void> {
+        await this.orderService.discount(orderId);
+    }
+
+    now(): LocalDateTime {
+        return LocalDateTime.now();
     }
 }

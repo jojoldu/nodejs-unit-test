@@ -122,8 +122,10 @@ it('일요일에는 주문 금액이 10% 할인된다', () => {
 이렇게 될 경우 `Order.discount()` 함수는 **항상 일괄된 결과**를 뱉어내고, **테스트 역시 항상 일관된 결과**를 출력하게 된다.   
   
 그럼 이 테스트하기 어려운 코드 (`now()`) 을 어디까지 미루면 좋을까?    
-구조를 해치지 않는 범위 내에선 가장 바깥쪽으로 밀어내는게 좋다.
-
+구조를 해치지 않는 범위 내에선 **가장 바깥쪽으로 밀어내는게** 좋다.  
+  
+이번 예제의 경우 **Controller**까지 밀어내면 좋다.  
+  
 **Service.ts**
 
 ```ts
@@ -133,7 +135,7 @@ export class OrderService {
         ...
     ) {}
   
-    async discount(orderId: number, now = LocalDateTime.now()) {
+    async discountWith(orderId: number, now = LocalDateTime.now()) {
         const order:Order = await this.orderRepository.findById(orderId);
         order.discountWith(now);
         await this.orderRepository.save(order);
@@ -150,13 +152,21 @@ export class OrderController {
     constructor(private readonly orderService: OrderService) {}
 
     @Post('/discount')
-    discount(orderId: number): void {
-        return this.orderService.discount(orderId, now());
+    async discount(orderId: number): Promise<void> {
+      await this.orderService.discountWith(orderId, now());
+    }
+
+    now(): LocalDateTime {
+      return LocalDateTime.now();
     }
 }
 ```
 
+물론 TS의 경우 기본값 인자가 가능하니 굳이 Controller 에서 할 필요는 없다.
+
 ## 2-2. 외부에 의존하는 코드 리팩토링
+
+다음으로 알아볼 코드는 외부의 의존하는 코드를 리팩토링 하는 것이다.
 
 ```ts
 export default class Order {
@@ -181,6 +191,8 @@ export default class Order {
 * 실행할때마다 변경되는 현재 시간 쿼리 함수 (`NOW()`) 를 쿼리 내부에서 쓰고 있다
 * 
 * 현재 테스트로 사용중인 데이터베이스에 
+
+### 
 
 ```ts
 public async acceptOrder(amount: number, description: string) {
