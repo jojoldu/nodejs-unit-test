@@ -189,7 +189,7 @@ export default class Order {
 이 테스트는 왜 테스트 작성이 너무나 어려운것일까?
 
 * 실행할때마다 변경되는 현재 시간 쿼리 함수 (`NOW()`) 를 쿼리 내부에서 쓰고 있다
-* 
+
 * 현재 테스트로 사용중인 데이터베이스에 
 
 ### 
@@ -209,6 +209,11 @@ public async acceptOrder(amount: number, description: string) {
   await this.repository.acceptOrder(order);
 }
 ```
+
+다만 이럴경우 `validation` 메소드는 보통 `private` 메소드로 만드는데,  
+테스트를 위해 `public` 메소드를 만들어야만 한다.  
+그게 아니라면 **private 메소드를 테스트**해야만 한다.  
+
 
 여기서 테스트를 어렵게 만드는 부분은 2군데이다.
 
