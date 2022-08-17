@@ -1,4 +1,4 @@
-import Order from './Order';
+import { Order } from './Order';
 import { OrderRepository } from './OrderRepository';
 import { NotFoundException } from '@nestjs/common';
 import { LocalDateTime } from 'js-joda';
@@ -9,6 +9,20 @@ export class OrderService {
         private readonly orderRepository: OrderRepository,
         private readonly billingApi?: BillingApi
         ) {
+    }
+
+    async receipt(amount: number, description: string) {
+        if(amount < 0) {
+            throw new Error(`주문시 -금액은 될 수 없습니다. amount=${amount}`);
+        }
+
+        if(!description) {
+            throw new Error(`주문명은 필수입니다.`);
+        }
+
+        const order = Order.create(amount, description);
+
+        await this.orderRepository.save(order);
     }
 
     async discount(orderId: number) {
@@ -30,8 +44,8 @@ export class OrderService {
         }
     }
 
-    compareBilling(orderId: number): void {
-        const order = this.orderRepository.findById(orderId);
+    async compareBilling(orderId: number) {
+        const order = await this.orderRepository.findById(orderId);
         const billingStatus = this.billingApi.getBillingStatus(orderId);
 
         if(order.equalsBilling(billingStatus)) {
@@ -47,32 +61,36 @@ export class OrderService {
         }
     }
 
-    accept(orderId: number, now = LocalDateTime.now()): void {
-        const order = this.orderRepository.findById(orderId);
+    async accept(orderId: number, now = LocalDateTime.now()) {
+        const order = await this.orderRepository.findById(orderId);
         order.accept(now);
-        this.orderRepository.update(order);
+        await this.orderRepository.update(order);
     }
+
+
+
+
 
     /**
      * 케이스1) 외부 API 호출과 이를 저장하는 형태
      * 케이스2) 분기에 따른 서로 다른 API 호출
      */
 
-    saveOrUpdate(order: Order): void {
-        const savedOrder = this.orderRepository.findById(order.id);
+    async saveOrUpdate(order: Order) {
+        const savedOrder = await this.orderRepository.findById(order.id);
         if (savedOrder) {
-            this.orderRepository.update(order);
+            await this.orderRepository.update(order);
         } else {
-            this.orderRepository.save(order);
+            await this.orderRepository.save(order);
         }
     }
 
-    saveOrUpdate2(order: Order): void {
-        this.orderRepository.saveOrUpdate(order);
+    async saveOrUpdate2(order: Order) {
+        await this.orderRepository.saveOrUpdate(order);
     }
 
-    cancelOrder1(orderId: number, cancelTime: LocalDateTime): Order {
-        const order: Order | undefined = this.orderRepository.findById(orderId);
+    async cancelOrder1(orderId: number, cancelTime: LocalDateTime) {
+        const order = await this.orderRepository.findById(orderId);
         if (!order) {
             this.logAndThrow(orderId);
         }
@@ -87,8 +105,8 @@ export class OrderService {
         throw new NotFoundException(errorMessage);
     }
 
-    cancelOrder2(orderId: number, cancelTime: LocalDateTime): Order {
-        const order: Order | undefined = this.orderRepository.findById(orderId);
+    async cancelOrder2(orderId: number, cancelTime: LocalDateTime) {
+        const order = await this.orderRepository.findById(orderId);
         this.validateOrder(order, orderId);
 
         const cancelOrder = order.cancel(cancelTime);
