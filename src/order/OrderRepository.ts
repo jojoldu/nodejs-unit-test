@@ -7,27 +7,27 @@ export class OrderRepository {
         OrderRepository.database.set(1, new Order());
     }
 
-    save (order: Order): Order {
+    async save (order: Order): Promise<Order> {
         OrderRepository.database.set(order.id, order);
         return order;
     }
 
-    update (order: Order): Order {
-        const savedOrder = this.findById(order.id);
+    async update (order: Order): Promise<Order> {
+        const savedOrder = await this.findById(order.id);
         savedOrder.update(order);
         OrderRepository.database.set(order.id, savedOrder);
         return savedOrder;
     }
 
-    saveOrUpdate(order: Order) {
+    async saveOrUpdate(order: Order) {
         if(order.id) {
-            this.update(order);
+            await this.update(order);
         } else {
-            this.save(order);
+            await this.save(order);
         }
     }
 
-    findById(id: number): Order {
+    async findById(id: number): Promise<Order> {
         return OrderRepository.database.get(id);
     }
 }

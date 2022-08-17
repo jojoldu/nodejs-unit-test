@@ -1,6 +1,6 @@
 import TestableRepository from './TestableRepository';
 import Posts from './Posts';
-import Order from "../../src/order/Order";
+import { Order }  from "../../src/order/Order";
 import { LocalDateTime } from "js-joda";
 
 export default class TestableService {
@@ -23,7 +23,7 @@ export default class TestableService {
       throw new Error(`주문명은 필수입니다.`);
     }
 
-    const order = Order.create(amount, LocalDateTime.now(), description);
+    const order = Order.create(amount, description, LocalDateTime.now());
 
     await this.repository.acceptOrder(order);
   }

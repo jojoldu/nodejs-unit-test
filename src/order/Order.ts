@@ -3,8 +3,7 @@ import { OrderStatus } from './OrderStatus';
 import { Pay } from './Pay';
 import { getConnection } from 'typeorm';
 
-export default class Order {
-
+export class Order {
     private _id: number;
     private _amount: number;
     private _status: OrderStatus;
@@ -30,7 +29,7 @@ export default class Order {
         return newOrder;
     }
 
-    static create (amount: number, orderTime: LocalDateTime, description: string): Order {
+    static create(amount: number, description: string, orderTime = LocalDateTime.now()): Order {
         const newOrder = new Order();
         newOrder._amount = amount;
         newOrder._status = OrderStatus.REQUEST;

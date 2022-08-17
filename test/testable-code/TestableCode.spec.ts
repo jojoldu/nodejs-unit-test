@@ -1,4 +1,4 @@
-import Order from '../../src/order/Order';
+import { Order } from '../../src/order/Order';
 import { OrderStatus } from '../../src/order/OrderStatus';
 import { LocalDateTime } from 'js-joda';
 

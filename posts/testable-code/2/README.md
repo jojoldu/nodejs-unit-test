@@ -195,7 +195,7 @@ export default class Order {
 ### 
 
 ```ts
-public async acceptOrder(amount: number, description: string) {
+async receipt(amount: number, description: string) {
   if(amount < 0) {
     throw new Error(`주문시 -금액은 될 수 없습니다. amount=${amount}`);
   }
@@ -204,9 +204,9 @@ public async acceptOrder(amount: number, description: string) {
     throw new Error(`주문명은 필수입니다.`);
   }
 
-  const order = Order.create(amount, LocalDateTime.now(), description);
+  const order = Order.create(amount, description);
 
-  await this.repository.acceptOrder(order);
+  await this.orderRepository.save(order);
 }
 ```
 

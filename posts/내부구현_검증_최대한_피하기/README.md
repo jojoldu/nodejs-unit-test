@@ -152,7 +152,7 @@ void {
 
 ```javascript
 it('기존 주문이 있으면 새 정보로 갱신된다', () => {
-  const savedOrder = Order.create(1000, LocalDateTime.now(), '');
+  const savedOrder = Order.create(1000, '', LocalDateTime.now());
   when(mockedRepository.findById(anyNumber())).thenReturn(savedOrder);
   const sut = new OrderService(instance(mockedRepository));
 
@@ -184,7 +184,7 @@ void {
 
 ```javascript
 it('[After] 기존 주문이 있으면 새 정보로 갱신된다', () => {
-  const savedOrder = realRepository.save(Order.create(1000, LocalDateTime.now(), ''));
+  const savedOrder = realRepository.save(Order.create(1000, '', LocalDateTime.now()));
   const expectAmount = 200;
 
   const sut = new OrderService(realRepository);
