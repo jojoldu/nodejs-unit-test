@@ -8,7 +8,7 @@ export class OrderRepositoryStub extends OrderRepository {
         super();
     }
 
-    override update(order: Order): Order {
+    override async update(order: Order) {
         this._savedOrder = order;
         return this._savedOrder;
     }

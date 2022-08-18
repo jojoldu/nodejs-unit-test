@@ -30,6 +30,14 @@ export class Order {
     }
 
     static create(amount: number, description: string, orderTime = LocalDateTime.now()): Order {
+        if(amount < 0) {
+            throw new Error(`주문시 -금액은 될 수 없습니다. amount=${amount}`);
+        }
+
+        if(!description) {
+            throw new Error(`주문명은 필수입니다.`);
+        }
+
         const newOrder = new Order();
         newOrder._amount = amount;
         newOrder._status = OrderStatus.REQUEST;

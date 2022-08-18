@@ -19,8 +19,8 @@ describe('OrderService', () => {
             // given
             const now = LocalDateTime.now();
             const stubRepository = new class extends OrderRepository {
-                override findById(id: number): Order | undefined {
-                    const order = Order.create(1000, now, '');
+                override async findById(id: number){
+                    const order = Order.create(1000, '', now);
                     order.complete(now);
                     return order;
                 }
@@ -48,7 +48,7 @@ describe('OrderService', () => {
 
         it('[ts-mockito] 주문이 완료되지 못했다면 에러가 발생한다', () => {
             // given
-            const order = Order.create(1000, LocalDateTime.now(), '');
+            const order = Order.create(1000,  '', LocalDateTime.now());
 
             const stubRepository: OrderRepository = mock(OrderRepository);
             when(stubRepository.findById(anyNumber())).thenReturn(order);

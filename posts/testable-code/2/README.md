@@ -225,6 +225,36 @@ async receipt(amount: number, description: string) {
 테스트 하기 어려운 코드들은 최대한 한 곳에서 관리하고,  
 이 코드들이 전파되지 않도록 해야한다.
 
+```ts
+export class Order {
+  ...
+    static create(amount: number, description: string, orderTime = LocalDateTime.now()): Order {
+        if(amount < 0) {
+            throw new Error(`주문시 -금액은 될 수 없습니다. amount=${amount}`);
+        }
+
+        if(!description) {
+            throw new Error(`주문명은 필수입니다.`);
+        }
+
+        const newOrder = new Order();
+        newOrder._amount = amount;
+        newOrder._status = OrderStatus.REQUEST;
+        newOrder._orderDateTime = orderTime;
+        newOrder._description = description;
+        return newOrder;
+    }
+}
+```
+
+```ts
+async receipt(amount: number, description: string) {
+  const order = Order.create(amount, description);
+
+  await this.orderRepository.save(order);
+}
+```
+
 
 ## 테스트 하기 좋은 코드로 리팩토링
 
