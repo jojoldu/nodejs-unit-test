@@ -108,8 +108,6 @@ export default class Order {
 이렇게 할 경우 기존의 테스트 코드는 다음처럼 편하게 테스트가 가능하다.
 
 ```ts
-import { LocalDateTime } from "js-joda";
-
 it('일요일에는 주문 금액이 10% 할인된다', () => {
   const sut = Order.of(10_000, OrderStatus.APPROVAL);
   const now = LocalDateTime.of(2022,8,14,10,15,0); // 2022-08-14 10:15:00 시로 고정
@@ -255,6 +253,13 @@ async receipt(amount: number, description: string) {
 }
 ```
 
+```ts
+it('주문 벨리데이션', () => {
+  const sut = Order.create(10_000, 'description');
+
+  expect(sut.amount).toBe(10_000);
+});
+```
 
 ## 테스트 하기 좋은 코드로 리팩토링
 
