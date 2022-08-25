@@ -21,6 +21,14 @@ describe('Testable Code', () => {
 
       expect(sut.amount).toBe(9_000);
     });
+
+    it('일요일 외에는 주문 금액이 할인되지 않는다', () => {
+      const sut = Order.of(10_000, OrderStatus.APPROVAL);
+      const now = LocalDateTime.of(2022,8,15,10,15,0); // 2022-08-13 10:15:00 시로 고정
+      sut.discountWith(now);
+
+      expect(sut.amount).toBe(10_000);
+    });
   });
 });
 
