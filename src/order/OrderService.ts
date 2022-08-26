@@ -3,11 +3,13 @@ import { OrderRepository } from './OrderRepository';
 import { NotFoundException } from '@nestjs/common';
 import { LocalDateTime } from 'js-joda';
 import { BillingApi } from './BillingApi';
+import { NowTime } from "../nowtime/NowTime";
 
 export class OrderService {
     constructor(
         private readonly orderRepository: OrderRepository,
-        private readonly billingApi?: BillingApi
+        private readonly billingApi?: BillingApi,
+        private readonly nowTime: NowTime,
         ) {
     }
 
@@ -66,10 +68,6 @@ export class OrderService {
         order.accept(now);
         await this.orderRepository.update(order);
     }
-
-
-
-
 
     /**
      * 케이스1) 외부 API 호출과 이를 저장하는 형태

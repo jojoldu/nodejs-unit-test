@@ -204,3 +204,35 @@ export class FakeNowTime implements NowTime{
   }
 }
 ```
+
+```ts
+@Controller('/order')
+export class OrderController {
+    constructor(private readonly orderService: OrderService,
+                private readonly nowTime: NowTime) {}
+
+    @Post('/discount')
+    async discount(orderId: number): Promise<void> {
+        await this.orderService.discountWith(orderId, this.nowTime.now());
+    }
+}
+```
+
+혹은
+
+```ts
+export class OrderService {
+    constructor(
+        private readonly orderRepository: OrderRepository,
+        private readonly billingApi?: BillingApi,
+        private readonly nowTime: NowTime,
+        ) {
+    }
+
+    async discountWith(orderId: number, now = LocalDateTime.now()) {
+        const order: Order = await this.orderRepository.findById(orderId);
+        order.discountWith(this.nowTime.now());
+        await this.orderRepository.save(order);
+    }
+}
+```
