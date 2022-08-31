@@ -1,5 +1,5 @@
 import { LocalDateTime } from "js-joda";
 
-export interface NowTime {
+export interface Time {
   now(): LocalDateTime;
 }

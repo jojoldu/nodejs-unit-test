@@ -1,7 +1,7 @@
-import { NowTime } from "./NowTime";
+import { Time } from "./Time";
 import { LocalDateTime } from "js-joda";
 
-export class JodaNowTime implements NowTime {
+export class JodaTime implements Time {
   now(): LocalDateTime {
     return LocalDateTime.now();
   }

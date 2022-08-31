@@ -3,13 +3,13 @@ import { OrderRepository } from './OrderRepository';
 import { NotFoundException } from '@nestjs/common';
 import { LocalDateTime } from 'js-joda';
 import { BillingApi } from './BillingApi';
-import { NowTime } from "../nowtime/NowTime";
+import { Time } from "../nowtime/Time";
 
 export class OrderService {
     constructor(
         private readonly orderRepository: OrderRepository,
         private readonly billingApi?: BillingApi,
-        private readonly nowTime: NowTime,
+        private readonly time: Time,
         ) {
     }
 
@@ -36,6 +36,12 @@ export class OrderService {
     async discountWith(orderId: number, now = LocalDateTime.now()) {
         const order: Order = await this.orderRepository.findById(orderId);
         order.discountWith(now);
+        await this.orderRepository.save(order);
+    }
+
+    async discountWith2(orderId: number) {
+        const order: Order = await this.orderRepository.findById(orderId);
+        order.discountWith(this.time.now());
         await this.orderRepository.save(order);
     }
 

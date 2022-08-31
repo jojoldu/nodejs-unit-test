@@ -1,12 +1,12 @@
 import { Controller, Get, Post } from '@nestjs/common';
 import { OrderService } from './OrderService';
 import { LocalDateTime } from "js-joda";
-import { NowTime } from "../nowtime/NowTime";
+import { Time } from "../nowtime/Time";
 
 @Controller('/order')
 export class OrderController {
     constructor(private readonly orderService: OrderService,
-                private readonly nowTime: NowTime) {}
+                private readonly time: Time) {}
 
     @Get('/accept')
     accept(orderId: number): void {
@@ -29,7 +29,7 @@ export class OrderController {
 
     @Post('/discount3')
     async discount3(orderId: number): Promise<void> {
-        await this.orderService.discountWith(orderId, this.nowTime.now());
+        await this.orderService.discountWith(orderId, this.time.now());
     }
 
 }

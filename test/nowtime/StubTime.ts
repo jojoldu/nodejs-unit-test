@@ -1,7 +1,7 @@
 import { LocalDateTime } from "js-joda";
-import { NowTime } from "../../src/nowtime/NowTime";
+import { Time } from "../../src/nowtime/Time";
 
-export class FakeNowTime implements NowTime{
+export class StubTime implements Time{
   private readonly currentTime: LocalDateTime;
 
   constructor(currentTime: LocalDateTime) {
