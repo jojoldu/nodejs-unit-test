@@ -9,7 +9,7 @@ export class OrderService {
     constructor(
         private readonly orderRepository: OrderRepository,
         private readonly billingApi?: BillingApi,
-        private readonly time: Time,
+        private readonly time?: Time,
         ) {
     }
 
