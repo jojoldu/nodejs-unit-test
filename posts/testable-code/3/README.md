@@ -1,11 +1,20 @@
-## 2-2. 외부에 의존하는 코드 리팩토링
+# 3. 테스트하기 좋은 코드 - 외부에 의존하는 코드 개선
 
-다음으로 알아볼 코드는 외부의 의존하는 코드를 리팩토링 하는 것이다.
+지난 시간에 테스트하기 좋은 코드에 대해 이야기를 나눴다.
+
+(1) [테스트하기 어려운 코드](https://jojoldu.tistory.com/674)  
+(2) [제어할 수 없는 코드 개선](https://jojoldu.tistory.com/676)
+  
+이번 편에서는 테스트하기 어려운 코드를 개선하는 2번째 방법인 **외부에 의존하는 코드를 개선**하는 방법에 대해 이야기를 나눈다.    
+  
+## 3-1. 문제 상황
+
+[1부](https://jojoldu.tistory.com/674) 에서 소개했던 `cancelOrder()` 코드를 다시 보자. 
 
 ```ts
 export default class Order {
     ...
-    async cancelOrder(cancelTime): void {
+    async cancel(cancelTime): void {
         const cancelOrder = new Order();
         cancelOrder._amount = this._amount * -1;
         cancelOrder._status = OrderStatus.CANCEL;
@@ -20,13 +29,35 @@ export default class Order {
 }
 ```
 
-이 테스트는 왜 테스트 작성이 너무나 어려운것일까?
+이 테스트 코드는 **테스트할때마다 항상 데이터베이스가 필요**하다.  
+즉, **주문취소 객체 생성**을 검증하기 위해 항상 깔끔하게 Reset된 데이터베이스가 필요하다는 것이다.  
+  
+예를 들어 위 코드를 Spring, Nest.js 등의 MVC 프레임워크에서 사용한다고 가정해보자.  
+  
+그럼 다음과 같은 코드가 된다.  
+  
+**Service.ts**
 
-* 실행할때마다 변경되는 현재 시간 쿼리 함수 (`NOW()`) 를 쿼리 내부에서 쓰고 있다
+```ts
+export class OrderService {
+    constructor(
+        private readonly orderRepository: OrderRepository,
+        ...
+    ) {}
+  
+    async cancel(orderId: number) {
+        const order:Order = await this.orderRepository.findById(orderId);
+        order.cancel();
+    }
+    ...
+}
+```
 
-* 현재 테스트로 사용중인 데이터베이스에
+Service 계층의 코드만 봐서는 이 코드는 굉장히 깔끔하게 처리된다.
 
-### 
+## Service 로직일 경우
+
+만약 다음과 같이 **도메인 로직이 아닌 서비스 로직일 경우**에는 어떻게 하는 것이 좋을까?  
 
 ```ts
 async receipt(amount: number, description: string) {
