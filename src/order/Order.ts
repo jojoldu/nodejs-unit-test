@@ -66,6 +66,9 @@ export class Order {
     }
 
     cancel(cancelTime:LocalDateTime): Order {
+        if(this._orderDateTime >= cancelTime) {
+            throw new Error('주문 시간이 주문 취소 시간보다 늦을 수 없습니다.');
+        }
         const cancelOrder = new Order();
         cancelOrder._amount = this._amount * -1;
         cancelOrder._status = OrderStatus.CANCEL;

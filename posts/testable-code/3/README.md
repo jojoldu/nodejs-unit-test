@@ -15,6 +15,9 @@
 export default class Order {
     ...
     async cancel(cancelTime): void {
+        if(this._orderDateTime >= cancelTime) {
+            throw new Error('주문 시간이 주문 취소 시간보다 늦을 수 없습니다.');
+        }
         const cancelOrder = new Order();
         cancelOrder._amount = this._amount * -1;
         cancelOrder._status = OrderStatus.CANCEL;
@@ -28,6 +31,22 @@ export default class Order {
     }
 }
 ```
+
+(이전 글에서 언급했지만) 이 로직은 크게 3가지 기능을 담고 있다.
+
+* 주문 취소 시간이 주문 시간 보다 뒤에 있는지 검증하는 로직
+* 주문 정보를 기반으로 한 주문 취소 객체 생성
+  * 주문취소금액은 원 주문 금액 * -1 이어야 한다
+  * 주문 상태는 OrderStatus.CANCEL 이어야 한다
+  * 주문 취소 시간은 입력 받은 값을 사용한다
+  * 나머지 상태는 원 주문을 따라간다.
+* 데이터베이스에 생성된 주문 취소 객체 저장
+
+이 중 데이터베이스 적재를 제외한 나머지 로직들은 검증하기가 굉장히 쉽다.
+하지만 데이터베이스 적재 로직으로 인해 검증을 하기가 어려워졌다.
+
+위 코드를 보면 외부와의 연동이 필요한 경우 테스트 코드 작성이 어렵다는 것을 알 수 있다.
+
 
 이 테스트 코드는 **테스트할때마다 항상 데이터베이스가 필요**하다.  
 즉, **주문취소 객체 생성**을 검증하기 위해 항상 깔끔하게 Reset된 데이터베이스가 필요하다는 것이다.  
@@ -47,13 +66,32 @@ export class OrderService {
   
     async cancel(orderId: number) {
         const order:Order = await this.orderRepository.findById(orderId);
-        order.cancel();
+        await order.cancel();
     }
     ...
 }
 ```
 
-Service 계층의 코드만 봐서는 이 코드는 굉장히 깔끔하게 처리된다.
+Service 계층의 코드만 봐서는 이 코드는 굉장히 깔끔하게 처리된다.  
+
+### Tips
+
+만약 도메인 로직에서 `async/await` (C#, TS와 같은 언어에서) 가 필요하다면 그건 외부와의 연동이 필요한 경우이다.  
+그리고 이는 테스트하기가 어렵다.  
+  
+즉, `async` 함수는 **도메인 로직에 최대한 거리를 두는 것이 좋다**는 것을 의미한다.  
+  
+물론 **Active Record 패턴**을 생각해보면 Entity에 데이터베이스를 직접 핸들링 하는 코드를 넣을 수도 있다.  
+다만, 이는 개인적으로는 선호하지 않는다.  
+
+* [Active Record 패턴 vs Data Mapper 패턴](https://jojoldu.tistory.com/603#dataaccess-%EA%B3%84%EC%B8%B5)
+
+도메인 로직을 테스트 하기 위해 항상 데이터베이스가 필요하는 것이 좋다고 생각되진 않는다.  
+이 객체가 저장되는 장소가 데이터베이스가 될지, API로 외부 연동이 될지, NoSQL에 저장될지 아무도 미래를 모르기 때문이다.  
+가능하다면 
+
+> Pure Object로 만들어야하지 않냐고 생각할 수 있는데, 현실적으로 ORM을 쓰면서 ORM의 Entity 클래스와 순수 도메인 클래스를 분리해서 사용하는 것이 효율적인 경우가 자주 있지는 않았다.  
+
 
 ## Service 로직일 경우
 
@@ -143,9 +181,5 @@ DB에서 값을 가져오는 코드
 
 Cookie 나 로컬 스토리지를 통해 값을 가져오는 코드
 
-## 
 
-다음과 같이 시그널을 캐치할 수 있다.
-
-> private 메소드가 많다면 클래스로 분리하는 것을 고려해보자
 
