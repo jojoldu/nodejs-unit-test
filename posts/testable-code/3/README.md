@@ -9,7 +9,7 @@
   
 ## 3-1. 문제 상황
 
-[1부](https://jojoldu.tistory.com/674) 에서 소개했던 `cancelOrder()` 코드를 다시 보자. 
+[1부](https://jojoldu.tistory.com/674) 에서 소개했던 `cancel()` 코드를 다시 보자. 
 
 ```ts
 export default class Order {
