@@ -1,5 +1,29 @@
-# 4. 테스트하기 좋은 코드 - SQL 개선
+# 4. 테스트하기 좋은 코드 - private 로직 개선
 
+
+## Service 로직일 경우
+
+만약 다음과 같이 **도메인 로직이 아닌 서비스 로직일 경우**에는 어떻게 하는 것이 좋을까?  
+
+```ts
+async receipt(amount: number, description: string) {
+  if(amount < 0) {
+    throw new Error(`주문시 -금액은 될 수 없습니다. amount=${amount}`);
+  }
+
+  if(!description) {
+    throw new Error(`주문명은 필수입니다.`);
+  }
+
+  const order = Order.create(amount, description);
+
+  await this.orderRepository.save(order);
+}
+```
+
+다만 이럴경우 `validation` 메소드는 보통 `private` 메소드로 만드는데,  
+테스트를 위해 `public` 메소드를 만들어야만 한다.  
+그게 아니라면 **private 메소드를 테스트**해야만 한다.
 
 이 테스트는 왜 테스트 작성이 너무나 어려운것일까?
 
