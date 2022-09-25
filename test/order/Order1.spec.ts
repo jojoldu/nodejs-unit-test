@@ -6,7 +6,7 @@ describe('Order1', () => {
     let sut: Order;
 
     beforeEach(() => {
-        sut = Order.create(1000, LocalDateTime.of(2021,10,30, 10,0,0), "배민주문");
+        sut = Order.create(1000, "배민주문", LocalDateTime.of(2021,10,30, 10,0,0));
     });
 
     it('주문취소1', () => {
