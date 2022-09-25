@@ -149,18 +149,38 @@ describe('Order', () => {
 ## 3-2. 해결 방법
   
 위 4가지 문제점의 원인을 생각해보자.  
-  
-위 로직에서 **RDBMS에 저장하는 로직을 제외하면 나머지들은 검증하기가 쉽다**.  
+**RDBMS에 저장하는 로직을 제외하면 나머지들은 검증하기가 쉽다**.  
 결국 모든 문제가 **로직 안에 외부 의존성이 포함되어있기 때문**이다.  
-하지만 RDBMS 적재 로직으로 인해 `cancel()` 은 위 4가지 문제점을 가진 **테스트하기 어려운 코드가 되었다**.  
-
+  
 즉, **외부와의 연동이 필요한 경우 테스트 코드 작성이 어렵다**는 것이다.  
   
 원인을 알고 있으니, 해결 방법은 쉽다.  
 **외부 의존성을 로직에서 떨어뜨려 놓는 것**이다.  
 
+```ts
+export default class Order {
+  ...
+    cancel(cancelTime:LocalDateTime): Order {
+        if(this._orderDateTime >= cancelTime) {
+            throw new Error('주문 시간이 주문 취소 시간보다 늦을 수 없습니다.');
+        }
+        const cancelOrder = new Order();
+        cancelOrder._amount = this._amount * -1;
+        cancelOrder._status = OrderStatus.CANCEL;
+        cancelOrder._orderDateTime = cancelTime;
+        cancelOrder._description = this._description;
+        cancelOrder._parentId = this._id;
+        return cancelOrder;
+    }
+}
+```
 
-  
+이렇게 할 경우 **cancel()은 외부에 영향을 받지 않는 리턴값이 있는 메소드**가 된다.  
+이로 인해서
+
+* return이 있는 메소드이기 때문에 메소드 검증이 쉬워진다
+* 
+
 **Service.ts**
 
 ```ts
@@ -178,7 +198,6 @@ export class OrderService {
 }
 ```
 
-Service 계층의 코드만 봐서는 이 코드는 굉장히 깔끔하게 처리된다.  
 
 
 
