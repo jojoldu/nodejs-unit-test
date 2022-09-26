@@ -91,7 +91,6 @@ describe('Order', () => {
       const result = await orderRepository.findOne(orderId);
       expect(~~)
     });
-
 });
 ```
 
@@ -103,7 +102,7 @@ describe('Order', () => {
 하지만, 주문 데이터를 데이터베이스에 저장하고, 생성된 주문 정보를 검증하기 위해 다시 데이터베이스에서 조회해오는 작업이 필요하다.  
 테스트 환경 구축 역시 `NestJS` 의 TestingModule 을 생성하고, 각종 데이터베이스 작업을 추가해야만 한다.  
   
-검증하고자 하는 `order.cancel()` 을 위해 테스트 코드는 이만큼의 일을 해야만 한다.  
+검증 대상인 `order.cancel()` 을 위해 테스트 코드는 이만큼의 일을 해야만 한다.  
 간단한 주문 취소 정보를 생성하는 로직인데도 **테스트 환경 구축에 많은 리소스가 필요**하다.  
 
 ### 문제점 2. 낮은 테스트 리팩토링 내구성
@@ -149,10 +148,8 @@ describe('Order', () => {
 ## 3-2. 해결 방법
   
 위 4가지 문제점의 원인을 생각해보자.  
-**RDBMS에 저장하는 로직을 제외하면 나머지들은 검증하기가 쉽다**.  
+RDBMS에 저장하는 로직을 제외하면 나머지들은 검증하기가 쉽다.  
 결국 모든 문제가 **로직 안에 외부 의존성이 포함되어있기 때문**이다.  
-  
-즉, **외부와의 연동이 필요한 경우 테스트 코드 작성이 어렵다**는 것이다.  
   
 원인을 알고 있으니, 해결 방법은 쉽다.  
 **외부 의존성을 로직에서 떨어뜨려 놓는 것**이다.  
@@ -175,105 +172,29 @@ export default class Order {
 }
 ```
 
-이렇게 할 경우 **cancel()은 외부에 영향을 받지 않는 리턴값이 있는 메소드**가 된다.  
-이로 인해서
+이렇게 할 경우 `cancel()`은 **외부에 영향을 받지 않는 리턴값이 있는 메소드**가 된다.  
+굳이 이 메소드의 검증을 위해 **RDBMS에서 데이터를 조회할 필요도 없어진다**.  
 
-* return이 있는 메소드이기 때문에 메소드 검증이 쉬워진다
-* 
+* `throw` 가 발생하는지
+* `return` 으로 의도한 결과가 넘어오는지
 
-**Service.ts**
-
-```ts
-export class OrderService {
-    constructor(
-        private readonly orderRepository: OrderRepository,
-        ...
-    ) {}
+검증 로직, 객체 생성 로직 등 **외부 저장소에 저장하는 로직을 제외한 나머지 모든 로직의 검증이 쉬워진다**.  
   
-    async cancel(orderId: number) {
-        const order:Order = await this.orderRepository.findById(orderId);
-        await order.cancel();
-    }
-    ...
-}
-```
-
-
-
-
-
-
-
-## Service 로직일 경우
-
-만약 다음과 같이 **도메인 로직이 아닌 서비스 로직일 경우**에는 어떻게 하는 것이 좋을까?  
+도메인 로직이 단순화 되어서 테스트 코드가 한결 쉬워진다.
 
 ```ts
-async receipt(amount: number, description: string) {
-  if(amount < 0) {
-    throw new Error(`주문시 -금액은 될 수 없습니다. amount=${amount}`);
-  }
+describe('Order', () => {
 
-  if(!description) {
-    throw new Error(`주문명은 필수입니다.`);
-  }
+    it('주문 취소시 최소 주문이 생성된다', () => {
+      //given
+      const sut = createOrder();
 
-  const order = Order.create(amount, description);
+      // when
+      const result = sut.cancel();
 
-  await this.orderRepository.save(order);
-}
-```
-
-다만 이럴경우 `validation` 메소드는 보통 `private` 메소드로 만드는데,  
-테스트를 위해 `public` 메소드를 만들어야만 한다.  
-그게 아니라면 **private 메소드를 테스트**해야만 한다.
-
-
-여기서 테스트를 어렵게 만드는 부분은 2군데이다.
-
-* `Order.create(amount, LocalDateTime.now(), description)`
-* `await this.repository.acceptOrder(order)`
-
-이 둘이 테스트
-
-테스트 하기 어려운 코드들은 최대한 한 곳에서 관리하고,  
-이 코드들이 전파되지 않도록 해야한다.
-
-```ts
-export class Order {
-  ...
-    static create(amount: number, description: string, orderTime = LocalDateTime.now()): Order {
-        if(amount < 0) {
-            throw new Error(`주문시 -금액은 될 수 없습니다. amount=${amount}`);
-        }
-
-        if(!description) {
-            throw new Error(`주문명은 필수입니다.`);
-        }
-
-        const newOrder = new Order();
-        newOrder._amount = amount;
-        newOrder._status = OrderStatus.REQUEST;
-        newOrder._orderDateTime = orderTime;
-        newOrder._description = description;
-        return newOrder;
-    }
-}
-```
-
-```ts
-async receipt(amount: number, description: string) {
-  const order = Order.create(amount, description);
-
-  await this.orderRepository.save(order);
-}
-```
-
-```ts
-it('주문 벨리데이션', () => {
-  const sut = Order.create(10_000, 'description');
-
-  expect(sut.amount).toBe(10_000);
+      // then
+      expect(~~)
+    });
 });
 ```
 
