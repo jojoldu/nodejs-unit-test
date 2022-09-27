@@ -198,21 +198,33 @@ describe('Order', () => {
 });
 ```
 
+그럼 `Order`에서 분리된 RDBMS 로직은 어디에 두어야 하는가?  
+바로 Service (서비스 인프라) 계층에서 관리해야 한다.
 
-### BE
+```ts
+export default class OrderService {
 
-DB에서 값을 가져오는 코드
+  async cancel(orderId:number) {
+    const order = await orderRepository.findById(orderId);
+    const cancelOrder = order.cancel();
+    await orderRepository.save(cancelOrder);
+  }
+}
+```
 
-### FE
-
-Cookie 나 로컬 스토리지를 통해 값을 가져오는 코드
+**외부 의존성이 필요한 통합 테스트의 범위를 좁혀야 한다**.  
+  
+위 예에서는 백엔드를 예시로 들었지만, 이는 프론트엔드에서도 일맥상통하다.  
+**API, 쿠키, 로컬 스토리지를 사용하는 코드와 도메인 로직을 분리할수록** 프로젝트 전체의 테스트 코드 작성이 쉽다.
 
 ## 마무리
 
 만약 도메인 로직에서 `async/await` (C#, TS와 같은 언어에서) 가 필요하다면 그건 외부와의 연동이 필요한 경우이다.  
 그리고 이는 테스트하기가 어렵다.  
   
-즉, `async` 함수는 **도메인 로직에 최대한 거리를 두는 것이 좋다**는 것을 의미한다.  
+즉, `async` 함수는 **도메인 로직에 최대한 거리를 두는 것이 좋다**.  
+
+도메인 로직과 외부 의존성의 거리가 멀수록 테스트하기가 쉽다.  
   
 
 
