@@ -212,6 +212,21 @@ export default class OrderService {
 }
 ```
 
+기존의 코드는 **Order가 테스트가 어렵기 때문에 OrderService 까지 테스트가 어렵다**.  
+
+```ts
+export default class OrderService {
+
+  async cancel(orderId:number) {
+    const order = await orderRepository.findById(orderId);
+    const cancelOrder = await order.cancel(); // Order와 OrderService 모두 데이터베이스 의존성 필요
+  }
+}
+```
+
+반면 변경된 코드는 **Service만 테스트가 어렵다**.  
+테스트가 어려운 범위가 최소화 된 것이다.  
+  
 **외부 의존성이 필요한 통합 테스트의 범위를 좁혀야 한다**.  
   
 위 예에서는 백엔드를 예시로 들었지만, 이는 프론트엔드에서도 일맥상통하다.  
