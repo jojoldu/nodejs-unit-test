@@ -26,10 +26,6 @@
 
 ## 4-1. 문제 상황
 
-## 4-2. 해결 방법
-
-## Service 로직일 경우
-
 만약 다음과 같이 **도메인 로직이 아닌 서비스 로직일 경우**에는 어떻게 하는 것이 좋을까?  
 
 ```ts
@@ -52,39 +48,20 @@ async receipt(amount: number, description: string) {
 테스트를 위해 `public` 메소드를 만들어야만 한다.  
 그게 아니라면 **private 메소드를 테스트**해야만 한다.
 
+## 4-2. 해결 방법
+
+해결책은 어떤 로직이냐에 따라 다르지만, 둘다 쉽다.  
+  
+* 해당 로직이 도메인과 관련된 로직이라면 도메인 클래스에 위임한다.
+* 기존의 도메인과 무관한 로직이라면 비공개 메소드/함수 (`private`) 들을 도메인 기준에 맞춰 묶어서 `public` 함수 혹은 클래스로 추출한다.
 
 
 ## 
 
 다음과 같이 시그널을 캐치할 수 있다.
 
-> private 메소드가 많다면 클래스로 분리하는 것을 고려해보자
+* private 메소드/함수가 많다면 클래스/공개 함수로 분리하는 것을 고려해보자
 
-
-
-## Service 로직일 경우
-
-만약 다음과 같이 **도메인 로직이 아닌 서비스 로직일 경우**에는 어떻게 하는 것이 좋을까?  
-
-```ts
-async receipt(amount: number, description: string) {
-  if(amount < 0) {
-    throw new Error(`주문시 -금액은 될 수 없습니다. amount=${amount}`);
-  }
-
-  if(!description) {
-    throw new Error(`주문명은 필수입니다.`);
-  }
-
-  const order = Order.create(amount, description);
-
-  await this.orderRepository.save(order);
-}
-```
-
-다만 이럴경우 `validation` 메소드는 보통 `private` 메소드로 만드는데,  
-테스트를 위해 `public` 메소드를 만들어야만 한다.  
-그게 아니라면 **private 메소드를 테스트**해야만 한다.
 
 
 여기서 테스트를 어렵게 만드는 부분은 2군데이다.
