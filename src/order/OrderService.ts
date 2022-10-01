@@ -15,11 +15,11 @@ export class OrderService {
 
     async receipt(amount: number, description: string) {
         if(amount < 0) {
-            throw new Error(`주문시 -금액은 될 수 없습니다. amount=${amount}`);
+            throw new Error(`금액은 -가 될 수 없습니다. amount=${amount}`);
         }
 
-        if(!description) {
-            throw new Error(`주문명은 필수입니다.`);
+        if(!Number.isInteger(amount)) {
+            throw new Error(`금액은 정수만 가능합니다. amount=${amount}`);
         }
 
         const order = Order.create(amount, description);
