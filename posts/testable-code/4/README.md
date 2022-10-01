@@ -6,8 +6,8 @@
 [2. 제어할 수 없는 코드 개선](https://jojoldu.tistory.com/676)  
 [3. 외부에 의존하는 코드 개선](https://jojoldu.tistory.com/680)  
   
-앞의 글의 결론은 간단하다.  
-**테스트 하기 어려운 코드와 테스트하기 쉬운 코드를 분리하되,  
+앞의 결론은 간단하다.  
+**테스트 하기 어려운 코드와 테스트 하기 쉬운 코드를 분리하되,  
 테스트 하기 어려운 코드는 최대한 바깥으로 몰아넣는다**.  
   
 전체적인 방향성은 위와 같이 유지하되, 이번에는 조금 더 세밀한 내용을 보자.  
@@ -18,49 +18,82 @@
 
 그럼에도 불구하고 `private` 메소드/함수를 검증해야할 경우가 있다.
 
-* 테스트가 없는 기존 코드를 리팩토링 해야하는 경우
-* `public` 메소드 안에 속해있지만, `private` 메소드/함수의 로직이 복잡해서 다양한 케이스를 검증해야하는 경우
+* 테스트가 없는 기존 `private` 코드를 리팩토링 해야하는 경우
+* 테스트하기 어려운 코드를 몰아넣은 Presentation (Controller, Handler 등), Service Infra 계층의 `private` 로직일 경우
 
 그럼 이런 경우엔 어떻게 해야할까?  
-메소드/함수의 범위를 `public` 으로 변경해야할까?
+해당 `private` 메소드/함수의 범위를 `public` 혹은 `protected` 등으로 변경해야할까?  
+어떻게 할지 알아보자.
 
 ## 4-1. 문제 상황
 
-만약 다음과 같이 **도메인 로직이 아닌 서비스 로직일 경우**에는 어떻게 하는 것이 좋을까?  
+만약 다음과 같이 HTTP API로 받은 **값들을 검증하고, DB에 저장하는** 코드가 있다고 해보자.
 
 ```ts
 async receipt(amount: number, description: string) {
-  if(amount < 0) {
-    throw new Error(`주문시 -금액은 될 수 없습니다. amount=${amount}`);
-  }
+    if(amount < 0) {
+        throw new Error(`금액은 -가 될 수 없습니다. amount=${amount}`);
+    }
 
-  if(!description) {
-    throw new Error(`주문명은 필수입니다.`);
-  }
+    if(!Number.isInteger(amount)) {
+        throw new Error(`금액은 정수만 가능합니다. amount=${amount}`);
+    }
 
-  const order = Order.create(amount, description);
+    const order = Order.create(amount, description);
 
-  await this.orderRepository.save(order);
+    await this.orderRepository.save(order);
 }
 ```
 
-다만 이럴경우 `validation` 메소드는 보통 `private` 메소드로 만드는데,  
-테스트를 위해 `public` 메소드를 만들어야만 한다.  
-그게 아니라면 **private 메소드를 테스트**해야만 한다.
+이 코드를 리팩토링 한다고 하면 보통 다음과 같이 한다.
+
+```ts
+export class OrderService {
+  async receipt(amount: number, description: string) {
+      this.validatePositive(amount);
+      this.validateInteger(amount);
+
+      const order = Order.create(amount, description);
+
+      await this.orderRepository.save(order);
+  }
+
+  private validatePositive(amount: number) {
+    if(amount < 0) {
+      throw new Error(`금액은 -가 될 수 없습니다. amount=${amount}`);
+    }
+  }
+
+  private validateInteger(amount: number) {
+    if(!Number.isInteger(amount)) {
+      throw new Error(`금액은 정수만 가능합니다. amount=${amount}`);
+    }
+  }
+}
+```
+
+이렇게 리팩토링하게 될 경우 역시나 테스트가 어렵게 된다.
+
 
 ## 4-2. 해결 방법
 
-해결책은 어떤 로직이냐에 따라 다르지만, 둘다 쉽다.  
+해결책은 어떤 로직이냐에 따라 다르지만, 둘 다 쉽다.  
   
-* 해당 로직이 도메인과 관련된 로직이라면 도메인 클래스에 위임한다.
-* 기존의 도메인과 무관한 로직이라면 비공개 메소드/함수 (`private`) 들을 도메인 기준에 맞춰 묶어서 `public` 함수 혹은 클래스로 추출한다.
+
+### 해결책 1
+
+해당 로직이 도메인과 관련된 로직이라면 **도메인 클래스에 위임**한다.
+
+### 해결책 2
+
+기존의 도메인과 무관하며, **Presentation/Service와 관련된 로직**이라면 비공개 메소드/함수 (`private`) 들을 로직에 맞게 `public` 함수 혹은 클래스로 묶어서 추출한다.
 
 
-## 
 
-다음과 같이 시그널을 캐치할 수 있다.
+## 마무리 
 
-* private 메소드/함수가 많다면 클래스/공개 함수로 분리하는 것을 고려해보자
+만약 `public` 메소드/함수의 `private` 메소드/함수가 많다면 그건 또다른 공개 인터페이스 (클래스, `public` 함수)가 필요함을 의미할 수 있다.  
+즉, `private` 메소드/함수가 많다면 클래스/`public`  함수로 분리하는 것을 고려해보자.
 
 
 
