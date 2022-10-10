@@ -21,7 +21,7 @@ SQL Builder를 통해서 Native Query를 작성하는 것은 복잡한 조회 �
 ## 5-1. 문제 상황
 
 예를 들어 다음과 같은 기존의 코드가 있다고 가정해보자.  
-물론 굉장히 간단한 코드이지만, 예시로 든 것이며, 실제로는 이보다 더 복잡한 쿼리가 사용되었다고 가정하면 된다.
+물론 굉장히 간단한 코드이지만, 실제로는 이보다 더 복잡한 쿼리가 사용되었다고 가정하자.
 
 ```ts
 export class BlogRepository {
@@ -41,14 +41,24 @@ export class BlogRepository {
 * 발행일이 현재보다 과거인 블로그 글을 모두 가져온다.
 
 이 테스트는 왜 테스트 작성이 너무나 어려운것일까?
-
-* 실행할때마다 변경되는 현재 시간 SQL 함수 (`NOW()`) 를 쿼리 내부에서 쓰고 있다
-
-제어할 수 없는 값 (`NOW()`) 에 함수가 깊게 의존하고 있기 때문이다.
+  
+**실행할때마다 변경**되는 현재 시간을 만들어주는 SQL 함수 (`NOW()`) 를 쿼리 내부에서 쓰고 있는 로직 때문이다.  
+즉, 제어할 수 없는 값 (`NOW()`) 에 함수가 깊게 의존하고 있기 때문이다.
 
 * 참고: [2. 제어할 수 없는 코드 개선](https://jojoldu.tistory.com/676)  
 
-이외에도 
 
 ## 5-2. 해결 방법
 
+```ts
+export class BlogRepository {
+	...
+	async getBlogs(now: Date) {
+		return queryBuilder.query(`
+			SELECT *
+			FROM blog
+			WHERE publish_at <= NOW()
+		`);
+	}
+}
+```
