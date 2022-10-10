@@ -53,12 +53,16 @@ export class BlogRepository {
 ```ts
 export class BlogRepository {
 	...
-	async getBlogs(now: Date) {
-		return queryBuilder.query(`
+	async getBlogs(now: LocalDateTime) {
+		return queryBuilder.query("
 			SELECT *
 			FROM blog
-			WHERE publish_at <= NOW()
-		`);
+			WHERE publish_at <= :now", { 
+				now: now.toDate() 
+			}
+		);
 	}
 }
 ```
+
+* Node ORM에서는 `Date` 타입만 허용하기 때문에 `Date` 치환이 필요하다.
