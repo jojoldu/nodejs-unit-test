@@ -27,7 +27,7 @@ SQL Builder를 통해서 Native Query를 작성하는 것은 복잡한 조회 �
 export class BlogRepository {
 	...
 	async getBlogs() {
-		return queryBuilder.query(`
+		return this.queryBuilder.query(`
 			SELECT *
 			FROM blog
 			WHERE publish_at <= NOW()
