@@ -80,14 +80,20 @@ export class BlogRepository {
 			SELECT *
 			FROM blog
 			WHERE publish_at <= :now", { 
-				now: now.toDate() 
+				now: now.toDate() // Date로 변환
 			}
 		);
 	}
 }
 ```
 
-> Node.js ORM에서는 `Date` 타입만 허용하기 때문에 `Date` 치환이 필요하다.
+* Node.js ORM에서는 `Date` 타입만 허용하기 때문에 `Date` 변환이 필요하다.
+* `getBlogs`의 파라미터로 `Date`를 받아도 되지만, `LocalDateTime` 으로 받은 이유는
+  * 프로젝트 전체에서 js-joda의 `LocalDateTime`을 표준 날짜 타입으로 쓰고 있다.
+  * `Date`가 필요한 영역은 오직 RDBMS의 SQL 실행시에만 필요하다.
+  * 만약 최종 저장소가 RDBMS가 아니라 분산된 다른 서비스 **API로 문자열**을 보내야한다면 `Date`가 아니라 `string`으로 받아야 한다.
+  * 프로젝트의 표준 타입을 사용하고, 해당 함수 (혹은 컴포넌트)에서만 필요한 타입은 해당 함수 내부에서 변환해서 사용하는 것이 좋다.
+  * 테스트 코드를 작성할때 역시, `getBlogs` 파라미터로 `Date` 보다는 `LocalDateTime`이 좋다.
 
 마찬가지로 비즈니스 로직을 가지고 있는 메소드 역시 파라미터로 처리한다.
 
