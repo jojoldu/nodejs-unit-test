@@ -5,6 +5,6 @@ async function throwAsync(msg) {
   throw Error(msg);
 }
 
-async function returnWithoutAwait() {
+export async function returnWithoutAwait() {
   return throwAsync('without await');
 }

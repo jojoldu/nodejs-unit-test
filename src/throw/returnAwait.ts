@@ -5,6 +5,6 @@ async function throwAsync(msg) {
   throw Error(msg);
 }
 
-async function returnWithAwait() {
+export async function returnWithAwait() {
   return await throwAsync('with await');
 }
