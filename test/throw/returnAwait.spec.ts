@@ -1,6 +1,7 @@
 import { returnWithAwait, returnWithAwaitAndSync } from "../../src/throw/returnWithAwait";
 import { returnWithoutAwait, returnWithoutAwaitAndSync } from "../../src/throw/returnWihtoutAwait";
 import { getUser, nameAsyncBy, nameSyncBy } from '../../src/throw/promiseAll';
+import { sleep } from '../../src/throw/sleep';
 
 describe('with Await or without Await', () => {
   describe('Example 1', () => {
@@ -23,7 +24,7 @@ describe('with Await or without Await', () => {
     });
   });
 
-  describe('Example 3 - Promise.all', () => {
+  describe('Example 3. Promise.all', () => {
     describe('Example 3-1. Anonymous', () => {
       it('Promise.all & Sync', () => {
         const userIds = [1, 2, 0, 3]
@@ -51,6 +52,21 @@ describe('with Await or without Await', () => {
         Promise.all(userIds.map(nameAsyncBy)).catch(console.log);
       });
     });
+  });
 
+  describe('Example 4. Promise Chaining', () => {
+    it('Promise Chaining With Sync', async () => {
+      await sleep(10)
+        .then(() => sleep(5))
+        .then(() => sleep(3))
+        .then(() => sleep(0));
+    });
+
+    it('Promise Chaining With Async', async () => {
+      await sleep(10)
+        .then(async () => await sleep(5))
+        .then(async () => await sleep(3))
+        .then(async () => await sleep(0));
+    });
   });
 });

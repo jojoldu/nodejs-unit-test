@@ -1,6 +1,9 @@
 export function sleep(ms) {
   return new Promise(resolve => {
     console.log(`${ms} sleep`);
-    setTimeout(resolve, ms)
+    if(!ms) {
+      throw Error(`ms: ${ms} 는 허용되지 않습니다.`);
+    }
+    setTimeout(resolve, ms);
   });
 }
