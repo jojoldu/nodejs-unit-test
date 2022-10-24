@@ -1,12 +1,24 @@
-import { returnWithAwait } from "../../src/throw/returnAwait";
-import { returnWithoutAwait } from "../../src/throw/returnFunc";
+import { returnWithAwait, returnWithAwaitAndSync } from "../../src/throw/returnWithAwait";
+import { returnWithoutAwait, returnWithoutAwaitAndSync } from "../../src/throw/returnWihtoutAwait";
 
 describe('with Await or without Await', () => {
-  it('returnWithAwait', () => {
-    returnWithAwait();
+  describe('Example 1', () => {
+    it('returnWithAwait', () => {
+      returnWithAwait();
+    });
+
+    it('returnWithoutAwait', () => {
+      returnWithoutAwait();
+    });
   });
 
-  it('returnWithoutAwait', () => {
-    returnWithoutAwait();
+  describe('Example 2', () => {
+    it('returnWithAwaitAndSync', () => {
+      returnWithAwaitAndSync();
+    });
+
+    it('returnWithoutAwaitAndSync', () => {
+      returnWithoutAwaitAndSync();
+    });
   });
 });
