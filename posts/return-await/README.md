@@ -11,6 +11,26 @@
 Node.js를 비롯한 백엔드에서는 에러가 발생한다면 해당 에러에 대한 상세한 추적 내역은 필수다.  
 다만, Node.js에서는 `await` 없이 `Promise` 객체를 그대로 반환할 경우 해당 `Promise` 객체에서 발생한 에러는 Stack Trace 가 남지 않는다.  
 
+```ts
+export async function getUser(id) {
+  await sleep(10);
+  if(!id) {
+    console.log(`${id} 호출`);
+    throw Error ('getUser 호출이 실패했다')
+  }
+  return {id}
+}
+
+export function nameSyncBy (id) {
+  return getUser(id);
+}
+
+export async function nameAsyncBy(id) {
+  return await getUser(id);
+}
+```
+
+
 ## Zero cost Async Stack traces
 
 이는 함수 foo2가 이전에 대기에서 실행을 일시 중단했다가 나중에 마이크로태스크 대기열(즉, 기본적으로 이벤트 루프에서)에서 재개되었기 때문에 JSVM의 관점에서 볼 때 타당하다. 즉, 현재 그 아래에 있는 스택에는 다른 함수가 없다는 것을 의미한다.
