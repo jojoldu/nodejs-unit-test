@@ -10,25 +10,32 @@
 
 Node.js를 비롯한 백엔드에서는 에러가 발생한다면 해당 에러에 대한 상세한 추적 내역은 필수다.  
 다만, Node.js에서는 `await` 없이 `Promise` 객체를 그대로 반환할 경우 해당 `Promise` 객체에서 발생한 에러는 Stack Trace 가 남지 않는다.  
-
+  
 ```ts
-export async function getUser(id) {
+export async function returnWithoutAwait() {
+  return throwAsync('without await');
+}
+
+async function throwAsync(msg) {
   await sleep(10);
-  if(!id) {
-    console.log(`${id} 호출`);
-    throw Error ('getUser 호출이 실패했다')
-  }
-  return {id}
-}
-
-export function nameSyncBy (id) {
-  return getUser(id);
-}
-
-export async function nameAsyncBy(id) {
-  return await getUser(id);
+  throw Error(msg);
 }
 ```
+
+![without1](./images/without1.png)
+
+```ts
+export async function returnWithAwait() {
+  return await throwAsync('with await');
+}
+
+async function throwAsync(msg) {
+  await sleep(10);
+  throw Error(msg);
+}
+```
+
+![with1](./images/with1.png)
 
 
 ## Zero cost Async Stack traces
