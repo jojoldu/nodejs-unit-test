@@ -9,8 +9,10 @@
 ## 문제
 
 Node.js를 비롯한 백엔드에서는 에러가 발생한다면 해당 에러에 대한 상세한 추적 내역은 필수다.  
-다만, Node.js에서는 `await` 없이 `Promise` 객체를 그대로 반환할 경우 해당 `Promise` 객체에서 발생한 에러는 Stack Trace 가 남지 않는다.  
+다만, Node.js에서는 `await` 없이 `Promise` 객체를 그대로 반환할 경우 `await` 없이 반환한 함수는 Trace가 되지 않는다.  
   
+예를 들어 다음과 같이 구현을 했다고 가정해보자.
+
 ```ts
 export async function returnWithoutAwait() {
   return throwAsync('without await');
@@ -22,7 +24,13 @@ async function throwAsync(msg) {
 }
 ```
 
+에러가 발생하는 `async` 함수인 `throwAsync` 를 `returnWithoutAwait` 에서는 별도의 `await` 없이 그대로 반환한다.  
+이럴 경우 실제 로그에는 다음과 같이 출력된다.
+
 ![without1](./images/without1.png)
+
+에러가 발생하는 `throwAsync` 는 Trace에 남지만, **await없이 반환하는 returnWithoutAwait는 Trace에 존재하지 않는다**.
+
 
 ```ts
 export async function returnWithAwait() {
