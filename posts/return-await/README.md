@@ -15,7 +15,7 @@ Node.js를 비롯한 백엔드에서는 에러가 발생한다면 해당 에러�
 
 ```ts
 export async function returnWithoutAwait() {
-  return throwAsync('without await');
+  return throwAsync('without await'); // await가 없는 return
 }
 
 async function throwAsync(msg) {
@@ -29,12 +29,13 @@ async function throwAsync(msg) {
 
 ![without1](./images/without1.png)
 
-에러가 발생하는 `throwAsync` 는 Trace에 남지만, **await없이 반환하는 returnWithoutAwait는 Trace에 존재하지 않는다**.
-
+에러가 발생하는 `throwAsync` 는 Trace에 남지만, **await없이 반환하는** `returnWithoutAwait()`는 **Trace에 존재하지 않는다**.  
+  
+이와 반대로 **return await**를 해서 반환을 하는 함수에서 테스트 해보면 결과가 다르다.
 
 ```ts
 export async function returnWithAwait() {
-  return await throwAsync('with await');
+  return await throwAsync('with await'); // await가 있는 return
 }
 
 async function throwAsync(msg) {
@@ -43,9 +44,13 @@ async function throwAsync(msg) {
 }
 ```
 
+이때의 결과는 어떨까?  
+
 ![with1](./images/with1.png)
 
-
+명확하게 **returnWithAwait가 Trace가 된다**.  
+  
+왜 이렇게 되는 걸까?
 ## Zero cost Async Stack traces
 
 이는 함수 foo2가 이전에 대기에서 실행을 일시 중단했다가 나중에 마이크로태스크 대기열(즉, 기본적으로 이벤트 루프에서)에서 재개되었기 때문에 JSVM의 관점에서 볼 때 타당하다. 즉, 현재 그 아래에 있는 스택에는 다른 함수가 없다는 것을 의미한다.
