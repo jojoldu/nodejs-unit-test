@@ -22,16 +22,30 @@ async function throwAsync(msg) {
   await sleep(10);
   throw Error(msg);
 }
+
+returnWithoutAwait().catch(console.log);
 ```
 
-에러가 발생하는 `async` 함수인 `throwAsync` 를 `returnWithoutAwait` 에서는 별도의 `await` 없이 그대로 반환한다.  
-이럴 경우 실제 로그에는 다음과 같이 출력된다.
+일반적으로 `Promise`를 그대로 반환하는 경우 자주 사용하는 패턴이다.  
+이렇게 구현될 경우 실제 로그에는 다음과 같이 출력된다.
 
 ![without1](./images/without1.png)
 
-에러가 발생하는 `throwAsync` 는 Trace에 남지만, **await없이 반환하는** `returnWithoutAwait()`는 **Trace에 존재하지 않는다**.  
+내가 호출한 함수는 `returnWithoutAwait` 인데 Error Trace에서는 **에러가 발생한 async 함수만 추적이 되고**, 실제 호출 함수 (`returnWithoutAwait`) 가 전혀 추적이 되지 않는다.  
   
-이와 반대로 **return await**를 해서 반환을 하는 함수에서 테스트 해보면 결과가 다르다.
+이건 왜 문제일까?  
+대부분의 `async` 함수들은 재사용성이 높다.  
+
+* API 호출
+* RDBMS 등 외부 저장소 호출
+* File 읽기, 쓰기
+
+등등 외부 의존성의 코드들이기 때문이다.  
+
+하지만, 위와 같이 구현될 경우 **어디에서 이 async 함수를 호출했는지 추적이 되지 않는다**.  
+여러 곳에서 사용될 여지가 높은 함수인데, 정작 에러가 발생하면 어디서 호출되는지 모르는 상황이 되는 것이다.  
+  
+반면 `return await` 함수에서 테스트 해보면 결과가 다르다.
 
 ```ts
 export async function returnWithAwait() {
@@ -42,9 +56,11 @@ async function throwAsync(msg) {
   await sleep(10);
   throw Error(msg);
 }
+
+returnWithAwait().catch(console.log);
 ```
 
-이때의 결과는 어떨까?  
+이때의 결과는  
 
 ![with1](./images/with1.png)
 
