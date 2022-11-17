@@ -9,6 +9,14 @@ async function throwAsync(msg) {
   throw Error(msg);
 }
 
+function passSync (msg) {
+  return throwAsync(msg)
+}
+
+async function returnAndPassWithoutAwait (msg) {
+  return await passSync(msg);
+}
+
 export async function returnWithoutAwaitAndSync() {
   return throwAsyncWithSync('without await');
 }

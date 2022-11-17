@@ -11,6 +11,11 @@
 Node.js를 비롯한 백엔드에서는 에러가 발생한다면 해당 에러에 대한 상세한 추적 내역은 필수다.  
 다만, Node.js에서는 `await` 없이 `Promise` 객체를 그대로 반환할 경우 `await` 없이 반환한 함수는 Trace가 되지 않는다.  
   
+몇가지 예를 보자.
+
+
+### 문제 1. 
+
 예를 들어 다음과 같이 구현을 했다고 가정해보자.
 
 ```ts
@@ -60,11 +65,15 @@ async function throwAsync(msg) {
 returnWithAwait().catch(console.log);
 ```
 
-이때의 결과는  
+이때의 결과는 명확하게 **returnWithAwait가 Trace가 된다**.
 
 ![with1](./images/with1.png)
 
-명확하게 **returnWithAwait가 Trace가 된다**.  
+
+### 문제 2.
+
+### 문제 3.
+
   
 왜 이렇게 되는 걸까?
 ## Zero cost Async Stack traces
