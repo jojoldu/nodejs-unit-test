@@ -9,6 +9,14 @@ async function throwAsync(msg) {
   throw Error(msg);
 }
 
+async function passAsync (msg) {
+  return await throwAsync(msg)
+}
+
+async function returnAndPassWithAwait (msg) {
+  return await passAsync(msg);
+}
+
 export async function returnWithAwaitAndSync() {
   return await throwAsyncWithSync('with await');
 }
