@@ -72,8 +72,48 @@ returnWithAwait().catch(console.log);
 
 ### 문제 2.
 
+```ts
+async function throwAsync(msg) {
+  await sleep(10);
+  throw Error(msg);
+}
+
+function passSync (msg) {
+  return throwAsync(msg)
+}
+
+async function returnAndPassWithoutAwait (msg) {
+  return await passSync(msg);
+}
+
+returnAndPassWithoutAwait().catch(console.log);
+```
+
+```ts
+async function throwAsync(msg) {
+  await sleep(10);
+  throw Error(msg);
+}
+
+async function passAsync (msg) {
+  return await throwAsync(msg)
+}
+
+async function returnAndPassWithAwait (msg) {
+  return await passAsync(msg);
+}
+
+returnAndPassWithAwait().catch(console.log);
+```
 ### 문제 3.
 
+```ts
+
+```
+
+```ts
+
+```
   
 왜 이렇게 되는 걸까?
 ## Zero cost Async Stack traces
