@@ -25,7 +25,7 @@ Express와 JS/TS만을 가지고 프로젝트를 진행하다보면 데이터 �
 
 ```ts
 export class LectureRepository extends BaseRepository<Lecture> {
-
+    ...
     async getLectureByDate (createdAt: Date): Promise<Lecture> {
         const lectures = await this.queryTemplate.queryWith(
             'SELECT * FROM lecture l WHERE l.created_at >= $1',
@@ -51,8 +51,25 @@ export class LectureService {
 }
 ```
 
-당연하지만, 테스트 코드를 작성할때도 마찬가지다.
+이건 테스트 코드를 작성할때도 마찬가지다.
 
+```ts
+    it('getLectureByDate', async () => {
+        ...
+
+        const createdAt = LocalDateTime.of(2022,11,26, 12,0,5);
+        const createdDate = convert(createdAt).toDate(); 
+        const result = await lectureRepository.getLectureByDate(createdDate);
+
+        expect(...);
+    });
+```
+
+* `const createdAt = LocalDateTime.of(2022,11,26, 12,0,5);`
+  * 원하는 날짜를 편하게 생성하기 위해 `LocalDateTime` 사용
+  * 보통 팀의 표준 날짜 라이브러리가 이를 위해 사용되며, dayjs 등도 동일하게 적용 
+* `const createdDate = convert(createdAt).toDate();`
+  * 테스트 대상인 `getLectureByDate` 가 `Date`를 받기 때문에 다시 형변환 진행
 
 ## 해결
 
