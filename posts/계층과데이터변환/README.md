@@ -44,13 +44,16 @@ export class LectureRepository extends BaseRepository<Lecture> {
 export class LectureService {
 
     async getLecture (createdAt: LocalDateTime): Promise<Lecture> {
-        const date = convert(createdAt).toDate();
+        const date = convert(createdAt).toDate(); // LocalDateTime -> Date 로 변환
         const lecture = await this.lectureRepository.getLectureByDate(date);
         ....
     }
 }
 ```
 
+Service 계층에서 Date로 변환하는 역할을 해야한다.  
+문제는 **LectureService 외에도 lectureRepository를 호출하는 곳이 있다면 해당 영역 모두에서 Date로 변환**을 해야만 한다.  
+  
 이건 테스트 코드를 작성할때도 마찬가지다.
 
 ```ts
@@ -71,6 +74,7 @@ export class LectureService {
 * `const createdDate = convert(createdAt).toDate();`
   * 테스트 대상인 `getLectureByDate` 가 `Date`를 받기 때문에 다시 형변환 진행
 
+프로젝트 전체가 `LocalDateTime`을 공식적인 날짜 타입으로 사용하더라도, 매번 
 ## 해결
 
 ### 비즈니스 계층 지키기
