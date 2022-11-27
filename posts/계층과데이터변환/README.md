@@ -21,7 +21,7 @@ Express와 JS/TS만을 가지고 프로젝트를 진행하다보면 데이터 �
 
 > TypeORM, MikrORM 등 ORM 혹은 SpringFramework, NestJS 등 의 프레임워크 등을 사용하지 않으면 Type Transform 이 매끄럽지 않아서 이런 경우를 더 쉽게 만날 수 있다.
 
-이때 가장 흔하게 쓰는 방법은 Data Access 계층의 파라미터로 원하는 타입을 전달하는 것이다.
+이때 가장 흔하게 쓰는 방법은 **원하는 타입을 Data Access 계층의 파라미터로** 전달하는 것이다.
 
 ```ts
 export class LectureRepository extends BaseRepository<Lecture> {
@@ -38,6 +38,8 @@ export class LectureRepository extends BaseRepository<Lecture> {
 ```
 
 이렇게 되면 Data Access 계층 입장에서는 좋은 방법이다.  
+LectureRepository 는 Date 타입만을 처리하면 된다.  
+  
 하지만 이를 호출하는 쪽에서는 어떨까?
 
 ```ts
@@ -74,7 +76,10 @@ Service 계층에서 Date로 변환하는 역할을 해야한다.
 * `const createdDate = convert(createdAt).toDate();`
   * 테스트 대상인 `getLectureByDate` 가 `Date`를 받기 때문에 다시 형변환 진행
 
-프로젝트 전체가 `LocalDateTime`을 공식적인 날짜 타입으로 사용하더라도, 매번 
+Repository 에서 데이터 변환을 담당하지 않기 때문에 Repository는 깔끔한 형태를 유지할 수 있다.  
+하지만 Repository를 편하게 하기 위해 **매번 Repository를 호출 하는 곳에서 데이터 변환을 해야만 한다**.  
+
+프로젝트 전체가 `LocalDateTime`을 공식적인 날짜 타입으로 사용하더라도, 매번 데이터 변환 코드를 작성해야 한다.
 ## 해결
 
 ### 비즈니스 계층 지키기
