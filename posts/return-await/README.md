@@ -14,7 +14,7 @@ Node.js를 비롯한 백엔드에서는 에러가 발생한다면 해당 에러�
 몇가지 예를 보자.
 
 
-### 문제 1. 
+### 문제 1 
 
 예를 들어 다음과 같이 구현을 했다고 가정해보자.
 
@@ -70,41 +70,52 @@ returnWithAwait().catch(console.log);
 ![with1](./images/with1.png)
 
 
-### 문제 2.
+### 문제 2
+
+만약 여러 중첩 Promise 호출 사이에 중간 지점에서만 `await`가 누락되면 어떻게 될까?
 
 ```ts
-async function throwAsync(msg) {
-  await sleep(10);
-  throw Error(msg);
-}
-
-function passSync (msg) {
-  return throwAsync(msg)
-}
-
 async function returnAndPassWithoutAwait (msg) {
   return await passSync(msg);
 }
 
-returnAndPassWithoutAwait().catch(console.log);
-```
+function passSync (msg) {
+  return throwAsync(msg); // 여기서만 await를 제거 
+}
 
-```ts
 async function throwAsync(msg) {
   await sleep(10);
   throw Error(msg);
+}
+
+
+returnAndPassWithoutAwait().catch(console.log);
+```
+
+문제 1과 마찬가지로 
+
+![without2](./images/without2.png)
+
+```ts
+async function returnAndPassWithAwait (msg) {
+  return await passAsync(msg);
 }
 
 async function passAsync (msg) {
   return await throwAsync(msg)
 }
 
-async function returnAndPassWithAwait (msg) {
-  return await passAsync(msg);
+async function throwAsync(msg) {
+  await sleep(10);
+  throw Error(msg);
 }
 
 returnAndPassWithAwait().catch(console.log);
 ```
+
+![with2](./images/with2.png)
+
+
 ### 문제 3.
 
 ```ts
