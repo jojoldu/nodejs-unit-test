@@ -14,6 +14,8 @@
 
 e2e 테스트 중에  희생할 수 있습니다 . 내구성은 서버가 충돌하거나 전원이 꺼지더라도 데이터 저장을 보장하며 일반적으로 e2e 테스트 중에 필요하지 않습니다. e2e 테스트가 가능한 생산에 가까운 시스템을 테스트해야 한다는 것은 논쟁의 여지가 있지만 테스트 속도를 높여야 한다면 이것은 가치 있는 절충안이라고 생각합니다.
 
+https://www.postgresql.org/docs/13/non-durability.html
+
 /var/lib/postgresql/data/postgresql.conf파일 에 다음을 추가하기만 하면 됩니다.
 
 ```bash
@@ -23,3 +25,9 @@ full_page_writes = off
 ```
 
 이러한 설정을 사용하여 테스트 실행 시간을 ~20%까지 줄일 수 있었습니다. 우리의 e2e 테스트가 모두 db에 초점을 맞춘 것이 아니라는 점을 감안할 때 이것은 좋은 결과라고 생각합니다.
+
+### max_wal_size & checkpoint_timeout
+
+https://www.crunchydata.com/blog/tuning-your-postgres-database-for-high-write-loads
+
+## unlogged table
