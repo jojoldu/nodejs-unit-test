@@ -1,4 +1,4 @@
-import { sleep } from './sleep';
+import { sleep } from '../sleep';
 
 export async function getUser(id) {
   await sleep(10);

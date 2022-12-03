@@ -1,6 +1,6 @@
-import { returnWithAwait, returnWithAwaitAndSync } from "../../src/throw/returnWithAwait";
-import { returnWithoutAwait, returnWithoutAwaitAndSync } from "../../src/throw/returnWihtoutAwait";
-import { getUser, nameAsyncBy, nameSyncBy } from '../../src/throw/promiseAll';
+import { returnWithAwait, returnWithAwaitAndSync } from "../../src/throw/return/returnWithAwait";
+import { returnWithoutAwait, returnWithoutAwaitAndSync } from "../../src/throw/return/returnWihtoutAwait";
+import { getUser, nameAsyncBy, nameSyncBy } from '../../src/throw/return/promiseAll';
 import { sleep } from '../../src/throw/sleep';
 
 describe('with Await or without Await', () => {

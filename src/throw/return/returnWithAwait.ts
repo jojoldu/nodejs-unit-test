@@ -1,4 +1,4 @@
-import { sleep } from './sleep';
+import { sleep } from '../sleep';
 
 export async function returnWithAwait() {
   return await throwAsync('with await');
