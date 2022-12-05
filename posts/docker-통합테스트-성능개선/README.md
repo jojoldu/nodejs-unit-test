@@ -31,3 +31,23 @@ full_page_writes = off
 https://www.crunchydata.com/blog/tuning-your-postgres-database-for-high-write-loads
 
 ## unlogged table
+
+https://www.compose.com/articles/faster-performance-with-unlogged-tables-in-postgresql/
+
+```ts
+import { DatabaseTable } from '@mikro-orm/better-sqlite';
+import { MikroORM } from '@mikro-orm/core';
+
+export async function generateTestSchema(orm: MikroORM) {
+  const schemaGenerator = orm.getSchemaGenerator();
+  await schemaGenerator.refreshDatabase();
+  // @ts-ignore
+  const tables: DatabaseTable[] = schemaGenerator.getTargetSchema().getTables();
+
+  await Promise.all(
+    tables.map(async (table) =>
+      schemaGenerator.execute(`ALTER TABLE "${table.name}" SET UNLOGGED`),
+    ),
+  );
+}
+```
