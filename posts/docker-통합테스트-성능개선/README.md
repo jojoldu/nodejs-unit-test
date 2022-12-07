@@ -10,11 +10,16 @@
 
 [/run](https://unix.stackexchange.com/questions/13972/what-is-this-new-run-filesystem)
 
-## Non Durable
+## Non Durability
 
-e2e 테스트 중에  희생할 수 있습니다 . 내구성은 서버가 충돌하거나 전원이 꺼지더라도 데이터 저장을 보장하며 일반적으로 e2e 테스트 중에 필요하지 않습니다. e2e 테스트가 가능한 생산에 가까운 시스템을 테스트해야 한다는 것은 논쟁의 여지가 있지만 테스트 속도를 높여야 한다면 이것은 가치 있는 절충안이라고 생각합니다.
+내구성 (Durability) 은 서버가 충돌하거나 전원이 꺼지더라도 데이터 저장을 보장하는 기능이다.  
+보편적인 RDBMS에서는 필수 기능이나, E2E 테스트에서는 중요한 기능이 아니다.    
+E2E 테스트가 가능한 운영 (Production) 환경에 최대한 비슷한 형태로 테스트 해야한다는 의견이 있지만 (이 역시도 논쟁거리이긴하지만) 내구성 (Durability)에 한해서는 충분히 절충 가능한 사안이다.  
+특히 테스트 성능에 영향을 끼친다면 더욱 그렇다.  
+  
+PostgreSQL에서는 내구성 (Durability) 를 다음의 방식으로 `off` 시킬 수 있다.
 
-https://www.postgresql.org/docs/13/non-durability.html
+* https://www.postgresql.org/docs/13/non-durability.html
 
 /var/lib/postgresql/data/postgresql.conf파일 에 다음을 추가하기만 하면 됩니다.
 
@@ -31,6 +36,9 @@ full_page_writes = off
 https://www.crunchydata.com/blog/tuning-your-postgres-database-for-high-write-loads
 
 ## unlogged table
+
+내구성 (Durability) 과 마찬가지로 테이블의 로그를 관리하는 정보 역시 E2E 테스트 안에서는 성능을 위해 절충할 수 있는 기능이다.  
+  
 
 https://www.compose.com/articles/faster-performance-with-unlogged-tables-in-postgresql/
 
@@ -50,4 +58,10 @@ export async function generateTestSchema(orm: MikroORM) {
     ),
   );
 }
+```
+
+> 물론 이 코드는 MikroORM을 사용했지만, TypeORM에서도 충분히 활용가능하다.
+ 
+```ts
+
 ```
