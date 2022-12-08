@@ -21,7 +21,7 @@ PostgreSQL에서는 내구성 (Durability) 를 다음의 방식으로 `off` 시�
 
 * https://www.postgresql.org/docs/13/non-durability.html
 
-/var/lib/postgresql/data/postgresql.conf파일 에 다음을 추가하기만 하면 됩니다.
+만약 설치된 DB라면 `/var/lib/postgresql/data/postgresql.conf` 에 다음 옵션을 변경하면 된다.
 
 ```bash
 fsync = off
@@ -29,7 +29,41 @@ synchronous_commit = off
 full_page_writes = off
 ```
 
-이러한 설정을 사용하여 테스트 실행 시간을 ~20%까지 줄일 수 있었습니다. 우리의 e2e 테스트가 모두 db에 초점을 맞춘 것이 아니라는 점을 감안할 때 이것은 좋은 결과라고 생각합니다.
+하지만 현재 테스트 환경에서는 Docker를 통해 PostgreSQL을 사용하니 `Dockerfile`을 사용한다.
+
+**docker-compose.yml**
+
+```bash
+FROM postgres:13-alpine3.17
+
+# Update config with non-durable settings (fsync, synchronous_commit, full_page_writes, max_wal_size)
+# See: https://www.postgresql.org/docs/13/non-durability.html
+RUN sed -ri "s!^#?(fsync|synchronous_commit|full_page_writes)\s*=\s*\S+.*!\1 = off!" /usr/local/share/postgresql/postgresql.conf.sample
+```
+
+
+```bash
+services:
+  db:
+    build:
+      context: ./pg-docker
+      dockerfile: Dockerfile
+    ports:
+      - '5434:5432'
+    container_name: inflearn-db
+    environment:
+      - POSTGRES_DB=test
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+    tmpfs:
+      - /var/lib/postgresql/data
+      - /run
+      - /var/cache
+```
+
+다음의 설정이 잘 되는지는 로컬에서 docker-compose로 DB를 꼭 실행해보고 
+![4-non-durable2](./images/4-non-durable2.png)
 
 ### max_wal_size & checkpoint_timeout
 
