@@ -1,27 +1,26 @@
 # 데이터베이스 통합 테스트 성능 개선하기 (Docker & PostgreSQL)
 
-
-![test-pyramid](./images/test-pyramid.png)
-
-* 출처: [TestPyramid](https://martinfowler.com/bliki/TestPyramid.html)
-
-다만, 당장의 모든 통합 테스트를 다 단위 테스트로 전환하는 것이 부담된다면, 현재의 느린 통합 테스트들의 
-
-## 문제
-
 보통 통합 테스트는 SQLite, H2와 같은 InMemory 데이터베이스를 사용한다.  
 메모리상에만 존재하기 때문에 실제 ORM (SQL) 을 검증이 가능하면서도 **병렬로 테스트를 수행**할 수 있고, **고속의 쿼리 수행**이 가능하기 때문이다.  
 
 대부분의 데이터베이스 쿼리는 InMemory DB 에 대해 실행할 수 있지만 많은 엔터프라이즈 시스템은 실제 프로덕션과 같은 관계형 데이터베이스에 대해서만 테스트할 수 있는 복잡한 기본 쿼리를 사용한다.  
   
-그래서 테스트의 일부 (혹은 많은) 기능들은 Docker를 통해 운영과 동일한 데이터베이스를 
+그래서 운영 환경에서 사용하는 데이터베이스(MySQL, PostgreSQL 등) 에서 지원하는 여러 기능들을 적극적으로 사용하는 환경에서는 InMemory DB로 검증하는데 한계가 있다.  
+  
+이를 위해 보통은 로컬 PC에서는 Docker를 통해 데이터베이스 통합 테스트 환경을 구축해서 사용한다.  
 
-이 게시물에서는 메모리 내 데이터베이스만큼 빠르게 PostgreSQL 및 MySQL 통합 테스트를 실행할 수 있는 방법을 보여드리겠습니다.
+물론, 외부에 의존적인 통합 테스트 보다 단위 테스트의 비중이 많은 것이 좋다.  
 
+![test-pyramid](./images/test-pyramid.png)
+
+* 출처: [TestPyramid](https://martinfowler.com/bliki/TestPyramid.html)
+
+다만, 레거시 시스템을 리팩토링해야하거나 기존 시스템이 데이터베이스에 많이 의존하고 있는 경우 프로젝트 전체적인 구조를 개편하기 전까지는 통합 테스트에 많이 의존할 수 밖에 없다.  
+  
+당장 프로젝트 구조를 개선해서 단위 테스트의 비중을 늘릴 수 있다면 좋겠지만, 그러기 쉽지 않다면, 아래의 내용을 참고해 **데이터베이스를 사용하는 통합테스트의 전체 성능을 개선**하는 것을 시도해보자.
 ## 해결
 
-
-## tmpfs
+## 1. tmpfs
 
 ### data
 
@@ -31,7 +30,7 @@
 
 [/run](https://unix.stackexchange.com/questions/13972/what-is-this-new-run-filesystem)
 
-## Non Durability
+## 2. Non Durability
 
 내구성 (Durability) 은 서버가 충돌하거나 전원이 꺼지더라도 데이터 저장을 보장하는 기능이다.  
 보편적인 RDBMS에서는 필수 기능이나, E2E 테스트에서는 중요한 기능이 아니다.    
@@ -90,7 +89,7 @@ services:
 
 https://www.crunchydata.com/blog/tuning-your-postgres-database-for-high-write-loads
 
-## unlogged table
+## 3. unlogged table
 
 내구성 (Durability) 과 마찬가지로 테이블의 로그를 관리하는 정보 역시 E2E 테스트 안에서는 성능을 위해 절충할 수 있는 기능이다.  
   
@@ -120,3 +119,6 @@ export async function generateTestSchema(orm: MikroORM) {
 ```ts
 
 ```
+
+## 마무리
+
