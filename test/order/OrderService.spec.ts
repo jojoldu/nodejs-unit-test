@@ -2,7 +2,7 @@ import { OrderService } from '../../src/order/OrderService';
 import { OrderRepository } from '../../src/order/OrderRepository';
 import { anyNumber, anything, instance, mock, verify, when } from 'ts-mockito';
 import { Order } from '../../src/order/Order';
-import { LocalDateTime } from 'js-joda';
+import { LocalDateTime } from '@js-joda/core';
 import { BillingApi } from '../../src/order/BillingApi';
 import { JodaTime } from '../../src/nowtime/JodaTime';
 

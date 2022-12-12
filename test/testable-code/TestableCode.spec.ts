@@ -1,6 +1,6 @@
 import { Order } from '../../src/order/Order';
 import { OrderStatus } from '../../src/order/OrderStatus';
-import { LocalDateTime } from 'js-joda';
+import { LocalDateTime } from '@js-joda/core';
 import { OrderService } from '../../src/order/OrderService';
 import { OrderRepository } from '../../src/order/OrderRepository';
 import { BillingApi } from '../../src/order/BillingApi';

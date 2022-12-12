@@ -1,9 +1,9 @@
 import { Order } from './Order';
 import { OrderRepository } from './OrderRepository';
 import { NotFoundException } from '@nestjs/common';
-import { LocalDateTime } from 'js-joda';
 import { BillingApi } from './BillingApi';
 import { Time } from "../nowtime/Time";
+import { LocalDateTime } from '@js-joda/core';
 
 export class OrderService {
     constructor(

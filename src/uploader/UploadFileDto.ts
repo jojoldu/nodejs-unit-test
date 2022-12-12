@@ -1,5 +1,5 @@
 import { Readable } from 'stream';
-import { LocalDate } from 'js-joda';
+import { LocalDate } from '@js-joda/core';
 import { DateTimeUtil } from '../util/DateTimeUtil';
 
 export class UploadFileDto {

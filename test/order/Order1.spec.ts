@@ -1,5 +1,5 @@
 import { Order } from '../../src/order/Order';
-import { LocalDateTime } from 'js-joda';
+import { LocalDateTime } from '@js-joda/core';
 import { OrderStatus } from '../../src/order/OrderStatus';
 
 describe('Order1', () => {

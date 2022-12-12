@@ -566,6 +566,11 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
+"@js-joda/core@^5.4.2":
+  version "5.4.2"
+  resolved "https://registry.yarnpkg.com/@js-joda/core/-/core-5.4.2.tgz#fedb8b4b98cf0750daf5802fa2a661edbf83892b"
+  integrity sha512-QIDIZ9a0NfDStgD47VaTgwiPjlw1p4QPLwjOB/9+/DqIztoQopPNNAd+HdtQMHgE+ibP3dJacd8/TVL/A1RaaA==
+
 "@nestjs/cli@^8.0.0":
   version "8.1.4"
   resolved "https://registry.yarnpkg.com/@nestjs/cli/-/cli-8.1.4.tgz#8105c791eae3ead67e8ba7b4df2c0f45a445d0cd"
@@ -646,6 +651,13 @@
   dependencies:
     optional "0.1.4"
     tslib "2.3.1"
+
+"@nestjs/typeorm@^9.0.1":
+  version "9.0.1"
+  resolved "https://registry.yarnpkg.com/@nestjs/typeorm/-/typeorm-9.0.1.tgz#f78bfc00e71731ea860288e4a03830107daf3d9c"
+  integrity sha512-A2BgLIPsMtmMI0bPKEf4bmzgFPsnvHqNBx3KkvaJ7hJrBQy0OqYOb+Rr06ifblKWDWS2tUPNrAFQbZjtk3PI+g==
+  dependencies:
+    uuid "8.3.2"
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
@@ -3385,11 +3397,6 @@ jest@^27.2.5:
     import-local "^3.0.2"
     jest-cli "^27.3.1"
 
-js-joda@^1.11.0:
-  version "1.11.0"
-  resolved "https://registry.yarnpkg.com/js-joda/-/js-joda-1.11.0.tgz#e0e424b049cf7a9db3ed7729a6ca1f7d96b2486e"
-  integrity sha512-/HJpRhwP2fPyuSsCaZuoVJuaSIt8tUXykV4wOMRXrFk7RP9h9VWaFdS9YHKdMepxb/3TdXpL6IhfC9L0sqYVBw==
-
 js-tokens@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
@@ -5049,6 +5056,11 @@ typedarray@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
+
+typeorm-naming-strategies@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/typeorm-naming-strategies/-/typeorm-naming-strategies-4.1.0.tgz#1ec6eb296c8d7b69bb06764d5b9083ff80e814a9"
+  integrity sha512-vPekJXzZOTZrdDvTl1YoM+w+sUIfQHG4kZTpbFYoTsufyv9NIBRe4Q+PdzhEAFA2std3D9LZHEb1EjE9zhRpiQ==
 
 typeorm@^0.3.6:
   version "0.3.6"
