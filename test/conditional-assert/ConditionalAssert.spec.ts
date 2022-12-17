@@ -1,5 +1,5 @@
 import { Calculator } from '../../src/calculator/Calculator';
-import { DateTimeFormatter, LocalDateTime } from 'js-joda';
+import { DateTimeFormatter, LocalDateTime } from '@js-joda/core';
 import { TimeDisplay } from '../../src/time-display/TimeDisplay';
 import { OrderStatus } from '../../src/order/OrderStatus';
 import { Order } from '../../src/order/Order';

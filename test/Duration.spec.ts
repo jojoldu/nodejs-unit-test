@@ -1,4 +1,4 @@
-import { Duration } from 'js-joda';
+import { Duration } from '@js-joda/core';
 import { DateTimeUtil } from '../src/util/DateTimeUtil';
 
 describe('Duration', () => {

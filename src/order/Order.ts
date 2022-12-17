@@ -1,4 +1,4 @@
-import { DayOfWeek, LocalDateTime } from 'js-joda';
+import { DayOfWeek, LocalDateTime } from '@js-joda/core';
 import { OrderStatus } from './OrderStatus';
 import { Pay } from './Pay';
 import { getConnection } from 'typeorm';

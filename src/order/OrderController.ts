@@ -1,6 +1,6 @@
 import { Controller, Get, Post } from '@nestjs/common';
 import { OrderService } from './OrderService';
-import { LocalDateTime } from "js-joda";
+import { LocalDateTime } from '@js-joda/core';
 import { Time } from "../nowtime/Time";
 
 @Controller('/order')

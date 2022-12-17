@@ -1,4 +1,4 @@
-import { LocalDateTime } from "js-joda";
+import { LocalDateTime } from '@js-joda/core';
 import { Time } from "../../src/nowtime/Time";
 
 export class StubTime implements Time{

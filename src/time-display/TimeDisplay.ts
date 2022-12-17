@@ -1,4 +1,4 @@
-import { DateTimeFormatter, LocalDateTime } from 'js-joda';
+import { DateTimeFormatter, LocalDateTime } from '@js-joda/core';
 
 export class TimeDisplay {
     display (time: LocalDateTime): string {

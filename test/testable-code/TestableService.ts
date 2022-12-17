@@ -1,7 +1,7 @@
 import TestableRepository from './TestableRepository';
 import Posts from './Posts';
 import { Order }  from "../../src/order/Order";
-import { LocalDateTime } from "js-joda";
+import { LocalDateTime } from '@js-joda/core';
 
 export default class TestableService {
   constructor(private readonly repository: TestableRepository) {
