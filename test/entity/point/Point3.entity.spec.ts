@@ -6,7 +6,6 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { PointEntityModule } from '../../../src/domain/entity/Point/PointEntityModule';
 
 describe('PointEntity3', () => {
-  describe('Bulk Insert', () => {
   let pointRepository: Repository<Point>;
 
   beforeAll(async () => {
@@ -29,6 +28,5 @@ describe('PointEntity3', () => {
     for (let key = 0; key < count; key++) {
       await pointRepository.save(Point.of(key * 1_000));
     }
-  });
   });
 });

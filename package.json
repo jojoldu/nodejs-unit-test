@@ -19,7 +19,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test:point": "jest --collectCoverage=false 'test/entity/point/.*.spec.ts$'"
+    "test:point": "jest --collectCoverage=false 'test/entity/point/.*.spec.ts$' --runInBand --verbose"
   },
   "dependencies": {
     "@js-joda/core": "^5.4.2",
