@@ -18,6 +18,105 @@
 다만, 레거시 시스템을 리팩토링해야하거나 기존 시스템이 데이터베이스에 많이 의존하고 있는 경우 프로젝트 전체적인 구조를 개편하기 전까지는 통합 테스트에 많이 의존할 수 밖에 없다.  
   
 당장 프로젝트 구조를 개선해서 단위 테스트의 비중을 늘릴 수 있다면 좋겠지만, 그러기 쉽지 않다면, 아래의 내용을 참고해 **데이터베이스를 사용하는 통합테스트의 전체 성능을 개선**하는 것을 시도해보자.
+
+## 문제
+
+먼저 데이터베이스를 과하게 사용하는 테스트 코드 프로젝트가 있다고 가정해보자.
+
+> 모든 코드는 [Github](https://github.com/jojoldu/nodejs-unit-test) 에 존재한다
+
+```ts
+// test1
+describe('PointEntity', () => {
+  let pointRepository: Repository<Point>;
+
+  beforeAll(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [PointEntityModule, getPgTestTypeOrmModule()],
+    }).compile();
+
+    pointRepository = module.get(getRepositoryToken(Point));
+  });
+
+  afterAll(async () => await getConnection().close());
+
+  beforeEach(async () => await pointRepository.clear());
+
+  it('Point를 1_000번 쌓는다', async () => {
+    // given
+    const count = 1000;
+
+    // when
+    for (let key = 0; key < count; key++) {
+      await pointRepository.save(Point.of(key * 1_000));
+    }
+  });
+});
+
+// test2
+describe('PointEntity2', () => {
+  let pointRepository: Repository<Point>;
+
+  beforeAll(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [PointEntityModule, getPgTestTypeOrmModule()],
+    }).compile();
+
+    pointRepository = module.get(getRepositoryToken(Point));
+  });
+
+  afterAll(async () => await getConnection().close());
+
+  beforeEach(async () => await pointRepository.clear());
+
+  it('Point를 2_000번 쌓는다', async () => {
+    // given
+    const count = 2_000;
+
+    // when
+    for (let key = 0; key < count; key++) {
+      await pointRepository.save(Point.of(key * 1_000));
+    }
+  });
+});
+
+// test3
+describe('PointEntity3', () => {
+  let pointRepository: Repository<Point>;
+
+  beforeAll(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [PointEntityModule, getPgTestTypeOrmModule()],
+    }).compile();
+
+    pointRepository = module.get(getRepositoryToken(Point));
+  });
+
+  afterAll(async () => await getConnection().close());
+
+  beforeEach(async () => await pointRepository.clear());
+
+  it('Point를 3_000번 쌓는다', async () => {
+    // given
+    const count = 3_000;
+
+    // when
+    for (let key = 0; key < count; key++) {
+      await pointRepository.save(Point.of(key * 1_000));
+    }
+  });
+});
+```
+
+- 한번에 **6,000개**를 Insert 하는 것보다는 좀 더 현실감 있게 테스트 파일을 나눠 `connection` 의 `create` 와 `close` 를 여러번 수행되도록 구성했습니다.
+- 6,000개를 산정한 이유는 일반적으로 통합 테스트에서 페이징 쿼리, 복잡한 통계 쿼리, 1:N 관계에서의 저장 등 한번의 테스트에 5 ~ 1N 개가 저장되고, 이런 테스트가 수십 ~ 수백개가 있을것이라는 가정입니다.
+
+위 테스트를 실제로 수행해보면 **28초**가 수행됩니다.
+
+![new-1-origin](./images/new-1-origin.png)
+
+이제 이 느리고 거대한 테스트를 개선해봅시다.
+
 ## 해결
 
 ## 1. tmpfs
