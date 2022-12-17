@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:13-alpine3.17
     ports:
-      - '5434:5432'
+      - '5432:5432'
     container_name: nodejs-test-db
     environment:
       - POSTGRES_DB=test

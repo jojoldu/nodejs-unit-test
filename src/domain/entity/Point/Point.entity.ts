@@ -23,7 +23,7 @@ export class Point extends BaseTimeEntity{
     super();
   }
 
-  static of (amount: number, requestAt: LocalDateTime, description?: string): Point {
+  static of (amount: number, requestAt= LocalDateTime.now(), description?: string): Point {
     const entity = new Point();
     entity.amount = amount;
     entity.requestAt = requestAt;
