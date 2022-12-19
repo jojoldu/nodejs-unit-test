@@ -5,6 +5,7 @@ import { getPgTestTypeOrmModule } from '../getPgTestTypeOrmModule';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { PointEntityModule } from '../../../src/domain/entity/Point/PointEntityModule';
 import { unloggedTable } from '../unloggedTable';
+import { bulkInsertPoints } from './bulkInsertPoints';
 
 describe('PointEntity3', () => {
   let pointRepository: Repository<Point>;
@@ -23,13 +24,27 @@ describe('PointEntity3', () => {
 
   beforeEach(async () => await pointRepository.clear());
 
-  it('Point를 3_000번 쌓는다', async () => {
+  it('Point를 1_000번 쌓는다 (1)', async () => {
     // given
-    const count = 3_000;
+    const count = 1_000;
 
     // when
-    for (let key = 0; key < count; key++) {
-      await pointRepository.save(Point.of(key * 1_000));
-    }
+    await bulkInsertPoints(count, pointRepository);
+  });
+
+  it('Point를 1_000번 쌓는다 (2)', async () => {
+    // given
+    const count = 1_000;
+
+    // when
+    await bulkInsertPoints(count, pointRepository);
+  });
+
+  it('Point를 1_000번 쌓는다 (3)', async () => {
+    // given
+    const count = 1_000;
+
+    // when
+    await bulkInsertPoints(count, pointRepository);
   });
 });
