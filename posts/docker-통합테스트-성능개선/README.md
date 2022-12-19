@@ -303,5 +303,25 @@ export async function generateTestSchema(orm: MikroORM) {
 
 ```
 
+## SWC
+
+```bash
+yarn add -D @swc-node/jest
+```
+
+```ts
+"jest": {
+  "transform": {
+    "^.+\\.(t|j)s$": [
+      "@swc-node/jest",
+      {
+        "swc": {
+          "sourceMaps": "inline"
+        }
+      }
+    ]
+  },
+```
+
 ## 마무리
 
