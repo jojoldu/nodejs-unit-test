@@ -45,84 +45,72 @@ services:
 > 모든 코드는 [Github](https://github.com/jojoldu/nodejs-unit-test) 에 존재한다
 
 ```ts
-// test1
-describe('PointEntity', () => {
-  let pointRepository: Repository<Point>;
+// bulkInsertPoints.ts
+export async function bulkInsertPoints(count: number, pointRepository: Repository<Point>) {
+  for (let key = 0; key < count; key++) {
+    await pointRepository.save(Point.of(key * 1_000));
+  }
+}
 
-  beforeAll(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [PointEntityModule, getPgTestTypeOrmModule()],
-    }).compile();
-
-    pointRepository = module.get(getRepositoryToken(Point));
-  });
-
-  afterAll(async () => await getConnection().close());
-
-  beforeEach(async () => await pointRepository.clear());
-
+// test1.ts
+describe('PointEntity, 1000번', () => {
+  ...
   it('Point를 1_000번 쌓는다', async () => {
     // given
     const count = 1000;
 
     // when
-    for (let key = 0; key < count; key++) {
-      await pointRepository.save(Point.of(key * 1_000));
-    }
+    await bulkInsertPoints(count, pointRepository);
   });
 });
 
-// test2
-describe('PointEntity2', () => {
-  let pointRepository: Repository<Point>;
+// test2.ts
+describe('PointEntity2, 2000번', () => {
+  ...
 
-  beforeAll(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [PointEntityModule, getPgTestTypeOrmModule()],
-    }).compile();
-
-    pointRepository = module.get(getRepositoryToken(Point));
-  });
-
-  afterAll(async () => await getConnection().close());
-
-  beforeEach(async () => await pointRepository.clear());
-
-  it('Point를 2_000번 쌓는다', async () => {
+  it('Point를 1_000번 쌓는다 (1)', async () => {
     // given
-    const count = 2_000;
+    const count = 1_000;
 
     // when
-    for (let key = 0; key < count; key++) {
-      await pointRepository.save(Point.of(key * 1_000));
-    }
+    await bulkInsertPoints(count, pointRepository);
+  });
+
+  it('Point를 1_000번 쌓는다 (2)', async () => {
+    // given
+    const count = 1_000;
+
+    // when
+    await bulkInsertPoints(count, pointRepository);
   });
 });
 
-// test3
-describe('PointEntity3', () => {
-  let pointRepository: Repository<Point>;
+// test3.ts
+describe('PointEntity3, 3000번', () => {
+  ...
 
-  beforeAll(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [PointEntityModule, getPgTestTypeOrmModule()],
-    }).compile();
-
-    pointRepository = module.get(getRepositoryToken(Point));
-  });
-
-  afterAll(async () => await getConnection().close());
-
-  beforeEach(async () => await pointRepository.clear());
-
-  it('Point를 3_000번 쌓는다', async () => {
+  it('Point를 1_000번 쌓는다 (1)', async () => {
     // given
-    const count = 3_000;
+    const count = 1_000;
 
     // when
-    for (let key = 0; key < count; key++) {
-      await pointRepository.save(Point.of(key * 1_000));
-    }
+    await bulkInsertPoints(count, pointRepository);
+  });
+
+  it('Point를 1_000번 쌓는다 (2)', async () => {
+    // given
+    const count = 1_000;
+
+    // when
+    await bulkInsertPoints(count, pointRepository);
+  });
+
+  it('Point를 1_000번 쌓는다 (3)', async () => {
+    // given
+    const count = 1_000;
+
+    // when
+    await bulkInsertPoints(count, pointRepository);
   });
 });
 ```
