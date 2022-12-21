@@ -304,6 +304,12 @@ export async function generateTestSchema(orm: MikroORM) {
 
 ```
 
+## insert
+
+TypeORM을 비롯한 ORM들은 `cascade`, `relations` 등 Entity에 관련된 여러 연관관계 작업들을 Entity 저장시에 지원한다.  
+그러다보니 단순 데이터를 저장하는데에도 많은 리소스를 사용한다.  
+
+
 ## SWC
 
 ```bash
