@@ -5,7 +5,7 @@ import { getPgTestTypeOrmModule } from '../getPgTestTypeOrmModule';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { PointEntityModule } from '../../../src/domain/entity/Point/PointEntityModule';
 import { unloggedTable } from '../unloggedTable';
-import { bulkInsertPoints } from './bulkInsertPoints';
+import { bulkInsertPoints } from './insert/bulkInsertPoints';
 
 describe('PointEntity3', () => {
   let pointRepository: Repository<Point>;
@@ -15,7 +15,7 @@ describe('PointEntity3', () => {
       imports: [PointEntityModule, getPgTestTypeOrmModule()],
     }).compile();
 
-    await unloggedTable(getConnection());
+    // await unloggedTable(getConnection());
 
     pointRepository = module.get(getRepositoryToken(Point));
   });
@@ -24,25 +24,25 @@ describe('PointEntity3', () => {
 
   beforeEach(async () => await pointRepository.clear());
 
-  it('Point를 1_000번 쌓는다 (1)', async () => {
+  it('Point를 10_000번 쌓는다 (1)', async () => {
     // given
-    const count = 1_000;
+    const count = 10_000;
 
     // when
     await bulkInsertPoints(count, pointRepository);
   });
 
-  it('Point를 1_000번 쌓는다 (2)', async () => {
+  it('Point를 10_000번 쌓는다 (2)', async () => {
     // given
-    const count = 1_000;
+    const count = 10_000;
 
     // when
     await bulkInsertPoints(count, pointRepository);
   });
 
-  it('Point를 1_000번 쌓는다 (3)', async () => {
+  it('Point를 10_000번 쌓는다 (3)', async () => {
     // given
-    const count = 1_000;
+    const count = 10_000;
 
     // when
     await bulkInsertPoints(count, pointRepository);

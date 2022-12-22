@@ -76,14 +76,7 @@
     "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": [
-        "@swc-node/jest",
-        {
-          "swc": {
-            "sourceMaps": "inline"
-          }
-        }
-      ]
+      "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverage": true,
     "collectCoverageFrom": [
@@ -91,6 +84,6 @@
     ],
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",
-    "testTimeout": 30000
+    "testTimeout": 60000
   }
 }

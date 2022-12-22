@@ -1,5 +1,5 @@
 import { Repository } from 'typeorm';
-import { Point } from '../../../src/domain/entity/Point/Point.entity';
+import { Point } from '../../../../src/domain/entity/Point/Point.entity';
 
 export async function bulkAsyncInsertPoints(count: number, pointRepository: Repository<Point>) {
   const points = [];
@@ -7,5 +7,5 @@ export async function bulkAsyncInsertPoints(count: number, pointRepository: Repo
     points.push(Point.of(key * 1_000));
   }
 
-  await Promise.all(points.map(p => pointRepository.insert(p)));
+  await Promise.all(points.map(p => pointRepository.save(p)));
 }

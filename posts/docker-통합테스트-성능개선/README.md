@@ -46,6 +46,7 @@ services:
 
 ```ts
 // bulkInsertPoints.ts
+// 수백개의 통합 테스트와 비슷한 상황을 가장하기 위해 모두 sync로 요청한다.
 export async function bulkInsertPoints(count: number, pointRepository: Repository<Point>) {
   for (let key = 0; key < count; key++) {
     await pointRepository.save(Point.of(key * 1_000));
@@ -53,11 +54,11 @@ export async function bulkInsertPoints(count: number, pointRepository: Repositor
 }
 
 // test1.ts
-describe('PointEntity, 1000번', () => {
+describe('PointEntity, 10_000번', () => {
   ...
-  it('Point를 1_000번 쌓는다', async () => {
+  it('Point를 10_000번 쌓는다', async () => {
     // given
-    const count = 1000;
+    const count = 10_000;
 
     // when
     await bulkInsertPoints(count, pointRepository);
@@ -65,20 +66,20 @@ describe('PointEntity, 1000번', () => {
 });
 
 // test2.ts
-describe('PointEntity2, 2000번', () => {
+describe('PointEntity2, 20_000번', () => {
   ...
 
-  it('Point를 1_000번 쌓는다 (1)', async () => {
+  it('Point를 10_000번 쌓는다 (1)', async () => {
     // given
-    const count = 1_000;
+    const count = 10_000;
 
     // when
     await bulkInsertPoints(count, pointRepository);
   });
 
-  it('Point를 1_000번 쌓는다 (2)', async () => {
+  it('Point를 10_000번 쌓는다 (2)', async () => {
     // given
-    const count = 1_000;
+    const count = 10_000;
 
     // when
     await bulkInsertPoints(count, pointRepository);
@@ -86,50 +87,69 @@ describe('PointEntity2, 2000번', () => {
 });
 
 // test3.ts
-describe('PointEntity3, 3000번', () => {
+describe('PointEntity3, 30_000번', () => {
   ...
 
-  it('Point를 1_000번 쌓는다 (1)', async () => {
+  it('Point를 10_000번 쌓는다 (1)', async () => {
     // given
-    const count = 1_000;
+    const count = 10_000;
 
     // when
     await bulkInsertPoints(count, pointRepository);
   });
 
-  it('Point를 1_000번 쌓는다 (2)', async () => {
+  it('Point를 10_000번 쌓는다 (2)', async () => {
     // given
-    const count = 1_000;
+    const count = 10_000;
 
     // when
     await bulkInsertPoints(count, pointRepository);
   });
 
-  it('Point를 1_000번 쌓는다 (3)', async () => {
+  it('Point를 10_000번 쌓는다 (3)', async () => {
     // given
-    const count = 1_000;
+    const count = 10_000;
 
     // when
     await bulkInsertPoints(count, pointRepository);
   });
 });
+
+// test4.ts
+describe('PointEntity4, async', () => {
+  ...
+
+  it('Point를 async 10_000번 쌓는다', async () => {
+    // given
+    const count = 10_000;
+
+    // when
+    await bulkAsyncInsertPoints(count, pointRepository);
+
+    const actual = await pointRepository.count();
+    expect(actual).toBe(count);
+  });
+
+});
 ```
 
-- 한번에 **6,000개**를 Insert 하는 것보다는 좀 더 현실감 있게 테스트 파일을 나눠 `connection` 의 `create` 와 `close` 를 여러번 수행되도록 구성 되었다.
-- 6,000개를 산정한 이유는 일반적으로 통합 테스트에서 페이징 쿼리, 복잡한 통계 쿼리, 1:N 관계에서의 저장 등 한번의 테스트에 5 ~ 1N 개가 저장되고, 이런 테스트가 수십 ~ 수백개가 있을것이라는 가정을 전제했다.
+- 한번에 **70,000개**를 Insert 하는 것보다는 좀 더 현실감 있게 테스트 파일을 나눠 `connection` 의 `create` 와 `close` 를 여러번 수행되도록 구성 되었다.
+- 많은 숫자의 데이터를 산정한 이유는 일반적으로 통합 테스트에서 페이징 쿼리를 위한 데이터 등록, 복잡한 통계 쿼리, 1:N 관계에서의 저장 등 한번의 테스트에 5 ~ 1N 개가 저장되고, 이런 테스트가 수십 ~ 수백개가 있을것이라는 가정을 전제했다.
 - `Promise.all` 로 `insert`를 처리하는 것은 **이 글에서는 해결책이 아니다**.
   - 테스트 파일을 수백개 만들지 못해서 임의로 `for loop` 를 돌린 것이다.
   - 실제로는 수백개의 테스트 파일이 도커 PostgreSQL를 사용하는 통합 테스트 환경이기 때문에 모든 테스트는 순차적으로 (`--runInBand`) 되어야 한다.
   - 이번 글에서의 핵심은 **더이상 테스트 코드에서는 성능 개선이 어려운 상황**인 경우이다.
 
-위 테스트를 실제로 수행해보면 **28초**가 수행된다.
+위 테스트를 실제로 수행해보면 **232초**가 수행된다.
 
 ![new-1-origin](./images/new-1-origin.png)
 
-* 3000 insert: 13.4초
-* 2000 insert: 8.4초
-* 1000 insert: 3.3초
-* 전체: 28초
+* 30,000 insert: 117초
+* 20,000 insert: 75초
+* 10,000 insert: 33초
+* 10,000 **async** insert: 5초
+* 전체: 232초
+* 1만건당 **sync** 평균 3~4초
 
 이제 이 느리고 거대한 테스트를 개선해보자.
 
@@ -146,6 +166,34 @@ PostgreSQL을 사용한 빠른 통합 테스트의 핵심은 매번 테스트때
   
 그래서 통합 테스트의 성능을 올리는 것의 핵심은 안정적인 데이터베이스 운영에 필요한 여러 설정들을 `off` 하여 속도를 올리는 것이다.
 
+
+## 1. 애플리케이션
+
+### 1-1. save -> insert
+
+TypeORM을 비롯한 ORM들은 `cascade`, `relations` 등 Entity에 관련된 여러 연관관계 작업들을 Entity 저장시에 지원한다.  
+그러다보니 단순 데이터를 저장하는데에도 많은 리소스를 사용한다.  
+
+
+### 1-2. SWC
+
+```bash
+yarn add -D @swc-node/jest
+```
+
+```ts
+"jest": {
+  "transform": {
+    "^.+\\.(t|j)s$": [
+      "@swc-node/jest",
+      {
+        "swc": {
+          "sourceMaps": "inline"
+        }
+      }
+    ]
+  },
+```
 ## 1. tmpfs
 
 가장 쉽게 효과를 볼 수 있는 방법은 **데이터베이스의 Data 디렉토리를 메모리**로 옮기는 것이다.  
@@ -187,7 +235,7 @@ docker volume rm $(docker volume ls -q)
 
 * 3000 insert: 9.5초 (30% 개선)
 * 2000 insert: 6.7초 (21% 개선)
-* 1000 insert: 3.3초
+* 10_000 insert: 3.3초
 * 전체: 22초 (22% 개선)
 
 한 줄의 설정값으로 **20~30%의 성능 개선**을 얻었다.  
@@ -304,31 +352,6 @@ export async function generateTestSchema(orm: MikroORM) {
 
 ```
 
-## insert
-
-TypeORM을 비롯한 ORM들은 `cascade`, `relations` 등 Entity에 관련된 여러 연관관계 작업들을 Entity 저장시에 지원한다.  
-그러다보니 단순 데이터를 저장하는데에도 많은 리소스를 사용한다.  
-
-
-## SWC
-
-```bash
-yarn add -D @swc-node/jest
-```
-
-```ts
-"jest": {
-  "transform": {
-    "^.+\\.(t|j)s$": [
-      "@swc-node/jest",
-      {
-        "swc": {
-          "sourceMaps": "inline"
-        }
-      }
-    ]
-  },
-```
 
 ## 마무리
 
