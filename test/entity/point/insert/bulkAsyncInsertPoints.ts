@@ -7,5 +7,5 @@ export async function bulkAsyncInsertPoints(count: number, pointRepository: Repo
     points.push(Point.of(key * 1_000));
   }
 
-  await Promise.all(points.map(p => pointRepository.save(p)));
+  await Promise.all(points.map(p => pointRepository.insert(p)));
 }

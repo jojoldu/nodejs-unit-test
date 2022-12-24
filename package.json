@@ -76,7 +76,14 @@
     "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t|j)s$": [
+        "@swc-node/jest",
+        {
+          "swc": {
+            "sourceMaps": "inline"
+          }
+        }
+      ]
     },
     "collectCoverage": true,
     "collectCoverageFrom": [
