@@ -1,9 +1,9 @@
 services:
   db:
-#    image: postgres:13-alpine3.17
-    build:
-      context: ./pg-docker
-      dockerfile: Dockerfile
+    image: postgres:13-alpine3.17
+#    build:
+#      context: ./pg-docker
+#      dockerfile: Dockerfile
     ports:
       - '5432:5432'
     container_name: nodejs-test-db

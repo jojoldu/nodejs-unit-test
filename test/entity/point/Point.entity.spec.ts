@@ -4,9 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getPgTestTypeOrmModule } from '../getPgTestTypeOrmModule';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { PointEntityModule } from '../../../src/domain/entity/Point/PointEntityModule';
-import { unloggedTable } from '../unloggedTable';
 import { bulkInsertPoints } from './insert/bulkInsertPoints';
-import { bulkAsyncInsertPoints } from './insert/bulkAsyncInsertPoints';
 
 describe('PointEntity', () => {
   let pointRepository: Repository<Point>;
@@ -15,8 +13,6 @@ describe('PointEntity', () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [PointEntityModule, getPgTestTypeOrmModule()],
     }).compile();
-
-    // await unloggedTable(getConnection());
 
     pointRepository = module.get(getRepositoryToken(Point));
   });

@@ -1,4 +1,4 @@
-# 데이터베이스 통합 테스트 성능 개선하기 (Docker & PostgreSQL)
+# NodeJS에서 데이터베이스 통합 테스트 성능 개선하기 (TypeORM, Jest, PostgreSQL)
 
 보통 통합 테스트는 SQLite, H2와 같은 InMemory 데이터베이스를 사용한다.  
 메모리상에만 존재하기 때문에 실제 ORM (SQL) 을 검증이 가능하면서도 **병렬로 테스트를 수행**할 수 있고, **고속의 쿼리 수행**이 가능하기 때문이다.  
@@ -43,8 +43,9 @@ services:
 테스트 환경은 다음과 같다.
 
 * 2021 M1 Macbook Pro 16GB
-* Node 18.12.1
-* Docker PostgreSQL 13
+* Docker **PostgreSQL 13** alpine
+* **Node 18.12.1**
+* Jest 29.3.1
 
 그리고 이 테스트 데이터베이스를 사용하는 테스트 코드들은 다음과 같다.
 
@@ -144,9 +145,11 @@ describe('PointEntity4, async', () => {
   -  통합 테스트에서 페이징 쿼리를 위한 데이터 등록, 복잡한 통계 쿼리, 1:N 관계에서의 저장 등 한번의 테스트에 5 ~ 1N 개가 저장된다는 점 
   -  이런 테스트가 수십 ~ 수백개가 있을것이라는 가정을 전제했다.
 - `Promise.all` 를 통한 병렬처리, `Bulk Insert` 등을 이 문제의 해결책으로 산정하지 않는다. 
-  - 테스트 파일을 수백개 만들지 못해서 임의로 `for loop` 를 돌린 것이다.
-  - 실제로는 수백개의 테스트 파일이 도커 PostgreSQL를 사용하는 통합 테스트 환경이기 때문에 모든 테스트는 순차적으로 (`--runInBand`) 되어야 한다.
-  - 실제 통합, E2E 테스트처럼 InMemoryDB가 아닌 Docker PostrgreSQL을 사용했기 때문에 모든 테스트는 서로 침범당하지 않도록 순차실행만 존재한다.
+  - **실제 테스트 환경처럼 테스트 파일을 수백 ~ 수천개를 만들 수 없었다**. 
+    - 그래서 이를 대체하기 위해 `for loop` 를 돌린 것이다.
+    - `bulk insert`, `Promise.all` 등은 **단일 테스트에서 데이터가 많이 필요할 경우**에나 효과가 있다.
+    - 현재의 테스트는 그런 상황을 가정한 것이 아니다.
+  - 실제로는 수백개의 테스트 파일이 도커 PostgreSQL를 사용하는 통합 테스트 환경이기 때문에 모든 테스트는 서로를 침범하지 않기 위해 순차적으로 (`--runInBand`) 되어야 한다.
   - 물론 `async insert` 의 성능 개선도 비교해볼 수 있게 하나의 테스트는 10,000 건을 `Promise.all` 로 진행했다.
 
 위 테스트를 실제로 수행해보면 **232초**가 수행된다.
@@ -177,9 +180,7 @@ PostgreSQL을 사용한 빠른 통합 테스트의 핵심은 매번 테스트때
 그래서 통합 테스트의 성능을 올리는 것의 핵심은 안정적인 데이터베이스 운영에 필요한 여러 설정들을 `off` 하여 속도를 올리는 것이다.
 
 
-## 1. 애플리케이션
-
-### 1-1. save -> insert
+## 1. TypeORM (save -> insert)
 
 TypeORM을 비롯한 ORM들은 `cascade`, `relations` 등 Entity에 관련된 여러 연관관계 작업들을 Entity 저장시에 지원한다.  
 뿐만 아니라 기본적으로 사용되는 `.save()` 의 경우 `upsert` 를 지원하기 위해 `insert` 전에 항상 `select` 를 호출하는 등의 작업도 진행한다.  
@@ -204,7 +205,7 @@ await pointRepository.insert(Point.of(key * 1_000));
 
 대략 2배의 성능 개선이 가능해졌다.
 
-### 1-2. SWC
+## 2. swc-node/jest
 
 애플리케이션에서 성능을 한번 더 개선할 수 있다.  
 이번에는 ORM의 개선이 아닌 테스트 도구인 Jest의 성능 개선이다.  
@@ -239,7 +240,7 @@ yarn add -D @swc-node/jest
   
 애플리케이션 내에서 할 수 있는 성능 개선이 완료되었으니, 이제 Docker PostgreSQL 에서의 성능 개선을 시도해보자.
 
-## 2. tmpfs
+## 3. PostgreSQL (tmpfs)
 
 가장 쉽게 효과를 볼 수 있는 방법은 **데이터베이스의 Data 디렉토리를 메모리**로 옮기는 것이다.  
   
@@ -272,27 +273,64 @@ docker volume rm $(docker volume ls -q)
 
 ![new-2-tmpfs](./images/new-2-tmpfs.png)
 
-* 전체 시간: **98초**
+* 전체 시간: **90초**
   * 기존: 112초 
-* 1만건당: **1.3 ~ 1.7초**
+* 1만건당: **1.3 ~ 1.4초**
   * 기존: 평균 1.8 ~ 2초
 
+한 줄의 설정값으로 **25%의 성능 개선**을 얻었다.  
 
-한 줄의 설정값으로 **20%의 성능 개선**을 얻었다.  
+> 어떤 테스트에서는 [20배의 성능 향상](https://vladmihalcea.com/how-to-run-database-integration-tests-20-times-faster/)도 있었다.  
+> 하지만 최근의 PostgreSQL에서는 이미 충분한 성능 개선이 되어 있어서 인메모리로 교체한다고 해서 20배까지 성능개선이 되지는 않는것 같다.
 
-> 어떤 테스트에서는 [20배의 성능 향상](https://vladmihalcea.com/how-to-run-database-integration-tests-20-times-faster/) 도 있었다고 하는데, 최근의 PostgreSQL에서는 이미 충분한 성능 개선이 되어 있어서 인메모리로 교체한다고 해서 20배까지 성능개선이 되지는 않는것 같다.
 
-## 3. Non Durability
+기존 **232초**의 PostgreSQL 통합 테스트가 **90초**가 되어 대략 **2.5배**의 성능 개선 효과를 볼 수 있었다.
 
-두번째 개선은 `Durability` 를  `off` 하는 것이다.  
+## 4. Node + Jest
+
+아직까지 해결되지 않은 이슈 중 하나로 **Node 16.11 이상 버전부터는 Jest에서 Memory Leak 이슈**가 발생 한다.
+
+* [Memory consumption issues on Node JS 16.11.0+](https://github.com/facebook/jest/issues/11956)
+
+해당 이슈 내용들을 보면 여러 테스트로 **18.12 보다 16.10이 Jest에서는 더 좋은 성능을 낸다**는 것을 보여준다.
+
+![new-4-compare](./images/new-4-compare.png)
+
+* [원본 테스트결과](https://github.com/facebook/jest/issues/11956#issuecomment-1318253577)
+
+물론 이정도로 유의미한 성능 차이가 나기 위해서는 **테스트가 수백개는 존재**해야만 한다.  
+실제 프로젝트에서는 수백개는 물론이고 2~3천개의 테스트가 수행된다.  
+하지만 여기서는 그정도의 테스트들을 만들기에는 너무 노가다성이 강해서 생략했다.  
+  
+만약 본인의 테스트 코드가 갈수록 느려지는 이슈가 있다면 `--logHeapUsage` 로 **시간이 지날때마다 테스트에 할당되는 메모리가 점점 커지는 것**은 아닌지 확인해보고 Node 버전을 16.10 으로 고정해보는 것을 추천한다.
+
+## 번외) 시도했지만 개선 효과가 없었던 것들
+
+이 외에도 다른 개선 자료들을 참고하여 성능 개선들을 시도해보았다.  
+결과적으로 **위 방법들을 제외하고는 유의미하게 성능 개선 결과를 내지 못했다**.  
+
+아마도 PostgreSQL 버전마다 성능 차이가 유의미하게 날 것 같다.  
+그래서 여기서는 어떻게 진행했는지만 남긴다.    
+
+### 번외 1) Non Durability (내구성)
+
+먼저 Durability (내구성) 을 `off` 하는 것이다.  
+
+과거 자료들을 보면 PostgreSQL 9.x ~ 10.x 에서는 20% 이상의 성능 개선이 있었다고 한다.
+
+* https://shusson.info/post/non-durable-postgres-for-e2e-tests
+
+> 하지만 현재 테스트 환경 (M1 + PostgreSQL 13) 에서는 **성능 개선 효과가 없었다**.  
+    
   
 Durability 은 서버에 문제가 생겼을때 데이터 저장을 보장하는 기능이다.  
 보편적인 데이터베이스에서는 필수 기능이나, **E2E 테스트에서는 중요한 기능이 아니다**.  
+테스트는 **모두 테스트 메소드가 테스트 데이터를 생성한다**.  
+기존에 저장되어있는 데이터가 있는 것이 오히려 더 문제가 되기 때문에 Durability 보다는 성능에 E2E 테스트에서는 더욱 중요한 요소이다.  
   
-E2E 테스트가 가능한 운영 (Production) 환경에 최대한 비슷한 형태로 테스트 해야하지만, Duration와 같은 기능들은 실제 E2E 테스트에서는 지켜야할 항목이 아니다.  
-(다시 테스트를 수행하면 되기 때문에)  
+그래서 **이 항목을 꺼두어 성능 개선을 시도해본다**.  
   
-PostgreSQL에서는 내구성 (Durability) 를 다음의 방식으로 `off` 시킬 수 있다.
+PostgreSQL에서는 Durability 를 다음의 방식으로 `off` 시킬 수 있다.
 
 * https://www.postgresql.org/docs/13/non-durability.html
 
@@ -347,35 +385,47 @@ cat /var/lib/postgresql/data/postgresql.conf | grep -e synchronous_commit -e fsy
 ![new-3-non-durable2](./images/new-3-non-durable2.png)
 
 
-다시 한번 전체 테스트를 수행해본다.
-
-## 3. unlogged table
+### 번외 2) unlogged table
 
 내구성 (Durability) 과 마찬가지로 테이블의 로그를 관리하는 정보 역시 E2E 테스트 안에서는 성능을 위해 절충할 수 있는 기능이다.  
+테이블에 변경이 있을때마다 복구를 위한 로그를 관리하는데, 해당 로그를 남기지 않도록 설정하면 좀 더 `insert` 성능을 개선할 수 있다고 한다.
   
+* [faster-performance-with-unlogged-tables-in-postgresql](https://www.compose.com/articles/faster-performance-with-unlogged-tables-in-postgresql/)
 
-https://www.compose.com/articles/faster-performance-with-unlogged-tables-in-postgresql/
+
+일반적인 ORM에서는 DDL 생성시 추가 옵션을 지원하지 않을 수 있기 때문에 다음과 같이 직접 전체 테이블에 `UNLOGGED` DDL을 실행한다.
 
 ```ts
-import { DatabaseTable } from '@mikro-orm/better-sqlite';
-import { MikroORM } from '@mikro-orm/core';
-
-export async function generateTestSchema(orm: MikroORM) {
-  const schemaGenerator = orm.getSchemaGenerator();
-  await schemaGenerator.refreshDatabase();
-  // @ts-ignore
-  const tables: DatabaseTable[] = schemaGenerator.getTargetSchema().getTables();
-
-  await Promise.all(
-    tables.map(async (table) =>
-      schemaGenerator.execute(`ALTER TABLE "${table.name}" SET UNLOGGED`),
-    ),
-  );
+// TypeORM 용
+export async function unloggedTable(connection: Connection) {
+  const entities = connection.entityMetadatas;
+  await Promise.all(entities.map(entity => {
+    connection.createEntityManager().query(`ALTER TABLE ${entity.tableName} SET UNLOGGED;`);
+  }));
 }
 ```
 
-> 물론 이 코드는 MikroORM을 사용했지만, TypeORM에서도 충분히 활용가능하다.
- 
+위 `unloggedTable` 함수를 아래와 같이 `beforeAll` 에서 한번 수행한다.
+
+```ts
+//test
+
+beforeAll(async () => {
+  ...
+
+  await unloggedTable(getConnection());
+
+  pointRepository = module.get(getRepositoryToken(Point));
+});
+```
+
 
 ## 마무리
 
+통합 테스트의 성능 개선은 팀과 프로젝트 전체의 생산성에 크게 영향을 미친다.  
+단위 테스트, 테스트 더블을 이용한 테스트, InMemoryDB를 이용한 테스트 등 통합 테스트가 아닌 여러 테스트들이 존재하고, 이들을 이용할 수록 전체 테스트의 성능이 많이 개선 된다.  
+
+하지만 실제 운영 환경과 동일한 환경에서의 통합/E2E 테스트는 분명히 존재해야한다.  
+그럴때 이런 방법들을 통해 유의미한 성능 개선을 얻어 팀 전체의 생산성 향상에 도움이 되었으면 좋겠다.
+
+> 번외편의 시도들이 성능 개선에 크게 기여했다면 더 좋은 포스팅이 되었을텐데 아쉽다.
