@@ -40,6 +40,12 @@ services:
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8
 ```
 
+테스트 환경은 다음과 같다.
+
+* 2021 M1 Macbook Pro 16GB
+* Node 18.12.1
+* Docker PostgreSQL 13
+
 그리고 이 테스트 데이터베이스를 사용하는 테스트 코드들은 다음과 같다.
 
 > 모든 코드는 [Github](https://github.com/jojoldu/nodejs-unit-test) 에 존재한다
@@ -323,37 +329,25 @@ services:
       context: ./pg-docker
       dockerfile: Dockerfile
     ports:
-      - '5432:5432'
-    container_name: nodejs-test-db
-    environment:
-      - POSTGRES_DB=test
-      - POSTGRES_USER=test
-      - POSTGRES_PASSWORD=test
-      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+    ....
     tmpfs:
       - /var/lib/postgresql/data
 
 ```
 
-설정이 끝났으면 Docker Compose를 초기화 하고 다시 실행시켜본다.
-
-> 이제는 PostgreSQL의 data가 메모리로 관리되기 때문에 굳이 volumn을 지울 필요는 없다.
-
-
-설정이 잘 적용 되었는지를 꼭 확인해본다.  
+설정이 끝났으면 기존의 Docker들을 모두 초기화 하고 다시 실행시켜본다.  
+  
+실행이 되면 **설정이 잘 적용 되었는지를** 꼭 확인해본다.  
 실행된 Docker PostgreSQL의 설정값이 정상적으로 바뀌었는지 꼭 확인해본다.
-
-![new-3-non-durable2](./images/new-3-non-durable2.png)
 
 ```bash
 cat /var/lib/postgresql/data/postgresql.conf | grep -e synchronous_commit -e fsync -e full_page_writes
 ```
 
+![new-3-non-durable2](./images/new-3-non-durable2.png)
+
+
 다시 한번 전체 테스트를 수행해본다.
-
-### max_wal_size & checkpoint_timeout
-
-https://www.crunchydata.com/blog/tuning-your-postgres-database-for-high-write-loads
 
 ## 3. unlogged table
 
@@ -382,10 +376,6 @@ export async function generateTestSchema(orm: MikroORM) {
 
 > 물론 이 코드는 MikroORM을 사용했지만, TypeORM에서도 충분히 활용가능하다.
  
-```ts
-
-```
-
 
 ## 마무리
 
