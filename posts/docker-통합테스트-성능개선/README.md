@@ -228,10 +228,8 @@ yarn add -D @swc-node/jest
 
 * 전체 시간: **112초**
   * 기존: 120초 
-* 1만건당: **1.7 ~ 1.9초**
-  * 기존: 평균 1.8~2초
 
-대폭 성능 개선이 된건 아니지만, 대략 10%의 성능 개선을 볼 수 있다.  
+대폭 성능 개선이 된 건 아니지만, 대략 10%의 성능 개선을 볼 수 있다.  
   
 애플리케이션 내에서 할 수 있는 성능 개선이 완료되었으니, 이제 Docker PostgreSQL 에서의 성능 개선을 시도해보자.
 
@@ -250,15 +248,9 @@ Docker 설정에서 `tmpfs` 로 PostgreSQL의 data 디렉토리를 설정하면 
 ```yaml
 services:
   db:
-    image: postgres:13-alpine3.17
-    ports:
-      - '5432:5432'
-    container_name: nodejs-test-db
+    ...
     environment:
-      - POSTGRES_DB=test
-      - POSTGRES_USER=test
-      - POSTGRES_PASSWORD=test
-      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+    ...
     tmpfs:
       - /var/lib/postgresql/data
 ```
@@ -274,16 +266,17 @@ docker volume rm $(docker volume ls -q)
 
 ![new-2-tmpfs](./images/new-2-tmpfs.png)
 
-* 3000 insert: 9.5초 (30% 개선)
-* 2000 insert: 6.7초 (21% 개선)
-* 10_000 insert: 3.3초
-* 전체: 22초 (22% 개선)
+* 전체 시간: **98초**
+  * 기존: 112초 
+* 1만건당: **1.3 ~ 1.7초**
+  * 기존: 평균 1.8 ~ 2초
 
-한 줄의 설정값으로 **20~30%의 성능 개선**을 얻었다.  
 
-> 어떤 테스트에서는 [20배의 성능 향상](https://vladmihalcea.com/how-to-run-database-integration-tests-20-times-faster/) 도 있었다고 하는데, 내가 진행한 테스트에서는 그정도까지는 안되었다.
+한 줄의 설정값으로 **20%의 성능 개선**을 얻었다.  
 
-## 2. Non Durability
+> 어떤 테스트에서는 [20배의 성능 향상](https://vladmihalcea.com/how-to-run-database-integration-tests-20-times-faster/) 도 있었다고 하는데, 최근의 PostgreSQL에서는 이미 충분한 성능 개선이 되어 있어서 인메모리로 교체한다고 해서 20배까지 성능개선이 되지는 않는것 같다.
+
+## 3. Non Durability
 
 두번째 개선은 `Durability` 를  `off` 하는 것이다.  
   
