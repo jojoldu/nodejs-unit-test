@@ -1,9 +1,9 @@
 services:
   db:
     image: postgres:13-alpine3.17
-#    build:
-#      context: ./pg-docker
-#      dockerfile: Dockerfile
+    #    build:
+    #      context: ./pg-docker
+    #      dockerfile: Dockerfile
     ports:
       - '5432:5432'
     container_name: nodejs-test-db
@@ -12,5 +12,6 @@ services:
       - POSTGRES_USER=test
       - POSTGRES_PASSWORD=test
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+#    command: postgres -c fsync=off -c synchronous_commit=off -c full_page_writes=off -c random_page_cost=1.0
     tmpfs:
       - /var/lib/postgresql/data
