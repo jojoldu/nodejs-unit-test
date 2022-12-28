@@ -4,9 +4,19 @@
 
 * [Returning Promises](https://github.com/goldbergyoni/nodebestpractices/blob/master/sections/errorhandling/returningpromises.md?s=35)
 
-기존에 우리팀에서 사용하던 방식을 완전히 부정당하게 되서 흥미롭게 읽어볼 수 있었다.  
+그간 `async/await` 에러에 관해서는 계층을 명확하게 구분해서 사용하다보니, StackTrace의 깊이에 대해 크게 체감을 하지 못했었다.  
+그러다가 위 글을 통해 알게된 점이 많아 정리하게 되었다.
   
 ## 문제
+
+보편적으로 JS/TS 에서는 `async` 함수를 사용할때 `return` 밖에 없는 경우에는 굳이 `await`를 명시하지 않았다.  
+실제로 ESLint 룰 상에서도 이에 대한 규칙을 갖고 있다.
+
+하지만 해당 규칙에서도 **이 규칙을 적용하면 안되는 예**를 소개하는데, 다음과 같다.
+
+* `await` thenable 인 값을 나타내기 위해 사용하려는 경우
+*  `return await` 회피의 성능상의 이점을 원하지 않는 경우
+* **함수를 스택 추적에 표시**하려는 경우
 
 Node.js를 비롯한 백엔드에서는 에러가 발생한다면 해당 에러에 대한 상세한 추적 내역은 필수다.  
 다만, Node.js에서는 `await` 없이 `Promise` 객체를 그대로 반환할 경우 `await` 없이 반환한 함수는 Trace가 되지 않는다.  
