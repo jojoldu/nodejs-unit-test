@@ -12,17 +12,22 @@
 보편적으로 JS/TS 에서는 `async` 함수를 사용할때 `return` 밖에 없는 경우에는 굳이 `await`를 명시하지 않았다.  
 실제로 ESLint 룰 상에서도 이에 대한 규칙을 갖고 있다.
 
+- [no-return-await](https://eslint.org/docs/latest/rules/no-return-await)
+
 하지만 해당 규칙에서도 **이 규칙을 적용하면 안되는 예**를 소개하는데, 다음과 같다.
+
+![eslint](./images/eslint1.png)
 
 * `await` thenable 인 값을 나타내기 위해 사용하려는 경우
 *  `return await` 회피의 성능상의 이점을 원하지 않는 경우
 * **함수를 스택 추적에 표시**하려는 경우
 
-Node.js를 비롯한 백엔드에서는 에러가 발생한다면 해당 에러에 대한 상세한 추적 내역은 필수다.  
-다만, Node.js에서는 `await` 없이 `Promise` 객체를 그대로 반환할 경우 `await` 없이 반환한 함수는 Trace가 되지 않는다.  
+마지막의 "함수를 스택 추적에 표시" 가 필요한 경우가 이번 포스팅의 주제이다.  
+
+Node.js를 비롯한 백엔드에서는 에러가 발생한다면 해당 에러에 대한 상세한 Trace가 거의 대부분 필요하다.  
+Node.js에서는 `await` 없이 `Promise` 객체를 그대로 반환할 경우 `await` 없이 반환한 **함수는 Trace가 되지 않는다**.  
   
 몇가지 예를 보자.
-
 
 ### 문제 1 
 
