@@ -2,6 +2,7 @@ import { returnWithAwait, returnWithAwaitAndSync } from "../../src/throw/return/
 import { returnWithoutAwait, returnWithoutAwaitAndSync } from "../../src/throw/return/returnWihtoutAwait";
 import { getUser, nameAsyncBy, nameSyncBy } from '../../src/throw/return/promiseAll';
 import { sleep } from '../../src/throw/sleep';
+import { promiseAllWithAwait, promiseAllWithoutAwait } from '../../src/throw/return/promiseAllWithoutAwait';
 
 describe('with Await or without Await', () => {
   describe('Example 1', () => {
@@ -69,4 +70,14 @@ describe('with Await or without Await', () => {
         .then(async () => await sleep(0));
     });
   });
+
+  describe('Example 5. Promise', () => {
+    it('without await', async () => {
+      await promiseAllWithoutAwait().catch(console.log);
+    });
+
+    it('with await', async () => {
+      await promiseAllWithAwait().catch(console.log);
+    });
+  })
 });
