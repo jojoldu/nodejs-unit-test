@@ -51,7 +51,7 @@ describe('OrderService', () => {
             const order = Order.create(1000,  '', LocalDateTime.now());
 
             const stubRepository: OrderRepository = mock(OrderRepository);
-            when(stubRepository.findById(anyNumber())).thenReturn(order);
+            when(stubRepository.findById(anyNumber())).thenReturn(new Promise(() => order));
 
             const sut = new OrderService(instance(stubRepository));
 
@@ -76,7 +76,7 @@ describe('OrderService', () => {
             const billingApiStub = new BillingApiStub(billingStatus);
 
             const stubRepository: OrderRepository = mock(OrderRepository);
-            when(stubRepository.findById(anyNumber())).thenReturn(order);
+            when(stubRepository.findById(anyNumber())).thenReturn(new Promise (()=> order));
 
             const sut = new OrderService(instance(stubRepository), billingApiStub);
 
@@ -98,7 +98,7 @@ describe('OrderService', () => {
             const billingApiStub = new BillingApiStub(billingStatus);
 
             const stubRepository: OrderRepository = mock(OrderRepository);
-            when(stubRepository.findById(anyNumber())).thenReturn(order);
+            when(stubRepository.findById(anyNumber())).thenReturn(new Promise(() => order));
 
             const sut = new OrderService(instance(stubRepository), billingApiStub);
 
@@ -120,7 +120,7 @@ describe('OrderService', () => {
             const billingApiStub = new BillingApiStub(billingStatus);
 
             const stubRepository: OrderRepository = mock(OrderRepository);
-            when(stubRepository.findById(anyNumber())).thenReturn(order);
+            when(stubRepository.findById(anyNumber())).thenReturn(new Promise(() => order));
 
             const sut = new OrderService(instance(stubRepository), billingApiStub);
 
@@ -136,15 +136,15 @@ describe('OrderService', () => {
     describe('주문 승인 처리', () => {
         it('[Stub Class] 해당 주문을 승인처리한다', () => {
             // given
-            const order = Order.create(1000, LocalDateTime.now(), '');
+            const order = Order.create(1000, '', LocalDateTime.now());
             const stubRepository = new class extends OrderRepository {
                 _savedOrder: Order;
 
-                override findById(id: number): Order | undefined {
+                override async findById(id: number) {
                     return order;
                 }
 
-                override update(order: Order): Order {
+                override async update(order: Order) {
                     return this._savedOrder = order;
                 }
             }

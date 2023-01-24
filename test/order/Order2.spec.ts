@@ -29,5 +29,5 @@ describe('Order2', () => {
 });
 
 function createOrder(amount: number = 1000, description: string = "배민주문") {
-    return Order.create(amount, LocalDateTime.of(2021, 10, 30, 10, 0, 0), description);
+    return Order.create(amount, description, LocalDateTime.of(2021, 10, 30, 10, 0, 0));
 }

@@ -1,8 +1,7 @@
-import { anyNumber, instance, mock, when } from 'ts-mockito';
+import { instance, mock, when } from 'ts-mockito';
 import { OrderRepository } from '../../src/order/OrderRepository';
 import { Order } from '../../src/order/Order';
-import { LocalDateTime } from '@js-joda/core';
-import { OrderService } from '../../src/order/OrderService';
+import { OrderService } from '../../src/order/OrderService';2
 
 describe('OrderService', () => {
 
@@ -15,7 +14,7 @@ describe('OrderService', () => {
             // given
             const mockRepository = new OrderRepository();
             jest.spyOn(mockRepository, 'findById')
-                .mockImplementation(() => Order.create(1000, LocalDateTime.now(), 'jest.mock'));
+                .mockImplementation(() => new Promise(() => Order.create(1000, 'jest.mock')));
 
             const sut = new OrderService(mockRepository);
 
@@ -33,7 +32,7 @@ describe('OrderService', () => {
             const mockRepository = new OrderRepository();
             jest.spyOn(mockRepository, 'findById')
                 .mockImplementation((orderId) => orderId === 1?
-                    Order.create(1000, LocalDateTime.now(), 'jest.mock')
+                    new Promise(() => Order.create(1000, 'jest.mock'))
                     : undefined);
 
             const sut = new OrderService(mockRepository);
@@ -52,7 +51,7 @@ describe('OrderService', () => {
             const mockRepository = new OrderRepository();
             jest.spyOn(mockRepository, 'findById')
                 .mockImplementation((orderId) => orderId === 1?
-                    Order.create(1000, LocalDateTime.now(), 'jest.mock')
+                    new Promise(() => Order.create(1000, 'jest.mock'))
                     : undefined);
 
             const sut = new OrderService(mockRepository);
@@ -68,10 +67,10 @@ describe('OrderService', () => {
 
         it('[ts-mockito] 주문이 완료되지 못했다면 에러가 발생한다', () => {
             // given
-            const order = Order.create(1000, LocalDateTime.now(), 'ts-mockito');
+            const order = Order.create(1000, 'ts-mockito');
 
             const stubRepository: OrderRepository = mock(OrderRepository); // stub 객체 생성
-            when(stubRepository.findById(1)).thenReturn(order); // when
+            when(stubRepository.findById(1)).thenReturn(new Promise(() => order)); // when
 
             const sut = new OrderService(instance(stubRepository));
 
