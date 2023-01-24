@@ -4,7 +4,7 @@ const times = [1_000, 2_000, 5_000];
 export async function promiseAllAwait() {
   console.log('Without Await');
 
-  return Promise.all(times.map(time =>
+  return await Promise.all(times.map(time =>
     getTime(time, 'Without')
   ));
 }
@@ -12,7 +12,7 @@ export async function promiseAllAwait() {
 export async function promiseAllWithAwait() {
   console.log('With Await');
 
-  return Promise.all(times.map(async time =>
+  return await Promise.all(times.map(async time =>
     await getTime(time, 'With')
   ));
 }

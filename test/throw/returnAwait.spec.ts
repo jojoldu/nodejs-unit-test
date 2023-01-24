@@ -6,12 +6,12 @@ import { promiseAllWithAwait, promiseAllAwait } from '../../src/throw/return/pro
 
 describe('with Await or without Await', () => {
   describe('Example 1', () => {
-    it('returnWithAwait', () => {
-      returnWithAwait();
+    it('returnWithAwait', async () => {
+      await returnWithAwait().catch(console.log);
     });
 
-    it('returnWithoutAwait', () => {
-      returnWithoutAwait();
+    it('returnWithoutAwait', async () => {
+      await returnWithoutAwait().catch(console.log);
     });
   });
 
