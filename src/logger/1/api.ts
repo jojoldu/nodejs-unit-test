@@ -5,10 +5,10 @@ export const api = {
 }
 
 export const log =  {
-    error: (message: string, e: Error) => {
+    error: (message: string, e?: Error) => {
         console.log(message, e);
     },
-    warn: (message: string, e: Error) => {
+    warn: (message: string, e?: Error) => {
         console.log(message, e);
     }
 }
