@@ -1,5 +1,6 @@
 import { userRepository } from '../userRepository';
-import { log } from '../api';
+
+import { log } from '../../log';
 
 export async function validateSignIn(id: string, password: string) {
   const matchResult = await userRepository.validateSignIn(id, password);

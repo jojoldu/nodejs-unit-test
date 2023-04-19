@@ -1,4 +1,5 @@
-import {api, log} from "../api";
+import {api} from "../api";
+import { log } from '../../log';
 
 function get(url): string {
     try {
