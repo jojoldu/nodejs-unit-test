@@ -1,7 +1,7 @@
 # 2. 효율적으로 로그 모니터링하기 - 중복 로그 남기지 않기
 
 ```ts
-export function cancelOrder(data: Data) {
+export function payService(data: Data) {
     try {
         return someService.doSomething(data);
     } catch (e) {
@@ -12,7 +12,7 @@ export function cancelOrder(data: Data) {
 ```
 
 ```ts
-export function cancelOrder(data: Data) {
+export function payService(data: Data) {
     try {
         return someService.doSomething(data);
     } catch (e) {
