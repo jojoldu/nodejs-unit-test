@@ -1,5 +1,8 @@
 # 좋은 Error 만들기
 
+## 예외에 의미 제공하기
+
+
 ## Exception 무시하지 않기
 
 아래와 같이 catch절에서 아무 것도 하지 않는 코드는 바람직하지 않습니다.
@@ -7,7 +10,7 @@
 ```ts
 try {
   process();
-} catch (IOException e) {
+} catch (e) {
 
 }
 ```
@@ -74,9 +77,9 @@ try {
 
 ## java.lang.Exception 남용하지 않기
 
-메서드 시그니처에서 java.lang.Exception은 세부 Exception을 가리게 됩니다.
+메서드 시그니처에서 Error은 세부 Exception을 가리게 됩니다.
 
-public void updateUser throws Exception {
+function updateUser(): Error {
 
     ....
 }
