@@ -75,7 +75,7 @@ try {
 }
 ```
 
-## java.lang.Exception 남용하지 않기
+## 외부 API의 에러를 Wrapper 클래스로 처리하기
 
 메서드 시그니처에서 Error은 세부 Exception을 가리게 됩니다.
 
