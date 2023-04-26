@@ -27,6 +27,7 @@
     "@nestjs/core": "^8.0.0",
     "@nestjs/platform-express": "^8.0.0",
     "@nestjs/typeorm": "^8.0.2",
+    "@supercharge/promise-pool": "^2.4.0",
     "pg": "^8.7.3",
     "pg-types": "^4.0.0",
     "reflect-metadata": "^0.1.13",
