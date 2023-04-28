@@ -2,8 +2,7 @@ import { sleep } from '../throw/sleep';
 import _ from 'lodash';
 import { PromisePool } from '@supercharge/promise-pool';
 
-export async function measure() {
-  const chunkSize = 100;
+export async function measure(chunkSize = 100) {
   const times = Array.from({length: 1000}, () => getRandomTime(300, 2000));
   await measurePromiseAll(times, chunkSize);
   await measurePromisePool(times, chunkSize);
