@@ -1,7 +1,12 @@
 import { sleep } from '../throw/sleep';
 
-export function run() {
-  const promises: Promise<void>[] = Array.from({ length: 1000 }, () => sleep(getRandomTime(500, 3000)));
+export async function run() {
+  const promises = Array.from({length: 1000}, () => sleep(getRandomTime(500, 3000)));
+  const startTime = performance.now();
+  await Promise.all(promises);
+  const endTime = performance.now();
+  const elapsedTime = endTime - startTime;
+  console.log(`Total time elapsed: ${elapsedTime} ms`);
 }
 
 function getRandomTime(min: number, max: number): number {
