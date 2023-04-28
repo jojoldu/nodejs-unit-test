@@ -3,3 +3,8 @@ export function sleep(ms) {
     setTimeout(resolve, ms);
   });
 }
+
+export async function sleepAndReturnTime(ms: number) {
+  await sleep(ms);
+  return ms;
+}
