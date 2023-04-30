@@ -28,6 +28,7 @@
     "@nestjs/platform-express": "^8.0.0",
     "@nestjs/typeorm": "^8.0.2",
     "@supercharge/promise-pool": "^2.4.0",
+    "es6-promise-pool": "^2.5.0",
     "lodash": "^4.17.21",
     "pg": "^8.7.3",
     "pg-types": "^4.0.0",
