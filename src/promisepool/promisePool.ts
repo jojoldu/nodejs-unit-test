@@ -10,12 +10,15 @@ export async function measure(chunkSize = 100) {
 
 async function measurePromiseAll(times: number[], chunkSize: number) {
   clear();
-  const promises = times.map(time => insert(time));
-  const chunkAll = _.chunk(promises, chunkSize);
+  const chunkAll = _.chunk(times, chunkSize);
+  console.log(`chunkAll.length: ${chunkAll.length}, chunk.length: ${chunkAll[0].length}`);
   const startTime = performance.now();
 
   for (const chunk of chunkAll) {
-    await Promise.all(chunk);
+    const chunkStartTime = performance.now();
+    await Promise.all(chunk.map(time => insert(time)));
+    const chunkEndTime = performance.now();
+    console.log(`chunk elapsed time: ${chunkEndTime - chunkStartTime} ms, count: ${chunk.length})`);
   }
 
   const endTime = performance.now();
