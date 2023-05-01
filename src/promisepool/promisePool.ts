@@ -15,16 +15,13 @@ async function measurePromiseAll(times: number[], chunkSize: number) {
   const startTime = performance.now();
 
   for (const chunk of chunkAll) {
-    const chunkStartTime = performance.now();
     await Promise.all(chunk.map(time => insert(time)));
-    const chunkEndTime = performance.now();
-    console.log(`chunk elapsed time: ${chunkEndTime - chunkStartTime} ms, count: ${chunk.length})`);
   }
 
   const endTime = performance.now();
   const elapsedTime = endTime - startTime;
 
-  console.log(`PromiseAll Total time elapsed: ${elapsedTime} ms, count: ${count()})`);
+  console.log(`PromiseAll Total time elapsed: ${elapsedTime/1000} s, count: ${count()})`);
 }
 
 async function measurePromisePool(times: number[], chunkSize: number) {
@@ -39,7 +36,7 @@ async function measurePromisePool(times: number[], chunkSize: number) {
   const endTime = performance.now();
   const elapsedTime = endTime - startTime;
 
-  console.log(`PromisePool Total time elapsed: ${elapsedTime} ms, count: ${count()})`);
+  console.log(`PromisePool Total time elapsed: ${elapsedTime/1000} s, count: ${count()})`);
 }
 
 function getRandomTime(min: number, max: number): number {
