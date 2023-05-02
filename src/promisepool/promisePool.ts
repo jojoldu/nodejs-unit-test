@@ -15,6 +15,7 @@ async function measurePromiseAll(times: number[], chunkSize: number) {
   const startTime = performance.now();
 
   for (const chunk of chunkAll) {
+    console.log(`max time: ${Math.max(...chunk)}`);
     await Promise.all(chunk.map(time => insert(time)));
   }
 
