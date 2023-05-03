@@ -15,8 +15,10 @@ async function measurePromiseAll(times: number[], chunkSize: number) {
   const startTime = performance.now();
 
   for (const chunk of chunkAll) {
-    console.log(`max time: ${Math.max(...chunk)}`);
+    const chunkStartTime = performance.now();
     await Promise.all(chunk.map(time => insert(time)));
+    const chunkEndTime = performance.now();
+    console.log(`min time: ${Math.min(...chunk)}, max time: ${Math.max(...chunk)}, elapsed time: ${chunkEndTime - chunkStartTime} ms`);
   }
 
   const endTime = performance.now();
