@@ -79,11 +79,16 @@ try {
 
 메서드 시그니처에서 Error은 세부 Exception을 가리게 됩니다.
 
+```ts
 function updateUser(): Error {
 
     ....
 }
-정말 다른 Exception을 지정할것이 없을때 최후의 수단으로 씁니다. 프레임워크에서는 checked exception에 대한 처리를 미루는 목적으로 사용하기도 하지만, Business 코드에서는 습관적으로 java.lang.Exception을 쓴다면 정교한 예외처리를 할 수 없습니다.
+
+```
+
+정말 다른 Exception을 지정할것이 없을때 최후의 수단으로 씁니다.  
+프레임워크에서는 checked exception에 대한 처리를 미루는 목적으로 사용하기도 하지만, Business 코드에서는 습관적으로 java.lang.Exception을 쓴다면 정교한 예외처리를 할 수 없습니다.
 
 
 > Java에서는 Unchecked Exception과 Checked Exception 을 문법적으로 구분하고 있지만, 최근엔 **정말 특별한 경우가 아니면 Unchecked Exception을 사용하라**고 권고하고 있다. 

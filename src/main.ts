@@ -6,3 +6,9 @@ async function bootstrap() {
   await app.listen(3000);
 }
 bootstrap();
+
+process.on('unhandledRejection', (reason: string, p: Promise<any>) => {
+  console.log('Unhandled Rejection at:', p, 'reason:', reason);
+  throw reason;
+});
+
