@@ -7,8 +7,12 @@ async function bootstrap() {
 }
 bootstrap();
 
-process.on('unhandledRejection', (reason: string, p: Promise<any>) => {
-  console.log('Unhandled Rejection at:', p, 'reason:', reason);
-  throw reason;
-});
+process
+  .on('unhandledRejection', (reason: string, p: Promise<any>) => {
+    console.log('Unhandled Rejection at:', p, 'reason:', reason);
+    throw new Error(reason);
+  })
+  .on('uncaughtException', (error: Error) => {
+    console.log('Uncaught Exception:', error);
+  });
 
