@@ -14,6 +14,14 @@ export class AppController {
     return this.appService.getHello();
   }
 
+  @Get('/cookie')
+  cookie(@Req() request: Request, @Res() response: Response): string {
+    response.set('set-cookie', ['name=age; path=/; expires=Wed May 11 2023 19:52:09 GMT+0900 (Korean Standard Time)']);
+    console.log(`en`);
+    response.set('set-cookie', ['name=age; path=/; expires=Wed May 11 2023 19:52:09 GMT+0900 (대한민국 표준시)']);
+    console.log(`ko`);
+    return 'cookie';
+  }
 
   @Get('/cookie-en')
   cookieEn(@Req() request: Request, @Res() response: Response): string {
