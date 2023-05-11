@@ -1,6 +1,8 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Req, Res } from '@nestjs/common';
 import { AppService } from './app.service';
 import { sleep } from './throw/sleep';
+import { Request, Response } from 'express';
+import { LocalDateTime } from '@js-joda/core';
 
 @Controller()
 export class AppController {
@@ -10,6 +12,21 @@ export class AppController {
   @Get()
   getHello(): string {
     return this.appService.getHello();
+  }
+
+
+  @Get('/cookie-en')
+  cookieEn(@Req() request: Request, @Res() response: Response): string {
+    const cookie = 'name=age; path=/; expires=Wed May 11 2023 19:52:09 GMT+0900 (Korean Standard Time)';
+    response.set('set-cookie', [cookie]);
+    return 'cookie';
+  }
+
+  @Get('/cookie-ko')
+  cookieKo(@Req() request: Request, @Res() response: Response): string {
+    const cookie = 'name=age; path=/; expires=Wed May 11 2023 19:52:09 GMT+0900 (대한민국 표준시)';
+    response.set('set-cookie', [cookie]);
+    return 'cookie';
   }
 
   @Get('/unhandledRejection')
