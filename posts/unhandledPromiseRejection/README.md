@@ -9,6 +9,14 @@ NodeJS 프로세스 글로벌에는 `unhandledRejection` 이벤트가 있다.
 
 일반적으로 최신 Node.js/Express 애플리케이션 코드의 대부분은 .then 핸들러, 함수 콜백 또는 catch 블록 등 프로미스 내에서 실행됩니다. 놀랍게도 개발자가 .catch 절을 추가하는 것을 기억하지 않는 한, 이러한 위치에서 발생하는 오류는 uncaughtException 이벤트 핸들러에 의해 처리되지 않고 사라집니다. 최근 버전의 Node는 처리되지 않은 거부가 발생하면 경고 메시지를 추가했지만, 문제가 발생했을 때 이를 알아차리는 데는 도움이 될 수 있지만 적절한 오류 처리 방법은 아닙니다. 간단한 해결책은 각 프로미스 체인 호출 내에 .catch 절을 추가하고 중앙 집중식 에러 처리기로 리디렉션하는 것을 잊지 않는 것입니다. 그러나 개발자의 규율에만 의존하여 오류 처리 전략을 구축하는 것은 다소 취약합니다. 따라서 로컬에서 처리되지 않는 모든 프로미스 오류를 처리할 수 있도록 process.on('unhandledRejection', callback)을 구독하는 우아한 폴백을 사용하는 것을 적극 권장합니다.
 
+Node.js와 NestJS에서 uncaughtException 또는 unhandledRejection을 잡기 위해 process.on을 사용할 수 있지만, 이러한 전역 에러를 잡아서 HTTP response로 전송하는 것은 일반적으로 권장되지 않습니다. 그 이유는 다음과 같습니다:
+
+process.on으로 잡은 에러는 전역 에러로, 특정 HTTP 요청과는 무관할 수 있습니다. 따라서 이러한 에러를 특정 HTTP 응답으로 매핑하는 것은 적절하지 않습니다.
+
+process.on으로 잡은 에러는 보통 프로그램의 심각한 결함을 나타냅니다. 이런 경우 프로세스를 안전하게 중단하고 재시작하는 것이 가장 좋습니다.
+
+그러나, NestJS에서 HTTP 요청 처리 중에 발생한 에러를 잡아서 HTTP 상태 500을 반환하려면, NestJS의 exception filter를 사용할 수 있습니다. 아래는 이를 구현한 예제입니다:
+
 ```ts
 
 process.on('unhandledRejection', (reason: string, p: Promise<any>) => {
