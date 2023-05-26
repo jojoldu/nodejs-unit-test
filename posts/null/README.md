@@ -59,6 +59,52 @@ null로 지나치게 유연한 메서드를 만들지 말고 **명시적인 메�
 - 객체 필드의 생명주기는 모두 객체의 생명주기와 같아야 한다.
 - 지연 초기화(lazy initialization) 필드의 경우 팩토리 메서드로 null 처리를 캡슐화 하라
 
+
+## Special Case Pattern
+
+```ts
+interface User {
+  render(): JSX.Element;
+}
+
+class AuthenticatedUser implements User {
+  constructor(private username: string) {}
+
+  render(): JSX.Element {
+    return <h2>Welcome back, {this.username}!</h2>;
+  }
+}
+
+class GuestUser implements User {
+  render(): JSX.Element {
+    return <h2>Welcome, Guest!</h2>;
+  }
+}
+```
+
+```ts
+interface AppProps {
+  user: User;
+}
+
+function App({ user }: AppProps) {
+  return (
+    <div>
+      {user.render()}
+      {/* Other components */}
+    </div>
+  );
+}
+```
+
+```ts
+let authenticatedUser = new AuthenticatedUser('JohnDoe');
+let guestUser = new GuestUser();
+
+ReactDOM.render(<App user={authenticatedUser} />, document.getElementById('root'));  // Output: Welcome back, JohnDoe!
+ReactDOM.render(<App user={guestUser} />, document.getElementById('root'));  // Output: Welcome, Guest!
+```
+
 ## 언어의 도움 받기
 
 ### Optional chaining (?.)
