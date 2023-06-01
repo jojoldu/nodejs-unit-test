@@ -1,5 +1,8 @@
 # 좋은 Error 만들기
 
+예외는 먹는게 아니다.예외 로그를 찍거나 다른 예외로 감쌀 때, 항상 원인 예외를 함께 전달한다.
+예외(Exception)에 해당 예외의 근본 원인을 찾알 수 있는 정확한 정보를 남겨준다. 예를들어 사용자의 전화번호가 잘못된 포맷으로 입력되었다면, 단순히 new IllegalArgumentException(“잘못된 전화번호”)가 아니라 new IllegalArgumentException(String.format(“사용자 %s의 전화번호(%s)가 잘못되었습니다”, userId, phoneNumber)) 형태로 구성한다. 실무에서 예외가 발생했을 때 조금이라도 정확하고 빠르게 대응 가능해진다.
+
 ## 정상
 ## 예외에 의미 제공하기
 

@@ -18,22 +18,13 @@ log.debug 는 개발 혹은 QA 환경에서만 출력이 되어야 한다.
 
 사용처
 - 발생이 예상되는 상황에 대해서는 예외처리
-* 절대로 발생해서는 안되는 조건에 대해서만 사용한다
+- 절대로 발생해서는 안되는 조건에 대해서만 사용한다
 
 실행할 가능성이 있는 코드를 어션설에 입력하지 않는다.
 절대로 코드에서 발생해서는 안되는 오류를 처리하는데 사용해야 한다.
 
-TypeScript 3.7 에는 assert  함수가 추가 되었다
+Production 환경에서는 실행이 안되는게 좋지만, 
+성능을 어느정도 포기할 수 있다면 다음의 라이브러리를 선택해도 좋다.
 
-https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-7.html#assertion-functions
-
-
-```ts
-// as-is
-Assert (action()); // 실행 안됨
-
-// to-be
-const actionResult = action();
-Assert (actionResult); 
-```
+https://github.com/JanMalch/ts-code-contracts
 
