@@ -1,8 +1,9 @@
-import { Controller, Get, Req, Res } from '@nestjs/common';
+import { Controller, Get, Query, Req, Res } from '@nestjs/common';
 import { AppService } from './app.service';
 import { sleep } from './throw/sleep';
 import { Request, Response } from 'express';
 import { LocalDateTime } from '@js-joda/core';
+import * as assert from 'assert';
 
 @Controller()
 export class AppController {
@@ -47,5 +48,11 @@ export class AppController {
   @Get('/uncaughtException')
   uncaughtException(): void {
     throw new Error('처리되지 않은 예외');
+  }
+
+  @Get('/assert')
+  assertCheck(@Query() query) {
+    assert(query.name === 'name', 'name이 아닙니다.');
+    return query.name;
   }
 }

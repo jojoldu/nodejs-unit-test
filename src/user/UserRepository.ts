@@ -18,7 +18,7 @@ export class UserRepository {
     return this.findByIdAndIsDeletedAndIsBlocked(name, false);
   }
 
-  async findByIdAndIsDeletedAndIsBlocked(name: string, isBlocked?: boolean, isDeleted?: boolean) {
+  async findByIdAndIsDeletedAndIsBlocked(name: string, isBlocked = false, isDeleted = false) {
     console.log(`find user: name=${name}, isBlocked=${isBlocked}, isDeleted=${isDeleted})`);
     return `select * from user where name = ${name} and isBlocked = ${isBlocked} and isDeleted = ${isDeleted}`;
   }
