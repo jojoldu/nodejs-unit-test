@@ -49,12 +49,15 @@ Enum은 기본적으로 ordinal 값을 가지고 있으며, 이는 숫자로 표
 그러다보니 숫자로 표현되기도 한다.  
 
 
-## null 보다는 Null Object Pattern
+## 빈값 처리
+
+### null 보다는 Null Object Pattern
 
 
 - 목록 결과가 없을 경우 `null` 보다는 빈배열 `[]` 을 반환한다.
 - 단일 결과가 없을 경우 `null` 보다는 [Null Object](https://en.wikipedia.org/wiki/Null_object_pattern)를 반환한다.
 
+### 값이 없는 경우에 대해 명시하기
 
 ## 네이밍
 
@@ -79,14 +82,15 @@ API의 필드명은 예측 가능 해야한다.
 }
 ```
 
+이는 응답 필드 내부에서만 유지해서는 안되며, **요청 필드와 응답 필드 간에도 네이밍에는 일관성**을 유지해야 한다.
+
 ### At 접미사를 사용하여 날짜/시간 속성 이름 지정
 
-At날짜 및 날짜-시간 속성은 매우 유사하거나 심지어 동일한 이름을 갖는 부울 속성과 구별하기 위해 로 끝나야 합니다 .
+일시 속성은 매우 유사하거나 심지어 동일한 이름을 갖는 부울 속성과 구별하기 위해 `At` 로 끝나야 한다.
 
-createdAt오히려created
-modifiedAt오히려modified
-occurredAt오히려occurred
-returnedAt오히려returned
+- `created` -> `createdAt`
+- `modified` -> `modifiedAt`
+- `deleted` -> `deletedAt`
 
 ### 배열등 복수형은 복수형 이름으로
 
