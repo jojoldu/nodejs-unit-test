@@ -4,15 +4,22 @@
 API 역시 사용자 인터페이스이다.  
 개발자는 API 
 
-## 직관적인 데이터 
+## 1. 직관적인 데이터 
 
 ### camelCase 사용하기
 
-camelCase를 사용하면, 다양한 플랫폼과 언어에서도 일관성을 유지할 수 있습니다.
-OpenAPI 스펙에서는 자동으로 코드를 생성할 수 있는 도구를 많이 제공합니다. 이런 도구들은 주로 camelCase를 따르는 언어 (예: JavaScript, Java 등)에 최적화되어 있습니다. 따라서, camelCase를 사용하면 이런 도구들을 효과적으로 활용할 수 있습니다.
+많은 언어에서 camelCase를 관례처럼 사용하고 있기 때문에 Response Body의 필드들을 camelCase를 사용하면, 다양한 플랫폼과 언어에서도 일관성을 유지할 수 있다.  
+  
+특히 OpenAPI 스펙에서는 자동으로 코드를 생성할 수 있는 도구를 많이 제공하고 있습니다.  
+이런 도구들은 주로 camelCase를 따르는 언어 (예: JavaScript, Java 등)에 많이 최적화 되어있다. 
 
-- https://the-guild.dev/graphql/codegen
-- 
+- [TypeScript codegen](https://www.npmjs.com/package/openapi-typescript)
+- [graphql codegen](https://the-guild.dev/graphql/codegen)
+- [React Native codegen](https://reactnative.dev/docs/next/the-new-architecture/pillars-codegen)
+
+camelCase를 사용하면 이런 도구들을 효과적으로 활용할 수 있다.  
+일관성이나 codegen 등의 도구를 고려한다면 `camelCase` 로 구현하는것이 낫다.
+
 ### 표준 포맷 사용하기
 
 UNIX 타임스탬프 등을 날짜 데이터로 사용하면 안된다.  
