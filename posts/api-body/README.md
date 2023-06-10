@@ -161,7 +161,6 @@ API의 필드명은 **예측 가능** 해야한다.
 
 ```js
 // bad
-
 {
     accountNumber: '0012571125123', // number
     bankNo: '012' // no
