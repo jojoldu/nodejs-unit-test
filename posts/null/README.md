@@ -27,9 +27,146 @@ console.log(user?.address?.street); // 출력: undefined
 근본적으로 저런 `null` 관련 기능들의 사용을 최소화할 수 있는 패턴 혹은 구조를 이야기 해보고 싶다.
 
 
+## Null (Undefined) 회피 방법
+
+### Optional chaining (?.)
+
+TypeScript 3.7 이상의 버전에서는 optional chaining을 사용하여 객체나 함수의 속성이 null 또는 undefined인 경우 안전하게 접근할 수 있습니다. 예를 들어, user?.name 코드는 user가 null이나 undefined가 아닌 경우에만 name에 접근합니다.
+
+```ts
+let user = {
+  name: 'Alice',
+  address: null
+};
+
+console.log(user?.address?.street); // 출력: undefined
+```
+
+### Nullish coalescing (??)
+
+Nullish coalescing 연산자를 사용하면 null 또는 undefined 값을 쉽게 처리할 수 있습니다. 예를 들어, let value = input ?? "default" 코드는 input이 null 또는 undefined인 경우 value에 "default"를 할당합니다.
+
+```ts
+let input = null;
+let value = input ?? "default";
+
+console.log(value); // 출력: "default"
+```
+
+### Type guards
+
+TypeScript에서는 type guards를 사용하여 null이나 undefined를 안전하게 확인할 수 있습니다. 예를 들어, if (value) 또는 if (typeof value !== "undefined")와 같은 조건문을 사용하여 value가 undefined인지 확인할 수 있습니다.
+
+### Non-null assertion operator (!) 
+
+TypeScript에서는 느낌표(!)를 사용하여 값이 null이나 undefined가 아님을 명시적으로 표시할 수 있습니다. 그러나 이는 값이 실제로 null이나 undefined일 수 없음을 확신하는 경우에만 사용해야 합니다.
+
+```ts
+let user!: User; // User가 null 또는 undefined가 아님을 보장합니다.
+
+user.doSomething(); // 에러가 발생하지 않습니다.
+```
+
+### strictNullChecks option 
+
+TypeScript의 tsconfig.json 파일에서 strictNullChecks 옵션을 true로 설정하면, 모든 값이 기본적으로 null 또는 undefined가 될 수 없다고 가정합니다. 이를 통해 런타임 오류를 방지할 수 있습니다.
+
+
 ## null을 안전하게 다루는 패턴
 
-### null을 메소드/함수의 기본 스펙으로 삼지 않는다.
+### 입구에서 막기
+
+![entry1](./images/entry1.png)
+
+(출처: [tobaek.com](https://tobaek.com/58))
+
+![entry2](./images/entry2.png)
+
+(출처: [kkmg2012.tistory.com](https://kkmg2012.tistory.com/1329))
+
+#### Pre Condition
+
+#### Decorator
+
+- Request DTO
+
+### Null을 반환하지 않는다
+
+```ts
+function getClassNames(element: HTMLElement): string[] {
+  const attribute = element.getAttribute('class');
+  if(attribute !== null) {
+    return null;
+  }
+  
+  return attribute.split(' ');
+}
+
+function isElementHighlighted(element: HTMLElement): boolean {
+  const classNames = getClassNames(element);
+  if(classNames === null) {
+    return false;
+  }
+  
+  return classNames.includes('highlighted');
+}
+```
+
+```ts
+function getClassNames(element: HTMLElement): string[] {
+  const attribute = element.getAttribute('class');
+  if(attribute !== null) {
+    return [];
+  }
+  
+  return attribute.split(' ');
+}
+
+function isElementHighlighted(element: HTMLElement): boolean {
+  return getClassNames(element).includes('highlighted');
+}
+```
+
+
+
+boolean이 반환될때 역시 `false`를 반환하는 것이 좋다.  
+Null과 false가 구분이 필요하다면 이건 **3개의 경우를 표현해야하는 열거형**이 필요한 경우이지, 2가지 경우를 표현하는 boolean 타입이 필요한 경우가 아니다.
+
+```ts
+// bad
+null, false, true
+
+// good
+READY, PASS, FAIL
+```
+
+문자열은 상황에 따라 다르다.
+
+```ts
+export class UserComment {
+  private _comment: string | null = null;
+  
+  get comment(): string {
+    return this._comment ?? '';
+  }
+}
+```
+
+단, 문자열이 단순히 문자열 데이터로서 의미하는게 아니라, 특정 의미를 지니는 경우엔 Null을 반환하는 것이 낫다.
+
+```ts
+export class Payment {
+  private _cardNo: string | null = null;
+  
+  get cardNo(): string | null {
+    return this._cardNo;
+  }
+}
+```
+
+**카드 거래가 없음을 나타내기 때문**
+
+### Null을 함수 인자로 전달하지 않는다.
 
 null로 지나치게 유연한 메서드를 만들지 말고 **명시적인 메서드/함수를 만들어야 한다**.  
 
@@ -60,7 +197,18 @@ null로 지나치게 유연한 메서드를 만들지 말고 **명시적인 메�
 - 지연 초기화(lazy initialization) 필드의 경우 팩토리 메서드로 null 처리를 캡슐화 하라
 
 
-## Special Case Pattern
+### Null Object Pattern
+
+값을 얻을 수 없을 때 Null (Undefined) 혹은 `Optional` 을 반환하는 대신 Null Object를 반환할 수 있다.  
+
+- Null 대신 유효한 값이 반환 되어 이후 실행 되는 로직에서 Null로 인한 피해가 가지 않도록 한다.
+- 가장 대표적인 사례로 빈 문자열, 빈 배열이 있다.
+
+
+#### 주의할 점
+
+널 객체 패턴은 신속한 실패를 못하게 한다.  
+오류가 있는 상황이라 더이상 Flow를 진행하면 안되는 경우라면 바로 Exception을 발생시키는 것이 옳으며, 괜히 널 객체로 인해 실제 오류가 발생한 지점에서 멀리 떨어진 함수에서 오류가 발생해선 안된다.
 
 ```ts
 interface User {
@@ -105,49 +253,6 @@ ReactDOM.render(<App user={authenticatedUser} />, document.getElementById('root'
 ReactDOM.render(<App user={guestUser} />, document.getElementById('root'));  // Output: Welcome, Guest!
 ```
 
-## 언어의 도움 받기
-
-### Optional chaining (?.)
-
-TypeScript 3.7 이상의 버전에서는 optional chaining을 사용하여 객체나 함수의 속성이 null 또는 undefined인 경우 안전하게 접근할 수 있습니다. 예를 들어, user?.name 코드는 user가 null이나 undefined가 아닌 경우에만 name에 접근합니다.
-
-```ts
-let user = {
-  name: 'Alice',
-  address: null
-};
-
-console.log(user?.address?.street); // 출력: undefined
-```
-
-### Nullish coalescing (??)
-
-Nullish coalescing 연산자를 사용하면 null 또는 undefined 값을 쉽게 처리할 수 있습니다. 예를 들어, let value = input ?? "default" 코드는 input이 null 또는 undefined인 경우 value에 "default"를 할당합니다.
-
-```ts
-let input = null;
-let value = input ?? "default";
-
-console.log(value); // 출력: "default"
-```
-
-### Type guards
-
-TypeScript에서는 type guards를 사용하여 null이나 undefined를 안전하게 확인할 수 있습니다. 예를 들어, if (value) 또는 if (typeof value !== "undefined")와 같은 조건문을 사용하여 value가 undefined인지 확인할 수 있습니다.
-
-### Non-null assertion operator (!) 
-
-TypeScript에서는 느낌표(!)를 사용하여 값이 null이나 undefined가 아님을 명시적으로 표시할 수 있습니다. 그러나 이는 값이 실제로 null이나 undefined일 수 없음을 확신하는 경우에만 사용해야 합니다.
-
-```ts
-let user!: User; // User가 null 또는 undefined가 아님을 보장합니다.
-
-user.doSomething(); // 에러가 발생하지 않습니다.
-```
-
-### strictNullChecks option 
-
-TypeScript의 tsconfig.json 파일에서 strictNullChecks 옵션을 true로 설정하면, 모든 값이 기본적으로 null 또는 undefined가 될 수 없다고 가정합니다. 이를 통해 런타임 오류를 방지할 수 있습니다.
 
 
 
