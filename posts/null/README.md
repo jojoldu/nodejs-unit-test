@@ -1,5 +1,7 @@
 # null 을 다루는 방법
 
+구글 플레이 스토어에 올라간 1000개의 앱 분석 결과
+
 > 여기서는 `null` 과 `undefined` 를 구분하지 않고 null 로 통일해서 표현한다. 
 
 TypeScript나 Kotlin 등 요즘의 모던한 문법을 지원하는 언어들을 사용하다보면 `null` 값들을 안전하게 다루는 여러가지 방법들을 알게 된다.  
@@ -31,7 +33,8 @@ console.log(user?.address?.street); // 출력: undefined
 
 ### Optional chaining (?.)
 
-TypeScript 3.7 이상의 버전에서는 optional chaining을 사용하여 객체나 함수의 속성이 null 또는 undefined인 경우 안전하게 접근할 수 있습니다. 예를 들어, user?.name 코드는 user가 null이나 undefined가 아닌 경우에만 name에 접근합니다.
+TypeScript 3.7 이상의 버전에서는 optional chaining을 사용하여 객체나 함수의 속성이 null 또는 undefined인 경우 안전하게 접근할 수 있다.  
+예를 들어, user?.name 코드는 user가 null이나 undefined가 아닌 경우에만 name에 접근한다.
 
 ```ts
 let user = {
@@ -44,7 +47,8 @@ console.log(user?.address?.street); // 출력: undefined
 
 ### Nullish coalescing (??)
 
-Nullish coalescing 연산자를 사용하면 null 또는 undefined 값을 쉽게 처리할 수 있습니다. 예를 들어, let value = input ?? "default" 코드는 input이 null 또는 undefined인 경우 value에 "default"를 할당합니다.
+Nullish coalescing 연산자를 사용하면 null 또는 undefined 값을 쉽게 처리할 수 있다.  
+예를 들어, let value = input ?? "default" 코드는 input이 null 또는 undefined인 경우 value에 "default"를 할당한다.
 
 ```ts
 let input = null;
@@ -55,21 +59,24 @@ console.log(value); // 출력: "default"
 
 ### Type guards
 
-TypeScript에서는 type guards를 사용하여 null이나 undefined를 안전하게 확인할 수 있습니다. 예를 들어, if (value) 또는 if (typeof value !== "undefined")와 같은 조건문을 사용하여 value가 undefined인지 확인할 수 있습니다.
+TypeScript에서는 type guards를 사용하여 null이나 undefined를 안전하게 확인할 수 있다.  
+예를 들어, if (value) 또는 if (typeof value !== "undefined")와 같은 조건문을 사용하여 value가 undefined인지 확인할 수 있다.
 
 ### Non-null assertion operator (!) 
 
-TypeScript에서는 느낌표(!)를 사용하여 값이 null이나 undefined가 아님을 명시적으로 표시할 수 있습니다. 그러나 이는 값이 실제로 null이나 undefined일 수 없음을 확신하는 경우에만 사용해야 합니다.
+TypeScript에서는 느낌표(!)를 사용하여 값이 null이나 undefined가 아님을 명시적으로 표시할 수 있다.  
+그러나 이는 값이 실제로 null이나 undefined일 수 없음을 확신하는 경우에만 사용해야 한다.
 
 ```ts
-let user!: User; // User가 null 또는 undefined가 아님을 보장합니다.
+let user!: User; // User가 null 또는 undefined가 아님을 보장한다.
 
 user.doSomething(); // 에러가 발생하지 않습니다.
 ```
 
 ### strictNullChecks option 
 
-TypeScript의 tsconfig.json 파일에서 strictNullChecks 옵션을 true로 설정하면, 모든 값이 기본적으로 null 또는 undefined가 될 수 없다고 가정합니다. 이를 통해 런타임 오류를 방지할 수 있습니다.
+TypeScript의 tsconfig.json 파일에서 strictNullChecks 옵션을 true로 설정하면, 모든 값이 기본적으로 null 또는 undefined가 될 수 없다고 가정한다.  
+이를 통해 런타임 오류를 방지할 수 있다.
 
 
 ## null을 안전하게 다루는 패턴
@@ -84,13 +91,49 @@ TypeScript의 tsconfig.json 파일에서 strictNullChecks 옵션을 true로 설�
 
 (출처: [kkmg2012.tistory.com](https://kkmg2012.tistory.com/1329))
 
-#### Pre Condition
+#### 사전 조건 (Precondition, Guard Clause)
+
+
+Java와 같은 언어에서는 계약에 의한 설계(`Design by Contract`) 를 할 수 있다.
+
+```java
+assert 식1;
+assert 식1 : 식2;
+
+ex)
+
+private void setRefreshInterval(int interval) {
+  assert interval > 0 && interval <= 1000/MAX_REFRESH_RATE : 'interval must be positive and less than 1000/MAX_REFRESH_RATE';
+  ...
+}
+```
+
+- Boolean 식1이 거짓이면 `AssertionError` 발생
+  - `Exception` 아님! (주의)
+- **private 메소드에서만 사용**
+  - 나 스스로가 소비자 이면서 제공자일때 사용하는 구문
+  - 내가 만든 API의 사용자가 누구인지 모를때는 사용하면 안된다.
+- `-enableassertions` 또는 `-ea` 옵션으로 활성화 가능
+  - 런타임에서는 실행되지 않는다.
+  - 운영 환경에서는 이 구문이 무시 된다.
+
+사전체크 대신에 단정문이 필요한 경우는 **개발단계에서 실행가능한 주석으로서의 효과**를 기대할 수 있다.
+
 
 #### Decorator
 
 - Request DTO
 
 ### Null을 반환하지 않는다
+
+null 의 범위를 메소드/함수 지역으로 제한한다.
+
+상태와 비슷하게 Null도 지역적으로 제한할 경우 큰 문제가 안된다.  
+메서드/함수의 인자로 전달되는 경우, 메서드/함수 내부에서만 null을 사용하고, 외부로 전달되지 않도록 한다.
+
+
+- 반환 값이 꼭 있어야 한다면 null을 반환하지 말고 예외를 던져라.
+- 빈 반환 값은 빈 컬랙션이나 `Null 객체` 를 활용하라
 
 ```ts
 function getClassNames(element: HTMLElement): string[] {
@@ -104,7 +147,7 @@ function getClassNames(element: HTMLElement): string[] {
 
 function isElementHighlighted(element: HTMLElement): boolean {
   const classNames = getClassNames(element);
-  if(classNames === null) {
+  if(classNames === null) { // 호출측에서 다시한번 null 체크 필요
     return false;
   }
   
@@ -172,6 +215,68 @@ null로 지나치게 유연한 메서드를 만들지 말고 **명시적인 메�
 
 - 함수나 객체의 인자로 null 을 전달하는 것은 피한다.
 
+```ts
+// bad
+
+function mainFunction() {
+  let value: string | null = getNullableValue();
+  nullableFunction(value); 
+  ...
+}
+
+function nullableFunction(input: string | null) {
+  console.log(input.length);
+}
+```
+
+```ts
+// bad or good?
+function mainFunction() {
+  let value: string | null = getNullableValue();
+  if(value !== null) {
+    nunnullFunction(value);
+  }
+  ...
+}
+
+function nunnullFunction(input: string) {
+  console.log(input.length);
+}
+
+// bad or good?
+function mainFunction() {
+  let value: string | null = getNullableValue();
+  nunnullFunction(value);
+  ...
+}
+
+function nunnullFunction(input: string) {
+  if(value !== null) {
+    console.log(input.length);
+  }
+}
+```
+
+- `nunnullFunction` 에서 null 체크를 하더라도, 그 아래 코드들에서 `value`가 null이면 문제가 발생할 수 있다.
+- 함수 내부 전체에서 사용해야하는 값이라면 값을 가져오자마자 null 체크를 하고, 그 이후로는 null 체크를 하지 않는다.
+
+```ts
+// good
+function mainFunction() {
+  let value: string | null = getNullableValue();
+  if(value === null) {
+    return;
+  }
+  nunnullFunction(value);
+...
+}
+
+function nunnullFunction(input: string) {
+  console.log(input.length);
+}
+
+```
+
 #### 외부에서 전달 받는 값일 경우
 
 사용자의 입력, DB의 조회, API 조회 결과 등 외부의 입력으로 `null` 일 수 있다.  
@@ -181,12 +286,6 @@ null로 지나치게 유연한 메서드를 만들지 말고 **명시적인 메�
 
 
 
-### null 의 범위를 메소드/함수 지역으로 제한한다.
-
-- null을 반환하지 말라
-    -  반환 값이 꼭 있어야 한다면 null을 반환하지 말고 예외를 던져라.
-    - 빈 반환 값은 빈 컬랙션이나 `Null 객체` (`특수 사례 객체`) 를 활용하라
-    -  반환 값이 없을 수도 있다면 null을 반환하지 말고 `Optional` 을 반환하라
 
 ### 명확한 초기값을 설정한다.
 
