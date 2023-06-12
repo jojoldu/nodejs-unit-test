@@ -91,6 +91,42 @@ TypeScript의 tsconfig.json 파일에서 strictNullChecks 옵션을 true로 설�
 
 (출처: [kkmg2012.tistory.com](https://kkmg2012.tistory.com/1329))
 
+```ts
+function myFun(user : User) {
+  if(user.name.length > 10) {
+    throw new Error('Name must be longer than 10 chars');
+  }
+  
+  if(user.age < 19) {
+    throw new Error('age must be lower than 19 years old');
+  }
+  ....
+  businessLogic
+}
+```
+
+```ts
+function myFun(user : User) {
+  requires(user.name.length > 10, 'Name must be longer than 10 chars');
+  requires(user.age < 19, 'age must be lower than 19 years old');
+  ....
+  businessLogic
+}
+```
+
+```ts
+export class User {
+  @Length(10, 20)
+  name: string;
+
+  @IsInt()
+  @Min(20)
+  age: number;
+}
+```
+
+- typestack/class-validator
+
 #### 사전 조건 (Precondition, Guard Clause)
 
 
