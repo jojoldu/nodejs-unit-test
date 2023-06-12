@@ -132,8 +132,11 @@ null 의 범위를 메소드/함수 지역으로 제한한다.
 메서드/함수의 인자로 전달되는 경우, 메서드/함수 내부에서만 null을 사용하고, 외부로 전달되지 않도록 한다.
 
 
+값을 얻을 수 없을 때 Null (Undefined) 혹은 `Optional` 을 반환하는 대신 Null Object를 반환할 수 있다.
+
+- Null 대신 유효한 값이 반환 되어 이후 실행 되는 로직에서 Null로 인한 피해가 가지 않도록 한다.
 - 반환 값이 꼭 있어야 한다면 null을 반환하지 말고 예외를 던져라.
-- 빈 반환 값은 빈 컬랙션이나 `Null 객체` 를 활용하라
+  - 빈 반환 값은 빈 컬랙션이나 `Null 객체` 를 활용하라
 
 ```ts
 function getClassNames(element: HTMLElement): string[] {
@@ -169,8 +172,6 @@ function isElementHighlighted(element: HTMLElement): boolean {
   return getClassNames(element).includes('highlighted');
 }
 ```
-
-
 
 boolean이 반환될때 역시 `false`를 반환하는 것이 좋다.  
 Null과 false가 구분이 필요하다면 이건 **3개의 경우를 표현해야하는 열거형**이 필요한 경우이지, 2가지 경우를 표현하는 boolean 타입이 필요한 경우가 아니다.
@@ -208,6 +209,59 @@ export class Payment {
 ```
 
 **카드 거래가 없음을 나타내기 때문**
+
+#### Null Object Pattern by React
+
+**기본값이 있는 경우**
+
+```jsx
+// bad
+const UserInfo = ({ user }) => {
+  return (
+          <div>
+            <p>Name: {user?.name ?? 'Not Available'}</p>
+            <p>Email: {user?.email ?? 'Not Available'}</p>
+          </div>
+  );
+};
+
+const ParentComponent = ({ user }) => {
+  return <UserInfo user={user} />;
+};
+```
+
+- user 객체가 nonnull인지 체크 (`user?`)
+- user 객체의 필드가 nonnull인지 체크 (`user?.name`, `user?.email`)
+
+```jsx
+// good
+const UserInfo = ({ user }) => {
+  return (
+          <div>
+              <p>Name: {user.name}</p>
+              <p>Email: {user.email}</p>
+          </div>
+        );
+};
+
+const ParentComponent = ({ user }) => {
+  // user가 null인 경우 대신 사용할 null 객체
+  const nullUser = {
+    name: 'Not Available',
+    email: 'Not Available',
+  };
+
+  return <UserInfo user={user || nullUser} />;
+};
+```
+
+- 추가적인 NotNull 체크를 계속해서 할 필요가 없다.
+
+#### 주의할 점
+
+널 객체 패턴은 신속한 실패를 못하게 한다.  
+오류가 있는 상황이라 더이상 Flow를 진행하면 안되는 경우라면 바로 Exception을 발생시키는 것이 옳으며, 괜히 널 객체로 인해 실제 오류가 발생한 지점에서 멀리 떨어진 함수에서 오류가 발생해선 안된다.
+
 
 ### Null을 함수 인자로 전달하지 않는다.
 
@@ -283,75 +337,68 @@ function nunnullFunction(input: string) {
 이럴 경우 `null` 을 전달 받은 가장 가까운 곳에서 `null` 을 처리하고, 그 이후로는 `null` 을 전달 받지 않는다.
 
 
-
-
-
-
 ### 명확한 초기값을 설정한다.
 
 - 초기화 시점과 실행 시점이 겹치지 않아야 한다
-- 실행 시점엔 초기화되지 않은 필드가 없어야 한다
+
+```ts
+class BadExample {
+    instanceVariable: string | null = null;
+
+    constructor() {
+        this.instanceVariable = this.getNullableValue(); 
+        // 초기화 시점과 실행 시점이 겹침: 생성자에서 초기화하면서 메소드를 실행
+        console.log(this.instanceVariable.length); // Null Pointer Exception 발생 가능성
+    }
+
+    getNullableValue(): string | null {
+        // null이나 non-null 값을 반환
+        return null; // 예시를 위해 항상 null 반환
+    }
+}
+
+class GoodExample {
+    instanceVariable: string | null = null;
+
+    constructor(input: string | null) {
+        this.instanceVariable = input; 
+        // 초기화 시점과 실행 시점이 분리: 객체 생성 시점에 값을 설정하고, 나중에 메소드를 실행
+    }
+
+    execute(): void {
+        if (this.instanceVariable !== null) {
+            console.log(this.instanceVariable.length);
+        } else {
+            // 적절한 예외 처리
+        }
+    }
+}
+
+let value: string | null = getNullableValue();
+
+let goodExample = new GoodExample(value);
+goodExample.execute();
+```
+
 - 실행 시점에 null인 필드는 초기화되지 않았다는 의미가 아닌, 값이 없다는 의미여야 한다.
-- 객체 필드의 생명주기는 모두 객체의 생명주기와 같아야 한다.
+- 실행 시점엔 초기화되지 않은 필드가 없어야 한다
+
+```ts
+
+```
+
 - 지연 초기화(lazy initialization) 필드의 경우 팩토리 메서드로 null 처리를 캡슐화 하라
-
-
-### Null Object Pattern
-
-값을 얻을 수 없을 때 Null (Undefined) 혹은 `Optional` 을 반환하는 대신 Null Object를 반환할 수 있다.  
-
-- Null 대신 유효한 값이 반환 되어 이후 실행 되는 로직에서 Null로 인한 피해가 가지 않도록 한다.
-- 가장 대표적인 사례로 빈 문자열, 빈 배열이 있다.
-
-
-#### 주의할 점
-
-널 객체 패턴은 신속한 실패를 못하게 한다.  
-오류가 있는 상황이라 더이상 Flow를 진행하면 안되는 경우라면 바로 Exception을 발생시키는 것이 옳으며, 괜히 널 객체로 인해 실제 오류가 발생한 지점에서 멀리 떨어진 함수에서 오류가 발생해선 안된다.
-
-```ts
-interface User {
-  render(): JSX.Element;
-}
-
-class AuthenticatedUser implements User {
-  constructor(private username: string) {}
-
-  render(): JSX.Element {
-    return <h2>Welcome back, {this.username}!</h2>;
-  }
-}
-
-class GuestUser implements User {
-  render(): JSX.Element {
-    return <h2>Welcome, Guest!</h2>;
-  }
-}
-```
-
-```ts
-interface AppProps {
-  user: User;
-}
-
-function App({ user }: AppProps) {
-  return (
-    <div>
-      {user.render()}
-      {/* Other components */}
-    </div>
-  );
-}
-```
-
-```ts
-let authenticatedUser = new AuthenticatedUser('JohnDoe');
-let guestUser = new GuestUser();
-
-ReactDOM.render(<App user={authenticatedUser} />, document.getElementById('root'));  // Output: Welcome back, JohnDoe!
-ReactDOM.render(<App user={guestUser} />, document.getElementById('root'));  // Output: Welcome, Guest!
-```
+  - null 처리 로직을 팩토리 메서드 내부로 숨기는 것을 의미합니다. 이 원칙을 따르면 null 처리 로직이 전체 코드에 퍼져 있지 않고 한 곳에 모여있게 되므로 가독성과 유지보수성이 향상된다.
 
 
 
+
+
+
+
+## 함께 보면 좋은 글
+
+- [is_left vs left_at vs left_status](https://jojoldu.tistory.com/577)
+- [Number와 boolean 은 최대한 Not Null로 선언하기](https://jojoldu.tistory.com/718)
+- [좋은 API Response Body 만들기](https://jojoldu.tistory.com/720)
 
