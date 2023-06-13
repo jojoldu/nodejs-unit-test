@@ -62,16 +62,6 @@ console.log(value); // 출력: "default"
 TypeScript에서는 type guards를 사용하여 null이나 undefined를 안전하게 확인할 수 있다.  
 예를 들어, if (value) 또는 if (typeof value !== "undefined")와 같은 조건문을 사용하여 value가 undefined인지 확인할 수 있다.
 
-### Non-null assertion operator (!) 
-
-TypeScript에서는 느낌표(!)를 사용하여 값이 null이나 undefined가 아님을 명시적으로 표시할 수 있다.  
-그러나 이는 값이 실제로 null이나 undefined일 수 없음을 확신하는 경우에만 사용해야 한다.
-
-```ts
-let user!: User; // User가 null 또는 undefined가 아님을 보장한다.
-
-user.doSomething(); // 에러가 발생하지 않습니다.
-```
 
 ### strictNullChecks option 
 

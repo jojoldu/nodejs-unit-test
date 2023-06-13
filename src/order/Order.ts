@@ -4,6 +4,7 @@ import { Pay } from './Pay';
 import { getConnection } from 'typeorm';
 
 export class Order {
+
     private _id: number;
     private _amount: number;
     private _status: OrderStatus;
