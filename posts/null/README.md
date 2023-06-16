@@ -57,12 +57,6 @@ let value = input ?? "default";
 console.log(value); // 출력: "default"
 ```
 
-### Type guards
-
-TypeScript에서는 type guards를 사용하여 null이나 undefined를 안전하게 확인할 수 있다.  
-예를 들어, if (value) 또는 if (typeof value !== "undefined")와 같은 조건문을 사용하여 value가 undefined인지 확인할 수 있다.
-
-
 ### strictNullChecks option 
 
 TypeScript의 tsconfig.json 파일에서 strictNullChecks 옵션을 true로 설정하면, 모든 값이 기본적으로 null 또는 undefined가 될 수 없다고 가정한다.  
@@ -283,6 +277,19 @@ const ParentComponent = ({ user }) => {
 
 - 추가적인 NotNull 체크를 계속해서 할 필요가 없다.
 
+
+```ts
+class User {
+  name = 'Not Available',
+  email = 'Not Available',
+
+  constructor(name: string, email: string) {
+      this.name = name;
+      this.email = email;
+  }
+}
+```
+
 #### 주의할 점
 
 널 객체 패턴은 신속한 실패를 못하게 한다.  
@@ -410,15 +417,39 @@ goodExample.execute();
 - 실행 시점엔 초기화되지 않은 필드가 없어야 한다
 
 ```ts
+class Item {
+    private name: string;
+    private price: number;
 
+    constructor() {
+        this.name = '';
+        this.price = 0;
+    }
+
+    initialize(name: string, price: number) {
+        this.name = name;
+        this.price = price;
+    }
+
+    purchase(quantity: number): number {
+        return this.price * quantity;
+    }
+}
+```
+
+```ts
+let myItem = new Item(); 
+// 초기화 시점: name은 빈 문자열이고, price는 0입니다.
+myItem.initialize('Apple', 150); 
+// 실행 시점: 여기서 'Apple'로 name을 설정하고, 150으로 price를 설정합니다.
+
+let total = myItem.purchase(3); 
+// 실행 시점: 여기서 purchase 메서드를 사용하여 총 금액을 계산합니다.
+console.log(total); // 출력: 450
 ```
 
 - 지연 초기화(lazy initialization) 필드의 경우 팩토리 메서드로 null 처리를 캡슐화 하라
   - null 처리 로직을 팩토리 메서드 내부로 숨기는 것을 의미합니다. 이 원칙을 따르면 null 처리 로직이 전체 코드에 퍼져 있지 않고 한 곳에 모여있게 되므로 가독성과 유지보수성이 향상된다.
-
-
-
-
 
 
 
