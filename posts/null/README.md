@@ -1,40 +1,30 @@
-# null 을 다루는 방법
+# 3. 좋은 함수 만들기 - Null 을 다루는 방법
 
-구글 플레이 스토어에 올라간 1000개의 앱 분석 결과
 
 > 여기서는 `null` 과 `undefined` 를 구분하지 않고 null 로 통일해서 표현한다. 
 
-TypeScript나 Kotlin 등 요즘의 모던한 문법을 지원하는 언어들을 사용하다보면 `null` 값들을 안전하게 다루는 여러가지 방법들을 알게 된다.  
-다만, 이런 것들은 대부분 지엽적인 경우가 많다.  
-**이미 Null값이 프로젝트 전방위적으로 퍼져있는 경우**에 어떻게 `null` 값을 다룰 것인가 같은 경우이다.  
-예를 들어 대표적인 `null` 을 다루는 방법으로 소개하는 것이 바로 Optional chaining (`?.`) 이다.  
+정적 분석 서비스 [rollbar](https://rollbar.com/) 에서 **1000개 이상의 JS 프로젝트**에서의 소프트웨어 결함 통계를 공개했다.  
 
-```ts
-let user = {
-  name: 'Alice',
-  address: null
-};
+![intro1](./images/intro1.png)
 
-console.log(user?.address?.street); // 출력: undefined
-```
+(출처: [top-10-javascript-errors-from-1000-projects](https://rollbar.com/blog/top-10-javascript-errors-from-1000-projects-and-how-to-avoid-them/))
 
-이 문법적 기능을 이용하면 `null` 로 인한 `Null Exception` 을 피할 수 있다.
-하지만 이런 방법은 `null` 을 다루는 방법이 아니라 `null` 을 피하는 방법이다.  
+
+**상위 1~10위까지의 대부분이 null과 undefined 로 인한 문제**였다.  
+이 외에 (과거 자료지만) 안드로이드 플레이 스토어의 Top 1,000 Popular Apps 들을 분석한 결과에서도 `NullPointerException` 가 전체 결함 중 2번째였다.  
+
+![intro2](./images/intro2.png)
+
+(출처: [Multi-objective Automated Testingfor Android Applications](http://www0.cs.ucl.ac.uk/staff/K.Mao/archive/p_issta16_sapienz.pdf))
+
+이 만큼 빈값(`Null`, `Undefined`) 을 다루는 것이 애플리케이션을 구현/개선하는데 중요한 역할을 한다.
   
-이런 문법 지원이 있으면 좋지만, 저것만이 `null` 을 다루는 방법이 될 순 없다.  
-예를 들어 모든 객체의 하위 탐색이 있을때마다 `?.` 을 붙이는 것을 팀 컨벤션으로 할 것인가? 등의 고민이 생긴다.
+## 1. 요즘의 Null 문법
 
-이번 시간에 이야기해볼 것은 `null` 을 다루는 방법이다.  
-저런 문법적 도움 없는 언어나 생태계에서도 통용되며,  
-근본적으로 저런 `null` 관련 기능들의 사용을 최소화할 수 있는 패턴 혹은 구조를 이야기 해보고 싶다.
-
-
-## Null (Undefined) 회피 방법
-
-### Optional chaining (?.)
-
-TypeScript 3.7 이상의 버전에서는 optional chaining을 사용하여 객체나 함수의 속성이 null 또는 undefined인 경우 안전하게 접근할 수 있다.  
-예를 들어, user?.name 코드는 user가 null이나 undefined가 아닌 경우에만 name에 접근한다.
+TypeScriptt나 Kotlin 등 요즘의 모던한 문법을 지원하는 언어들을 사용하다보면 `null` 값들을 안전하게 다루는 여러가지 방법들을 알게 된다.  
+다만, 이런 것들은 대부분 지엽적인 경우가 많다.  
+이미 Null값이 프로젝트 전방위적으로 퍼져있는 상태에서 **어떻게 Null 에러를 피할 것인가**같은 경우이다.  
+예를 들어 대표적인 `null` 을 다루는 방법으로 소개하는 것이 바로 **Optional chaining** (`?.`) 이다.  
 
 ```ts
 let user = {
@@ -45,10 +35,7 @@ let user = {
 console.log(user?.address?.street); // 출력: undefined
 ```
 
-### Nullish coalescing (??)
-
-Nullish coalescing 연산자를 사용하면 null 또는 undefined 값을 쉽게 처리할 수 있다.  
-예를 들어, let value = input ?? "default" 코드는 input이 null 또는 undefined인 경우 value에 "default"를 할당한다.
+이외에도 **Nullish coalescing** (`??`) 을 활용할 수도 있다.
 
 ```ts
 let input = null;
@@ -57,15 +44,19 @@ let value = input ?? "default";
 console.log(value); // 출력: "default"
 ```
 
-### strictNullChecks option 
+이런 문법적 기능을 이용하면 인한 `Null Exception` 을 피할 수 있다.
+하지만 이런 방법은 Null 을 다루는 방법이 아니라 **Null 을 피하는 방법**이다.  
+  
+이런 문법 지원이 있으면 좋지만, 저것만이 `null` 을 다루는 방법이 될 순 없다.  
+**모든 객체의 하위 탐색이 있을때마다 `?.` 을 붙일 것**인가? 등의 고민이 생긴다.
 
-TypeScript의 tsconfig.json 파일에서 strictNullChecks 옵션을 true로 설정하면, 모든 값이 기본적으로 null 또는 undefined가 될 수 없다고 가정한다.  
-이를 통해 런타임 오류를 방지할 수 있다.
+이번 시간에 이야기해볼 것은 `null` 을 다루는 방법이다.  
+저런 문법적 도움 없는 언어나 생태계에서도 통용되며,  
+근본적으로 저런 **Null 관련 기능들의 사용을 최소화할 수 있는 패턴** 혹은 구조를 이야기 해보고 싶다.
 
+## 2. null을 안전하게 다루는 패턴
 
-## null을 안전하게 다루는 패턴
-
-### 입구에서 막기
+### 2-1. 입구에서 막기
 
 ![entry1](./images/entry1.png)
 
@@ -153,6 +144,9 @@ null 의 범위를 메소드/함수 지역으로 제한한다.
 
 
 값을 얻을 수 없을 때 Null (Undefined) 혹은 `Optional` 을 반환하는 대신 Null Object를 반환할 수 있다.
+
+Null 대신에 Exception을 던진다
+Null 대신에 Null Object를 반환한다.
 
 - Null 대신 유효한 값이 반환 되어 이후 실행 되는 로직에서 Null로 인한 피해가 가지 않도록 한다.
 - 반환 값이 꼭 있어야 한다면 null을 반환하지 말고 예외를 던져라.
@@ -452,6 +446,17 @@ console.log(total); // 출력: 450
   - null 처리 로직을 팩토리 메서드 내부로 숨기는 것을 의미합니다. 이 원칙을 따르면 null 처리 로직이 전체 코드에 퍼져 있지 않고 한 곳에 모여있게 되므로 가독성과 유지보수성이 향상된다.
 
 
+## 마무리
+
+엘비스 연산자(`?.`) 는 무분별한 Null 값 사용을 부추기니 조심해야한다.
+
+Null 의 범위를 좁히는 방법
+ - Pre Condition (사전 조건 체크)
+ - Null 반환 금지
+     - throw Error
+     - return Null Object
+ - Null 함수 인자 전달 금지
+ - 초기값과 실행값 구분
 
 ## 함께 보면 좋은 글
 
