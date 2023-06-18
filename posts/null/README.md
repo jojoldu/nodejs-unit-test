@@ -19,12 +19,13 @@
 
 이 만큼 빈값(`Null`, `Undefined`) 을 다루는 것이 애플리케이션을 구현/개선하는데 중요한 역할을 한다.
   
-## 1. 요즘의 Null 문법
+## Null Safe 문법
 
 TypeScriptt나 Kotlin 등 요즘의 모던한 문법을 지원하는 언어들을 사용하다보면 `null` 값들을 안전하게 다루는 여러가지 방법들을 알게 된다.  
 다만, 이런 것들은 대부분 지엽적인 경우가 많다.  
 이미 Null값이 프로젝트 전방위적으로 퍼져있는 상태에서 **어떻게 Null 에러를 피할 것인가**같은 경우이다.  
 예를 들어 대표적인 `null` 을 다루는 방법으로 소개하는 것이 바로 **Optional chaining** (`?.`) 이다.  
+
 
 ```ts
 let user = {
@@ -37,6 +38,8 @@ console.log(user?.address?.street); // 출력: undefined
 
 이외에도 **Nullish coalescing** (`??`) 을 활용할 수도 있다.
 
+> TS가 아닌 다른 언어에서는 [엘비스 연산자](https://en.wikipedia.org/wiki/Elvis_operator) (`?:`) 로 불리기도 한다.
+
 ```ts
 let input = null;
 let value = input ?? "default";
@@ -46,52 +49,81 @@ console.log(value); // 출력: "default"
 
 이런 문법적 기능을 이용하면 인한 `Null Exception` 을 피할 수 있다.
 하지만 이런 방법은 Null 을 다루는 방법이 아니라 **Null 을 피하는 방법**이다.  
-  
-이런 문법 지원이 있으면 좋지만, 저것만이 `null` 을 다루는 방법이 될 순 없다.  
-**모든 객체의 하위 탐색이 있을때마다 `?.` 을 붙일 것**인가? 등의 고민이 생긴다.
 
-이번 시간에 이야기해볼 것은 `null` 을 다루는 방법이다.  
-저런 문법적 도움 없는 언어나 생태계에서도 통용되며,  
-근본적으로 저런 **Null 관련 기능들의 사용을 최소화할 수 있는 패턴** 혹은 구조를 이야기 해보고 싶다.
-
-## 2. null을 안전하게 다루는 패턴
-
-### 2-1. 입구에서 막기
+Null Safe 문법만이 Null을 다루는 방법이 되면 다음과 같이 **모든 영역을 Null Safe 문법으로 도배**해야만 한다.  
 
 ![entry1](./images/entry1.png)
 
 (출처: [tobaek.com](https://tobaek.com/58))
 
+**모든 객체의 하위 탐색이 있을때마다 `?.` 을 붙일 것**인가?와 같은 일이 생긴다는 것이다.  
+  
+즉, Null Safe 문법은 어디까지나 보조적인 도구이지, **애초에 Null을 어디까지 허용할 것인가** 등의 고민이 먼저 필요한 것이다.  
+## null을 안전하게 다루는 패턴
+
+이번 시간에 이야기해볼 것은 `null` 을 다루는 방법이다.  
+저런 문법적 도움 없는 언어나 생태계에서도 통용되며,  
+근본적으로 저런 **Null 관련 기능들의 사용을 최소화할 수 있는 패턴** 혹은 구조를 이야기 해보고 싶다.
+
+### 1. 사전 조건 검증
+
+처음 봤던 이미지를 다시 보자.  
+Null 값이 프로그램 전체에 퍼져있으면 그만큼의 Null Safe 코드가 프로그램 전체에 퍼져있어야만한다.
+
+![entry1](./images/entry1.png)
+
+(출처: [tobaek.com](https://tobaek.com/58))
+
+이렇게 Null 객체가 프로그램 전체에 퍼지지 않도록 하려면 어떻게 해야할까?  
+  
+가장 쉽고 흔한 방법은 **입구에서 막는 것**이다.
+
 ![entry2](./images/entry2.png)
 
 (출처: [kkmg2012.tistory.com](https://kkmg2012.tistory.com/1329))
 
+예를 들어 다음과 같이 `user` 객체의 상태에 대해 조건 검증이 필요하다면 그건 가능하면 **가장 진입점에서 검증**을 해야만 한다.
+
 ```ts
 function myFun(user : User) {
-  if(user.name.length > 10) {
-    throw new Error('Name must be longer than 10 chars');
+  if(user.name !== null) {
+    throw new Error('Name must be Non Null');
   }
   
   if(user.age < 19) {
     throw new Error('age must be lower than 19 years old');
   }
   ....
-  businessLogic
+  businessLogic // 이 로직은 안전해진다.
 }
 ```
 
+이렇게 되면 **주요 로직들은 Null에 대한 걱정 없이 수행할 수 있다**.
+
+![null1](./images/null1.png)
+
+다만, 이런 사전 조건 체크해야할 대상이 많다면 (객체의 필드가 많을 경우), 수많은 `if`문으로 주요 로직을 확인하기가 어렵다.  
+이를 도와주는 도구들을 사용하는 것이 좋다.  
+  
+주로 사용하는 언어의 `PreCondition` 라이브러리를 검색해보면 `if` 문을 간소화시켜주는 것들이 많다.
+
 ```ts
 function myFun(user : User) {
-  requires(user.name.length > 10, 'Name must be longer than 10 chars');
+  requires(user.name !== null, 'Name must be Non Null');
   requires(user.age < 19, 'age must be lower than 19 years old');
   ....
   businessLogic
 }
 ```
 
+- [JanMalch/ts-code-contracts](https://github.com/JanMalch/ts-code-contracts)
+- [Guava - Preconditions](https://kwonnam.pe.kr/wiki/java/lombok/pitfall?s[]=guava#nonnull_%EC%82%AC%EC%9A%A9_%EA%B8%88%EC%A7%80)
+
+사용자의 입력 혹은 외부 API 조회 등으로 직렬화/역직렬화가 필요한 계층에서는 **데코레이터 (어노테이션) 기반**으로 사전 검증을 하는 것도 좋다.
+
 ```ts
 export class User {
-  @Length(10, 20)
+  @IsNotEmpty()
   name: string;
 
   @IsInt()
@@ -100,12 +132,9 @@ export class User {
 }
 ```
 
-- typestack/class-validator
+- [typestack/class-validator](https://github.com/typestack/class-validator)
 
-#### 사전 조건 (Precondition, Guard Clause)
-
-
-Java와 같은 언어에서는 계약에 의한 설계(`Design by Contract`) 를 할 수 있다.
+위 조건들은 런타임 여부에 관계 없이 실행되는 코드이지만, 자바와 같은 언어에서는 **런타임에서는 실행되지 않는 조건 검증**이 가능하다.  
 
 ```java
 assert 식1;
@@ -119,23 +148,23 @@ private void setRefreshInterval(int interval) {
 }
 ```
 
-- Boolean 식1이 거짓이면 `AssertionError` 발생
-  - `Exception` 아님! (주의)
-- **private 메소드에서만 사용**
-  - 나 스스로가 소비자 이면서 제공자일때 사용하는 구문
-  - 내가 만든 API의 사용자가 누구인지 모를때는 사용하면 안된다.
+- 참고: [IDE, CLI에서의 실행 방법](https://dirask.com/posts/Java-how-to-enable-assertions-X13EBp)
+
+위 코드는 Boolean 식1이 거짓이면 `AssertionError` 발생하며 식2의 메세지가 출력된다.
+
 - `-enableassertions` 또는 `-ea` 옵션으로 활성화 가능
-  - 런타임에서는 실행되지 않는다.
   - 운영 환경에서는 이 구문이 무시 된다.
+- `Exception` 아님! (주의)
 
-사전체크 대신에 단정문이 필요한 경우는 **개발단계에서 실행가능한 주석으로서의 효과**를 기대할 수 있다.
+사전체크 대신에 단정문이 필요한 경우는 **개발단계에서 실행 가능한 주석으로서의 효과**를 기대할 수 있다.
 
+사전 조건 검증 (`if`, `PreCondition`, `Decorator` 등) 을 통해 하고자 하는 것은 **Null이 침범하지 않는 영역을 확실하게 확보하는 것**을 의미한다.
 
-#### Decorator
+![null1_2](./images/null1_2.png)
 
-- Request DTO
+![null1_3](./images/null1_3.png)
 
-### Null을 반환하지 않는다
+### 2. Null을 반환하지 않는다
 
 null 의 범위를 메소드/함수 지역으로 제한한다.
 
