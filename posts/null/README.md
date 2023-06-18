@@ -48,7 +48,7 @@ console.log(value); // 출력: "default"
 ```
 
 이런 문법적 기능을 이용하면 인한 `Null Exception` 을 피할 수 있다.
-하지만 이런 방법은 Null 을 다루는 방법이 아니라 **Null 을 피하는 방법**이다.  
+하지만 이런 방법은 **Null 을 다루는 방법이 아니라 Null 을 피하는 방법**이다.  
 
 Null Safe 문법만이 Null을 다루는 방법이 되면 다음과 같이 **모든 영역을 Null Safe 문법으로 도배**해야만 한다.  
 
@@ -158,63 +158,51 @@ private void setRefreshInterval(int interval) {
 
 사전체크 대신에 단정문이 필요한 경우는 **개발단계에서 실행 가능한 주석으로서의 효과**를 기대할 수 있다.
 
-사전 조건 검증 (`if`, `PreCondition`, `Decorator` 등) 을 통해 하고자 하는 것은 **Null이 침범하지 않는 영역을 확실하게 확보하는 것**을 의미한다.
+사전 조건 검증 (`if`, `PreCondition`, `Decorator` 등) 은 결국 **Null이 침범하지 않는 영역을 확실하게 확보하는 것**을 의미한다.  
+  
+함수 내부에서 인자로 받은 값에 대한 검증, API나 상태 도구에서 가져온 값등을 시작 단계에서 바로 검증하여, **주요 비즈니스 로직까지 Null이 침범하지 않도록 하는 것**이다.  
 
 ![null1_2](./images/null1_2.png)
 
+이걸 좀 더 확장한다면 함수를 넘어 계층에서도 가장 진입점이 되는 계층에서 Null에 대한 검증을 하는 것이 좋다.
+
 ![null1_3](./images/null1_3.png)
 
-### 2. Null을 반환하지 않는다
+Nest나 Spring MVC 등에서 Request DTO 에서 데코레이터(어노테이션)을 활용하여 입력값을 검증하는 것이 이에 해당한다.
+### 2. Null을 (최대한) 반환하지 않는다
 
-null 의 범위를 메소드/함수 지역으로 제한한다.
+**null 의 범위를 메소드/함수 지역으로 제한**한다.
 
-상태와 비슷하게 Null도 지역적으로 제한할 경우 큰 문제가 안된다.  
-메서드/함수의 인자로 전달되는 경우, 메서드/함수 내부에서만 null을 사용하고, 외부로 전달되지 않도록 한다.
+Null도 지역적으로 제한할 경우 큰 문제가 안된다.  
+메서드/함수의 인자로 전달되는 경우, **메서드/함수 내부에서만 null을 사용하고 가능한 외부로 전달되지 않도록 한다**.  
+
+- 반환 값이 꼭 있어야 한다면 **null을 반환하지 말고 예외를 던진다**. (`throw Error`)
+- **Null 대신 유효한 값이 반환** 되어 이후 실행 되는 로직에서 Null로 인한 피해가 가지 않도록 한다.
+  - [Null Object Pattern](https://johngrib.github.io/wiki/pattern/null-object/)
 
 
-값을 얻을 수 없을 때 Null (Undefined) 혹은 `Optional` 을 반환하는 대신 Null Object를 반환할 수 있다.
-
-Null 대신에 Exception을 던진다
-Null 대신에 Null Object를 반환한다.
-
-- Null 대신 유효한 값이 반환 되어 이후 실행 되는 로직에서 Null로 인한 피해가 가지 않도록 한다.
-- 반환 값이 꼭 있어야 한다면 null을 반환하지 말고 예외를 던져라.
-  - 빈 반환 값은 빈 컬랙션이나 `Null 객체` 를 활용하라
-
-```ts
-function getClassNames(element: HTMLElement): string[] {
-  const attribute = element.getAttribute('class');
-  if(attribute !== null) {
-    return null;
-  }
+Null 값을 만날 경우 **그게 정상적인 흐름이 아닌 경우 예외를 던지는 것** 은 주로 사용하는 방법이다.  
   
-  return attribute.split(' ');
-}
-
-function isElementHighlighted(element: HTMLElement): boolean {
-  const classNames = getClassNames(element);
-  if(classNames === null) { // 호출측에서 다시한번 null 체크 필요
-    return false;
-  }
+다만, 예외로 인해 Flow가 종료되는 것이 아니라 다음 흐름으로 정상적으로 넘어가길 원하는 경우엔 예외를 던질 수가 없다.  
   
-  return classNames.includes('highlighted');
-}
-```
-
-```ts
-function getClassNames(element: HTMLElement): string[] {
-  const attribute = element.getAttribute('class');
-  if(attribute !== null) {
-    return [];
-  }
+이럴 경우 [Null Object](https://en.wikipedia.org/wiki/Null_object_pattern)를 사용하면 좋다.  
   
-  return attribute.split(' ');
-}
+Null Object Pattern은 Null 처리를 단순화하는 방법이다.  
+Null이 아닌 디폴트 객체를 반환하여 Null인 경우에도 프로그램이 계속 동작하도록 한다.  
+보통 ORM 등을 사용하다보면 **조회결과가 없을 때 빈 배열을 반환하는 경우**가 이에 속한다.
 
-function isElementHighlighted(element: HTMLElement): boolean {
-  return getClassNames(element).includes('highlighted');
-}
-```
+![null2](./images/null2.png)
+
+예를 들면 다음과 같다.
+
+![null2_2](./images/null2_2.png)
+
+위 코드와 같이 Null을 반환하는 함수 (`getClassNames`) 에 의존하면, 항상 Null 체크가 필요하다.  
+  
+반면, Null 이 아닌 Null Object (`[]`) 을 반환하면 **의존하는 함수들은 Null체크를 하지 않아도 된다**
+
+![null2_3](./images/null2_3.png)
+
 
 boolean이 반환될때 역시 `false`를 반환하는 것이 좋다.  
 Null과 false가 구분이 필요하다면 이건 **3개의 경우를 표현해야하는 열거형**이 필요한 경우이지, 2가지 경우를 표현하는 boolean 타입이 필요한 경우가 아니다.
@@ -227,7 +215,8 @@ null, false, true
 READY, PASS, FAIL
 ```
 
-문자열은 상황에 따라 다르다.
+문자열은 상황에 따라 다르다.  
+다음과 같이 단순히 문자들의 집합으로서만 문자열이 필요하다면 빈 문자열을 Null Object로 사용하면 된다.
 
 ```ts
 export class UserComment {
@@ -239,7 +228,9 @@ export class UserComment {
 }
 ```
 
-단, 문자열이 단순히 문자열 데이터로서 의미하는게 아니라, 특정 의미를 지니는 경우엔 Null을 반환하는 것이 낫다.
+- 코멘트는 노출용 문자열이기 때문에 빈문자열이 Null을 대체해도 사이드 이펙트가 없으며, 호출자에서도 그대로 노출하면 된다.
+
+단, 특정 의미를 지니는 경우엔 Null을 반환하는 것이 낫다.
 
 ```ts
 export class Payment {
@@ -251,11 +242,13 @@ export class Payment {
 }
 ```
 
-**카드 거래가 없음을 나타내기 때문**
+위 코드에서는 문자열이 Null 인 것은 **카드 거래가 없음을 나타낸다**.  
+이럴 경우 Null은 그 의미를 지니고 있기 때문에 Null Object로 대체하기가 곤란할 수 있다.
+  
+#### Null Object (React)
 
-#### Null Object Pattern by React
-
-**기본값이 있는 경우**
+객체의 경우에도 충분히 사용할 수 있다.  
+예를 들어 다음과 같이 User 객체의 Null 유무에 따라 노출값이 달라질 경우 Null Safe 문법 (Nullish coalescing) 을 통해 쉽게 해결할 순 있다.
 
 ```jsx
 // bad
@@ -273,28 +266,36 @@ const ParentComponent = ({ user }) => {
 };
 ```
 
-- user 객체가 nonnull인지 체크 (`user?`)
-- user 객체의 필드가 nonnull인지 체크 (`user?.name`, `user?.email`)
+다만, 다음과 같은 경우엔 이는 좋은 해결책이 아니다.
+
+- User 객체가 사용되는 곳이 UserInfo 외에도 많다면 어떻게 될까?
+- User 객체의 필드가 2개가 아니라 10개, 20개라면 어떻게 될까?
+
+UserInfo 외에도 수많은 함수, 컴포넌트에서 Null Safe 문법을 사용해야만 한다.  
+  
+이럴 경우 Null Object를 활용하기 좋다.
 
 ```jsx
 // good
 const UserInfo = ({ user }) => {
   return (
-          <div>
-              <p>Name: {user.name}</p>
-              <p>Email: {user.email}</p>
-          </div>
-        );
+    <div>
+      <p>Name: {user.name}</p>
+      <p>Email: {user.email}</p>
+    </div>
+  );
 };
 
-const ParentComponent = ({ user }) => {
+const getUser = ({ user }) => {
   // user가 null인 경우 대신 사용할 null 객체
-  const nullUser = {
+  return user ?? {
     name: 'Not Available',
     email: 'Not Available',
   };
+}
 
-  return <UserInfo user={user || nullUser} />;
+const ParentComponent = ({ user }) => {
+  return <UserInfo user={ getUser(user) } />;
 };
 ```
 
@@ -315,7 +316,8 @@ class User {
 
 #### 주의할 점
 
-널 객체 패턴은 신속한 실패를 못하게 한다.  
+**Null Object Pattern은 [Fail-fast](https://en.wikipedia.org/wiki/Fail-fast)를 못하게 한다**.  
+
 오류가 있는 상황이라 더이상 Flow를 진행하면 안되는 경우라면 바로 Exception을 발생시키는 것이 옳으며, 괜히 널 객체로 인해 실제 오류가 발생한 지점에서 멀리 떨어진 함수에서 오류가 발생해선 안된다.
 
 
@@ -477,7 +479,8 @@ console.log(total); // 출력: 450
 
 ## 마무리
 
-엘비스 연산자(`?.`) 는 무분별한 Null 값 사용을 부추기니 조심해야한다.
+Null Safe 문법들은 Null 문제를 회피시켜준다.  
+다만 그로 인해, **개발자들이 점점 더 무분별하게 Null 사용을 부추긴다**.   
 
 Null 의 범위를 좁히는 방법
  - Pre Condition (사전 조건 체크)
