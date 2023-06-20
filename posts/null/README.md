@@ -204,7 +204,7 @@ Null이 아닌 디폴트 객체를 반환하여 Null인 경우에도 프로그�
 
 ![null2_3](./images/null2_3.png)
 
-boolean이 반환될때 역시 `false`를 반환하는 것이 좋다.  
+boolean이 반환될때 역시 **null은 배제하고 false 를 반환하는 것이 좋다**.  
 boolean은 엄밀히 말해서 **2가지 타입을 가진 열거형**이다.  
 이걸 `null`을 넣어서 3가지 타입으로 늘리는 것은 좋지 않다.  
 원래 의도대로 2가지의 타입으로 표현해야하며, Null과 false가 구분이 필요하다면 이건 **3개의 경우를 표현해야하는 열거형**이 필요한 경우이다. 
@@ -218,7 +218,7 @@ READY, PASS, FAIL
 ```
 
 문자열은 상황에 따라 다르다.  
-다음과 같이 단순히 문자들의 집합으로서만 문자열이 필요하다면 빈 문자열을 Null Object로 사용하면 된다.
+다음과 같이 단순히 문자들의 집합으로서만 문자열이 필요하다면 **빈 문자열을 Null Object로** 사용하면 된다.
 
 ```ts
 export class UserComment {
@@ -230,7 +230,7 @@ export class UserComment {
 }
 ```
 
-- 코멘트는 노출용 문자열이기 때문에 빈문자열이 Null을 대체해도 사이드 이펙트가 없으며, 호출자에서도 그대로 노출하면 된다.
+- 코멘트는 노출용 문자열이기 때문에 빈 문자열이 Null을 대체해도 사이드 이펙트가 없으며, 호출자에서도 그대로 노출하면 된다.
 
 단, 특정 의미를 지니는 경우엔 Null을 반환하는 것이 낫다.
 
@@ -325,75 +325,113 @@ class User {
 
 오류가 있는 상황이라 더이상 Flow를 진행하면 안되는 경우라면 바로 Exception을 발생시키는 것이 옳으며, 괜히 널 객체로 인해 실제 오류가 발생한 지점에서 멀리 떨어진 함수에서 오류가 발생해선 안된다.
 
+### 3. 함수 파라미터, 함수 전달인자에서 null 최대한 피하기
 
-### 3. Null을 함수 인자로 전달하지 않는다.
-
-null로 지나치게 유연한 메서드를 만들지 말고 **명시적인 메서드/함수를 만들어야 한다**.  
-
-- 함수나 객체의 인자로 null 을 전달하는 것은 피한다.
+함수나 객체의 인자로 null 을 전달하는 것은 피한다.
+**함수 파라미터 (매개변수)는 nullable을 최대한 피한다**.  
+  
+호출하는 쪽에서 인자로 null을 넣어도 된다고 느끼게 하면 안된다.  
+null로 지나치게 유연한 메서드를 만들지 말고 최대한 **명시적인 메서드/함수를 만들어야 한다**.  
+  
+다만, 이렇게 되면 외부의 API, 사용자의 입력, 데이터베이스의 조회 등으로 null 을 함수 인자로 전달할 수 밖에 없는 상황에서의 방법이 중요하다.  
+  
+예를 들어 아래 코드에서 `printLength` 은 null에 대한 방어가 되어있다.  
+그래서 **이를 호출하는 함수들은 무분별하게 null을 인자로 전달**한다.  
 
 ```ts
 // bad
-
 function mainFunction() {
   let value: string | null = getNullableValue();
-  nullableFunction(value); 
-  ...
+  printLength(value); // null 체크 없이 바로 전달한다.
+  ...이후 비즈니스 로직
 }
 
-function nullableFunction(input: string | null) {
-  console.log(input.length);
-}
-```
-
-```ts
-// bad or good?
-function mainFunction() {
-  let value: string | null = getNullableValue();
-  if(value !== null) {
-    nunnullFunction(value);
-  }
-  ...
-}
-
-function nunnullFunction(input: string) {
-  console.log(input.length);
-}
-
-// bad or good?
-function mainFunction() {
-  let value: string | null = getNullableValue();
-  nunnullFunction(value);
-  ...
-}
-
-function nunnullFunction(input: string) {
-  if(value !== null) {
+function printLength(input: string | null) {
+  if (input !== null) {
     console.log(input.length);
   }
 }
 ```
 
-- `nunnullFunction` 에서 null 체크를 하더라도, 그 아래 코드들에서 `value`가 null이면 문제가 발생할 수 있다.
-- 함수 내부 전체에서 사용해야하는 값이라면 값을 가져오자마자 null 체크를 하고, 그 이후로는 null 체크를 하지 않는다.
+이 방식이 안전해보일 수 있다.  
+다만, 문제는 **함수 파라미터가 null을 허용할 수록 null의 범위가 커진다**는 것이다.  
+null은 개발자가 주의를 기울여야하며 최대한 지양해야할 값의 유형이지, 무분별하게 사용해도 될 것이 아니다.  
+  
+null의 범위가 커지면 어떤 문제가 있을까?  
+
+
+  
+"1. 사전 조건 검증" 에서 이야기한 듯이, null 값을 전달 받은 즉시 프로세스를 종료시키는 것이 좋다.
+
+
+첫번째 
 
 ```ts
-// good
-function mainFunction() {
-  let value: string | null = getNullableValue();
-  if(value === null) {
-    return;
+export class DateTime {
+  private static DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(
+    'yyyy-MM-dd HH:mm:ss',
+  );
+
+  static toString(dateTime: LocalDateTime | null): string {
+    if (!dateTime) {
+      return '';
+    }
+
+    return dateTime.format(this.DATE_TIME_FORMATTER);
   }
-  nunnullFunction(value);
-...
 }
-
-function nunnullFunction(input: string) {
-  console.log(input.length);
-}
-
 ```
 
+**이 값이 null 일 경우 어떤 데이터/액션이 필요한지는 호출자가 정하는 것이 더 좋은 방법**이다.  
+공통 유틸 함수 쪽에서 결정할 것이 아니다.
+
+이때가 바로 **모던 언어의 null safe 문법이 필요한 지점**이다.  
+
+
+
+
+ 아래와 같이 값이 **null이 아닌 경우에만 인자로 전달**하는 방법을 고려할 수 있다.
+
+![null3_1](./images/null3_1.png)
+
+2가지 방법 모두 null이 아닐 경우 함수를 실행하는 것을 나타낸다.
+  
+다만, 몇가지 고려사항이 있다.
+
+- `nonnullFunction` 에서 null 체크를 하더라도, 그 아래 코드들에서 `value = null` 로 인해 문제가 발생할 수 있다.
+  - 이를 위해 `nonnullFunction` 를 호출하는 코드 외에도 아래 로직들에서 null check 혹은 null safe 문법을 사용해야만 한다.
+
+
+![null3_2](./images/null3_2.png)
+
+결국 null 값의 범위를 어디까지 줄일 수 있을 것인가의 문제가 된다. 가능하면 1) 혹은 2) 와 같이 호출할 함수
+
+```ts
+function mainFunction() {
+  let value: string | null = getNullableValue();
+  
+  // Early Exit
+  if (value === null) {
+    return ;
+  }
+  
+  /** 아래부터는 Null Safe Zone **/
+  nullableFunction(value); 
+  ... 비즈니스 로직
+}
+
+function nonnullFunction(input: string) {
+  console.log(input.length);
+}
+```
+
+비정상적인 값일 경우 
+빠르게 종료시킨다. Early Exit
+
+Null의 범위가 최소화된다.
+
+
+> `2)` 의 경우 **해당 함수가 여러 곳에서 사용될 때 체크 로직을 한 곳에서만 관리**하는 장점이 있기 때문에 상황에 따라 적절하게 골라 사용하면 된다.
 #### 외부에서 전달 받는 값일 경우
 
 사용자의 입력, DB의 조회, API 조회 결과 등 외부의 입력으로 `null` 일 수 있다.  
@@ -486,6 +524,8 @@ console.log(total); // 출력: 450
 
 Null Safe 문법들은 Null 문제를 회피할 수 있다.  
 다만 그로 인해, **개발자들이 점점 더 무분별하게 Null 사용을 부추긴다**.   
+
+null로 지나치게 유연한 메서드를 만들지 말고 **명시적인 메서드/함수를 만들어야 한다**.  
 
 Null 의 범위를 좁히는 방법
  - Pre Condition (사전 조건 체크)
