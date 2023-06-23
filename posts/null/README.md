@@ -382,22 +382,29 @@ export class DateTime {
 ```
 
 이 함수는 null을 허용한다.  
-그리고 null이 들어오면 안전하게 **빈 문자열을 반환**한다.  
-  
+null이 들어오면 안전하게 **빈 문자열을 반환**한다.  
+그리고 이제 이 함수를 호출하는 모든 함수들은 **무분별하게 null을 사용하게 된다**.
+
+```ts
+function mainFunction() {
+  const value: LocalDateTime | null = getNullableTime();
+  const dateStr = DateTime.toString(value);
+  ...
+}
+```
+
+위 mainFunction은 `value` 가 null 임에도 함수 곳곳에서 이를 활용하게 된다.  
+이 외에도 **값이 null 일 경우 어떤 데이터/액션이 필요한지를 호출자가 결정할 수가 없게 된다**.  
 문자열로 치환이 필요한 LocalDateTime 값이 null 일 경우 
 
 - 빈 문자열
 - null 
 - throw Exception
 
-등등 어떤 결과가 필요할지를 결정하는 것은 호출당하는 쪽이 아니다.
-
-**이 값이 null 일 경우 어떤 데이터/액션이 필요한지는 호출자가 정하는 것이 더 좋은 방법**이다.  
-호출을 당하는 유틸 함수 쪽에서 결정할 것이 아니다.  
+등등 어떤 결과가 필요할지를 유틸 함수인 `DateTime`이 결정 (빈 문자열 반환) 한다.  
+호출을 하는 주체 함수에서 결정할 수 없다.
 
 오히려 다음과 같이 null을 허용하지 않고, 호출하는 쪽의 자유도에 맡기는 것이 더 열린 결말이다.
-
-바로 **모던 언어의 null safe 문법이 필요한 지점**이다.  
 
 ```ts
 export class DateTime {
@@ -413,7 +420,7 @@ function main() {
 }  
 ```
 
-그래서 **최대한 함수의 파라미터와 인자에는 null을 허용하지 않도록 구현해보자**.  
+그래서 **최대한 함수의 파라미터와 인자에는 null을 허용하지 않도록 구현한다**.  
 
 그리고 **null이 아닌 경우에만 인자로 전달**하는 방법을 고려할때는 가능하면  `1. 사전 조건 검증` 에서 언급한 Early Exit을 사용하는 것을 추천한다.  
   
@@ -561,8 +568,10 @@ Null 의 범위를 좁히는 방법
  - Null 함수 인자 전달 금지
  - 초기값과 실행값 구분
 
+
 ## 함께 보면 좋은 글
 
+- [자바에서 null을 안전히 다루는 방법 (박성철)](https://www.youtube.com/watch?v=vX3yY_36Sk4)
 - [is_left vs left_at vs left_status](https://jojoldu.tistory.com/577)
 - [Number와 boolean 은 최대한 Not Null로 선언하기](https://jojoldu.tistory.com/718)
 - [좋은 API Response Body 만들기](https://jojoldu.tistory.com/720)
