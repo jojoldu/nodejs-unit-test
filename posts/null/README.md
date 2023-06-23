@@ -353,18 +353,16 @@ function printLength(input: string | null) {
 }
 ```
 
-이 방식이 안전해보일 수 있다.  
-다만, 문제는 **함수 파라미터가 null을 허용할 수록 null의 범위가 커진다**는 것이다.  
+이 방식은 여러 편의성을 제공한다.  
+함수 `printLength` 를 호출하는 누구나 null 을 신경쓰지 않게 되었기 때문이다.  
+  
+다만, 문제는 **함수 파라미터가 null을 허용할수록 null의 범위가 커진다**는 것이다.  
+모든 공통 함수가 null을 허용한다는 것은, **그 함수를 호출하는 함수들은 null을 무분별하게 쓰라고 권장**하는 것과 비슷하다.  
+
 null은 개발자가 주의를 기울여야하며 최대한 지양해야할 값의 유형이지, 무분별하게 사용해도 될 것이 아니다.  
-  
-null의 범위가 커지면 어떤 문제가 있을까?  
-
-
-  
-"1. 사전 조건 검증" 에서 이야기한 듯이, null 값을 전달 받은 즉시 프로세스를 종료시키는 것이 좋다.
-
-
-첫번째 
+   
+좀 더 실제에 가까운 예제를 보자.  
+다음은 `문자열 <-> LocalDateTime` 을 치환하는 유틸리티 함수의 모음이다.   
 
 ```ts
 export class DateTime {
@@ -379,32 +377,74 @@ export class DateTime {
 
     return dateTime.format(this.DATE_TIME_FORMATTER);
   }
+  ....
 }
 ```
 
-**이 값이 null 일 경우 어떤 데이터/액션이 필요한지는 호출자가 정하는 것이 더 좋은 방법**이다.  
-공통 유틸 함수 쪽에서 결정할 것이 아니다.
-
-이때가 바로 **모던 언어의 null safe 문법이 필요한 지점**이다.  
-
-
-
-
- 아래와 같이 값이 **null이 아닌 경우에만 인자로 전달**하는 방법을 고려할 수 있다.
-
-![null3_1](./images/null3_1.png)
-
-2가지 방법 모두 null이 아닐 경우 함수를 실행하는 것을 나타낸다.
+이 함수는 null을 허용한다.  
+그리고 null이 들어오면 안전하게 **빈 문자열을 반환**한다.  
   
-다만, 몇가지 고려사항이 있다.
+문자열로 치환이 필요한 LocalDateTime 값이 null 일 경우 
+
+- 빈 문자열
+- null 
+- throw Exception
+
+등등 어떤 결과가 필요할지를 결정하는 것은 호출당하는 쪽이 아니다.
+
+**이 값이 null 일 경우 어떤 데이터/액션이 필요한지는 호출자가 정하는 것이 더 좋은 방법**이다.  
+호출을 당하는 유틸 함수 쪽에서 결정할 것이 아니다.  
+
+오히려 다음과 같이 null을 허용하지 않고, 호출하는 쪽의 자유도에 맡기는 것이 더 열린 결말이다.
+
+바로 **모던 언어의 null safe 문법이 필요한 지점**이다.  
+
+```ts
+export class DateTime {
+  static toString(dateTime: LocalDateTime): string {
+    return dateTime.format(this.DATE_TIME_FORMATTER);
+  }
+}
+
+function main() {
+  const orderedAt = getOrderedAt();
+  const dateStr = orderedAt ? DateTime.to(orderedAt) : ''; // 혹은 원하는 무엇이든
+  subFunction(dateStr);
+}  
+```
+
+그래서 **최대한 함수의 파라미터와 인자에는 null을 허용하지 않도록 구현해보자**.  
+
+그리고 **null이 아닌 경우에만 인자로 전달**하는 방법을 고려할때는 가능하면  `1. 사전 조건 검증` 에서 언급한 Early Exit을 사용하는 것을 추천한다.  
+  
+아래 예제코드를 기반으로 이야기하면,
+
+```ts
+function mainFunction() {
+  let value: string | null = getNullableValue();
+  if(value !== null) {
+    nonnullFunction(value); 
+  }
+  ...이후 비즈니스 로직
+}
+```
+
+이유는 다음과 같다.
 
 - `nonnullFunction` 에서 null 체크를 하더라도, 그 아래 코드들에서 `value = null` 로 인해 문제가 발생할 수 있다.
   - 이를 위해 `nonnullFunction` 를 호출하는 코드 외에도 아래 로직들에서 null check 혹은 null safe 문법을 사용해야만 한다.
 
+```ts
+function mainFunction() {
+  let value: string | null = getNullableValue();
+  if(value !== null) { 
+    nonnullFunction(value); 
+  }
+  ...이후 비즈니스 로직 // <-- 여기서도 똑같이 null safe 가 필요할 수 있다.
+}
+```
 
-![null3_2](./images/null3_2.png)
-
-결국 null 값의 범위를 어디까지 줄일 수 있을 것인가의 문제가 된다. 가능하면 1) 혹은 2) 와 같이 호출할 함수
+결국 null 값의 범위를 어디까지 줄일 수 있을 것인가의 문제가 된다.  
 
 ```ts
 function mainFunction() {
@@ -419,24 +459,10 @@ function mainFunction() {
   nullableFunction(value); 
   ... 비즈니스 로직
 }
-
-function nonnullFunction(input: string) {
-  console.log(input.length);
-}
 ```
 
-비정상적인 값일 경우 
-빠르게 종료시킨다. Early Exit
-
-Null의 범위가 최소화된다.
-
-
-> `2)` 의 경우 **해당 함수가 여러 곳에서 사용될 때 체크 로직을 한 곳에서만 관리**하는 장점이 있기 때문에 상황에 따라 적절하게 골라 사용하면 된다.
-#### 외부에서 전달 받는 값일 경우
-
-사용자의 입력, DB의 조회, API 조회 결과 등 외부의 입력으로 `null` 일 수 있다.  
-이럴 경우 `null` 을 전달 받은 가장 가까운 곳에서 `null` 을 처리하고, 그 이후로는 `null` 을 전달 받지 않는다.
-
+가능하면 함수 파라미터 (매개변수) 에서는 null 허용을 최대한 피한다.  
+그리고 그렇게 null을 받지 않는 함수들의 모음을 최대한 늘려, null의 범위를 최소한으로 한다.
 
 ### 4. 명확한 초기값을 설정한다.
 
