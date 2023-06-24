@@ -319,6 +319,10 @@ class User {
 }
 ```
 
+**초기값**을 설정하면 필드값의 접근이 필요할때마다 Null 체크를 할 필요가 없어지며, 항상 **유효한 상태를 보장**하고, 가독성이 향상된다.  
+  
+값을 다뤄야할때는 항상 **초기값을 명시적으로 구분**해서 실행할때마다 값의 체크가 필요하는 경우를 최대한 배제한다.
+
 #### 주의할 점
 
 **Null Object Pattern은 [Fail-fast](https://en.wikipedia.org/wiki/Fail-fast)를 못하게 한다**.  
@@ -471,102 +475,20 @@ function mainFunction() {
 가능하면 함수 파라미터 (매개변수) 에서는 null 허용을 최대한 피한다.  
 그리고 그렇게 null을 받지 않는 함수들의 모음을 최대한 늘려, null의 범위를 최소한으로 한다.
 
-### 4. 명확한 초기값을 설정한다.
-
-- 초기화 시점과 실행 시점이 겹치지 않아야 한다
-
-```ts
-class BadExample {
-    instanceVariable: string | null = null;
-
-    constructor() {
-        this.instanceVariable = this.getNullableValue(); 
-        // 초기화 시점과 실행 시점이 겹침: 생성자에서 초기화하면서 메소드를 실행
-        console.log(this.instanceVariable.length); // Null Pointer Exception 발생 가능성
-    }
-
-    getNullableValue(): string | null {
-        // null이나 non-null 값을 반환
-        return null; // 예시를 위해 항상 null 반환
-    }
-}
-
-class GoodExample {
-    instanceVariable: string | null = null;
-
-    constructor(input: string | null) {
-        this.instanceVariable = input; 
-        // 초기화 시점과 실행 시점이 분리: 객체 생성 시점에 값을 설정하고, 나중에 메소드를 실행
-    }
-
-    execute(): void {
-        if (this.instanceVariable !== null) {
-            console.log(this.instanceVariable.length);
-        } else {
-            // 적절한 예외 처리
-        }
-    }
-}
-
-let value: string | null = getNullableValue();
-
-let goodExample = new GoodExample(value);
-goodExample.execute();
-```
-
-- 실행 시점에 null인 필드는 초기화되지 않았다는 의미가 아닌, 값이 없다는 의미여야 한다.
-- 실행 시점엔 초기화되지 않은 필드가 없어야 한다
-
-```ts
-class Item {
-    private name: string;
-    private price: number;
-
-    constructor() {
-        this.name = '';
-        this.price = 0;
-    }
-
-    initialize(name: string, price: number) {
-        this.name = name;
-        this.price = price;
-    }
-
-    purchase(quantity: number): number {
-        return this.price * quantity;
-    }
-}
-```
-
-```ts
-let myItem = new Item(); 
-// 초기화 시점: name은 빈 문자열이고, price는 0입니다.
-myItem.initialize('Apple', 150); 
-// 실행 시점: 여기서 'Apple'로 name을 설정하고, 150으로 price를 설정합니다.
-
-let total = myItem.purchase(3); 
-// 실행 시점: 여기서 purchase 메서드를 사용하여 총 금액을 계산합니다.
-console.log(total); // 출력: 450
-```
-
-- 지연 초기화(lazy initialization) 필드의 경우 팩토리 메서드로 null 처리를 캡슐화 하라
-  - null 처리 로직을 팩토리 메서드 내부로 숨기는 것을 의미합니다. 이 원칙을 따르면 null 처리 로직이 전체 코드에 퍼져 있지 않고 한 곳에 모여있게 되므로 가독성과 유지보수성이 향상된다.
-
-
 ## 마무리
 
 Null Safe 문법들은 Null 문제를 회피할 수 있다.  
-다만 그로 인해, **개발자들이 점점 더 무분별하게 Null 사용을 부추긴다**.   
+다만, 이는 문제를 피하는 것이지, 예방 혹은 해결이 아니다.
+이런 회피 방법만 고려하면 **무분별하게 Null 사용을 부추기게 된다**.   
 
-null로 지나치게 유연한 메서드를 만들지 말고 **명시적인 메서드/함수를 만들어야 한다**.  
+null로 지나치게 유연한 메서드를 만들지 말고 **명시적인 메서드/함수를 만들자**.  
 
 Null 의 범위를 좁히는 방법
- - Pre Condition (사전 조건 체크)
- - Null 반환 금지
-     - throw Error
-     - return Null Object
- - Null 함수 인자 전달 금지
- - 초기값과 실행값 구분
+ 
+- 사전 조건 체크 (Pre Condition)
+- Null 반환 금지
+- Null 함수 인자 전달 금지
+- 초기값과 실행값 구분
 
 
 ## 함께 보면 좋은 글
