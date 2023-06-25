@@ -104,3 +104,33 @@ function updateUser(): Error {
 현 시점에서는 unchecked exception을 디폴트로, 특별한 이유가 있는 것만 checked exception을 활용하는 방식이 더 보편적이다.  
 > 그리고 TS의 경우 Unchecked Exception만 있으니 JVM 때처럼 Checked Exception을 고민할 필요가 없다.
 
+## Global Handler 적용
+
+```ts
+DB.addDocument(newCustomer, (error: Error, result: Result) => {
+  if (error)
+    throw new Error('Great error explanation comes here', other useful parameters)
+});
+
+try {
+  customerService.addNew(req.body).then((result: Result) => {
+    res.status(200).json(result);
+  }).catch((error: Error) => {
+    next(error)
+  });
+} catch (error) {
+  next(error);
+}
+
+app.use(async (err: Error, req: Request, res: Response, next: NextFunction) => {
+  await errorHandler.handleError(err, res);
+});
+
+process.on("uncaughtException", (error:Error) => {
+  errorHandler.handleError(error);
+});
+
+process.on("unhandledRejection", (reason) => {
+  errorHandler.handleError(reason);
+});
+```
