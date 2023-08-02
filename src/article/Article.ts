@@ -1,8 +1,12 @@
+import {ArticleStatus} from "./ArticleStatus";
+import title from "@faker-js/faker/locales/en/name/title";
+
 export class Article {
   private _id: number;
   private _title: string;
   private _content: string;
   private _publishedAt: Date;
+  private _status: ArticleStatus;
 
   constructor() {}
 
@@ -30,4 +34,7 @@ export class Article {
     return this._publishedAt;
   }
 
+  get status(): ArticleStatus {
+    return this._status;
+  }
 }
