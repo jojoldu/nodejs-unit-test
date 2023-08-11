@@ -1,9 +1,24 @@
-# 좋은 Error 만들기
+# 좋은 Exception 만들기
 
-예외는 먹는게 아니다.예외 로그를 찍거나 다른 예외로 감쌀 때, 항상 원인 예외를 함께 전달한다.
-예외(Exception)에 해당 예외의 근본 원인을 찾알 수 있는 정확한 정보를 남겨준다. 예를들어 사용자의 전화번호가 잘못된 포맷으로 입력되었다면, 단순히 new IllegalArgumentException(“잘못된 전화번호”)가 아니라 new IllegalArgumentException(String.format(“사용자 %s의 전화번호(%s)가 잘못되었습니다”, userId, phoneNumber)) 형태로 구성한다. 실무에서 예외가 발생했을 때 조금이라도 정확하고 빠르게 대응 가능해진다.
+Node.js, Java 등에서도 함께 사용할 수 있는 내용들을 고려했다.
 
-## 정상
+## 에러 원인 힌트 포함시키기
+
+예외(Exception)에 해당 예외의 근본 원인을 찾알 수 있는 정확한 정보를 남겨준다.  
+예를들어 사용자의 전화번호가 잘못된 포맷으로 입력되었다면, 
+
+```ts
+// bad
+throw new IllegalArgumentException('잘못된 전화번호')
+```
+
+```ts
+// good
+throw new IllegalArgumentException(`사용자 ${userId}의 전화번호(${phoneNumber})가 잘못되었습니다`)
+```
+
+운영 환경에서 예외가 발생했을 때 조금이라도 정확하고 빠르게 대응 가능해진다.
+
 ## 예외에 의미 제공하기
 
 실패한 코드의 의도를 파악하려면 호출 스택만으로 부족하다.  
@@ -14,7 +29,7 @@
 
 ## Exception 무시하지 않기
 
-아래와 같이 catch절에서 아무 것도 하지 않는 코드는 바람직하지 않습니다.
+아래와 같이 catch절에서 아무 것도 하지 않는 코드는 바람직하지 않다.
 
 ```ts
 try {
@@ -25,11 +40,12 @@ try {
 ```
 
 정말 할일이 없다면 `//ignore` 로 의도를 주석으로라도 달아줍니다.  
-다만 Connection.close() 등, 워낙 관례적으로 catch절을 무시하는 코드는 주석이 없어도 의도를 파악하는데 어려움이 없기는합니다.
+다만 Connection.close() 등, 워낙 관례적으로 catch절을 무시하는 코드는 주석이 없어도 의도를 파악하는데 어려움이 없다.
 
 ## 있으나마나한 catch 절 쓰지 않기
 
-아래와 같이 catch절에서 아무 작업도 없이 바로 throw 를 하는 코드는 있나마나한 코드입니다.
+아래와 같이 catch절에서 아무 작업도 없이 바로 throw 를 하는 코드는 있나마나한 코드이다.
+
 ```ts
 function something() {
   try {
@@ -40,13 +56,16 @@ function something() {
 }
 ```
 
-아래 코드와 그냥 똑같습니다.
+아래 코드와 그냥 똑같다.
 ```ts
 function something() {
   process();
 }
 ```
-Exception을 무시하는것보다는 위험은 적지만, 그래도 굳이 불필요한 코드만 추가한 것입니다. catch절에는 예외 흐름에 적합한 구현코드가 있어야 합니다. 로깅이나 Layer에 적합한 Exception 변환 등도 그 예입니다.
+
+Exception을 무시하는것보다는 위험은 적지만, 그래도 굳이 불필요한 코드만 추가한 것이다.  
+catch절에는 예외 흐름에 적합한 구현코드가 있어야 한다.  
+로깅이나 Layer에 적합한 Exception 변환 등도 그 예이다.
 
 ## logger 사용하기
 
@@ -68,7 +87,11 @@ try {
 }
 ```
 
-Tomcat에서 e.printStackTrace()로 콘솔에 찍힌 값은 {TOMCAT_HOME}/logs/catalina.out 에만 남습니다. 로깅 프레임워크를 이용하면 파일을 쪼개는 정책을 설정할 수 있고, 여러 서버의 로그를 한곳에서 모아서 보는 시스템을 활요할 수도 있습니다.
+
+JVM의 `e.printStackTrace()`, Node.js의 `console.log | console.error` 등은 콘솔로만 메세지를 남긴다.  
+물론 `e.printStackTrace()` 은 Tomcat을 사용할 경우 `{TOMCAT_HOME}/logs/catalina.out` 에 남긴 하지만, 이는 결국 
+
+로깅 프레임워크를 이용하면 파일을 쪼개는 정책을 설정할 수 있고, 여러 서버의 로그를 한곳에서 모아서 보는 시스템을 활요할 수도 있습니다.
 
 log.error()메서드에 Exception객체를 직접 넘기는 e.printStackTrace()처럼 Exception의 스택도 모두 남겨줍니다. 에러의 추적성을 높이기 위해서는 e.toString()이나 e.getMessage()로 마지막 메시지만 남기기보다는 전체 에러 스택을 다 넘기는 편이 좋습니다.
 
