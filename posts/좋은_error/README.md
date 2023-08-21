@@ -1,5 +1,6 @@
 # 좋은 예외(Exception) 만들기
 
+
 예외를 사용하는 것은 피할 수 없다.  
 그렇다고 예외를 과도하게 사용하면 오류의 원인을 모호하게 만들 수 있다.  
 그래서 종종 예외를 신속하고 단호하게 처리해야 한다고 배운다.  
@@ -7,6 +8,8 @@
 오히려 예외를 우아하게 처리하여 나머지 코드와 조화롭게 만드는 기술을 배워야 한다.
 
 > 이번 글은 Node.js, Java 등에서도 함께 사용할 수 있는 내용들을 고려했다.
+
+## 복구 가능한 오류와 불가능한 오류 구분하기
 
 ## null, -1, 빈 문자열 대신에 예외 활용하기
 
@@ -78,7 +81,7 @@ throw new IllegalArgumentException(`사용자 ${userId}의 입력(${inputData})�
 
 ```ts
 try {
-  process();
+  // 비즈니스 로직
 } catch (e) {
 
 }
@@ -95,7 +98,7 @@ try {
 ```ts
 function something() {
   try {
-    process();
+    // 비즈니스 로직
   } catch (e) {
     throw e
   }  
@@ -105,7 +108,7 @@ function something() {
 아래 코드와 그냥 똑같다.
 ```ts
 function something() {
-  process();
+  // 비즈니스 로직
 }
 ```
 
@@ -167,9 +170,9 @@ function updateUser(): Error {
 프레임워크에서는 checked exception에 대한 처리를 미루는 목적으로 사용하기도 하지만, Business 코드에서는 습관적으로 java.lang.Exception을 쓴다면 정교한 예외처리를 할 수 없다.
 
 
-> Java에서는 Unchecked Exception과 Checked Exception 을 문법적으로 구분하고 있지만, 최근엔 **정말 특별한 경우가 아니면 Unchecked Exception을 사용하라**고 권고하고 있다. 
-현 시점에서는 unchecked exception을 디폴트로, 특별한 이유가 있는 것만 checked exception을 활용하는 방식이 더 보편적이다.  
-> 그리고 TS의 경우 Unchecked Exception만 있으니 JVM 때처럼 Checked Exception을 고민할 필요가 없다.
+> Java에서는 `Unchecked Exception` 와 `Checked Exception` 을 구분하고 있지만, 최근엔 **정말 특별한 경우가 아니면 Unchecked Exception을 사용하라**고 권고하고 있다. 
+요즘에는 `Unchecked exception` 을 기본적으로 사용하고 특별한 이유가 있는 것만 `Checked exception` 을 고려하는 것을 추천한다.
+
 
 ## logger 사용하기
 
@@ -178,7 +181,7 @@ Exception을 기록으로 남기고 끝낼 경우에라도 로깅 프레임워�
 ```ts
 // bad
 try {
-  process();
+  // 비즈니스 로직
 } catch (e) {
   console.error("fail to process file", e);
 }
@@ -187,21 +190,20 @@ try {
 ```ts
 // good
 try {
-  process();
+  // 비즈니스 로직
 } catch (e) {
-  log.error("fail to process file", e);
+  logger.error("fail to process file", e);
 }
 ```
 
 
 JVM의 `e.printStackTrace()`, Node.js의 `console.log | console.error` 등은 콘솔로만 메세지를 남긴다.  
-물론 `e.printStackTrace()` 은 Tomcat을 사용할 경우 `{TOMCAT_HOME}/logs/catalina.out` 에 남긴 하지만, 이는 결국 실제 로그 파일로 판단하긴 어렵다.  
+물론 `e.printStackTrace()` 은 Tomcat을 사용할 경우 `{TOMCAT_HOME}/logs/catalina.out` 에 남긴 하지만, 이는 기본적인 로깅 프레임워크들처럼 로그 데이터에 대한 세부적인 설정을 할 수가 없다.  
   
 이와 같이 콘솔 메세지로 관리하는 것에는 크게 2가지 문제가 있다.
 
 - 적절한 로그레벨을 사용할 수 없다.
 - 다양한 로그 형태를 사용할 수 없다.
-
 
 
 로깅 프레임워크를 이용하면 파일을 쪼개는 정책을 설정할 수 있고, 여러 서버의 로그를 한곳에서 모아서 보는 시스템을 활요할 수도 있다. 
@@ -210,6 +212,25 @@ JVM의 `e.printStackTrace()`, Node.js의 `console.log | console.error` 등은 �
 
 로거 메소드에 Exception객체를 직접 넘기면 `e.printStackTrace()` 처럼 Exception의 스택도 모두 남겨준다. 
 에러의 추적성을 높이기 위해서는 `e.toString()` 이나 `e.getMessage()` 로 마지막 메시지만 남기기보다는 전체 에러 스택을 다 넘기는 편이 좋다.
+
+```ts
+// bad
+try {
+  // 비즈니스 로직
+} catch (e) {
+  logger.error(`fail to process file: ${e.getMessage()}`);
+}
+```
+
+```ts
+// good
+try {
+  // 비즈니스 로직
+} catch (e) {
+  logger.error("fail to process file", e);
+}
+```
+
 
 ## Global Handler 적용
 
