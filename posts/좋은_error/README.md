@@ -74,14 +74,14 @@ class UserAlreadyRegisteredException extends ValidationException {}
 
 ```ts
 // bad
-throw new IllegalArgumentException('잘못된 입력입니다.')
+throw new IllegalArgumentException('잘못된 입력입니다.');
 ```
 
 반면 다음과 같이 오류를 남기면, 
 
 ```ts
 // good
-throw new IllegalArgumentException(`사용자 ${userId}의 입력(${inputData})가 잘못되었다.`)
+throw new IllegalArgumentException(`사용자 ${userId}의 입력(${inputData})가 잘못되었다.`);
 ```
 
 물론 당연하게도 **에러 메세지 그대로 사용자에게 전달하는 곳은 없을 것**이다.  
@@ -155,6 +155,70 @@ catch절에는 예외 흐름에 적합한 구현코드가 있어야 한다.
 ## Layer에 맞는 Exception 던지기
 
 Repository (혹은 DAO) 에서 HttpException을 던진다거나 Presentation (Controller) 에서 SQLException을 처리하는것은 Layer별 역할에 맞지 않다.  
+
+여러 계층(layer)로 구성된 소프트웨어 아키텍처에서 각 계층에 맞게 적절한 예외를 정의하고 던지는 방법을 의미합니다. 이러한 방식은 오류를 더 쉽게 추적하고, 각 계층에서 발생하는 오류의 본질에 따라 적절한 처리를 할 수 있도록 합니다.
+
+예를 들어, 일반적인 3계층 웹 애플리케이션에서는 다음과 같은 계층이 있을 수 있습니다:
+
+- 데이터 액세스 계층 (Data Access Layer)
+- 비즈니스 로직 계층 (Business Logic Layer)
+- 프레젠테이션 계층 (Presentation Layer)
+
+각 계층에서 발생할 수 있는 오류의 성격은 다르기 때문에, 해당 계층에 맞는 예외를 던지는 것이 유용합니다.
+
+```ts
+// Data Access Layer
+class DataAccessException extends Error {}
+
+function fetchUserData(userId: string): any {
+    // ...
+    throw new DataAccessException("Failed to fetch user data from database.");
+}
+
+// Business Logic Layer
+class BusinessLogicException extends Error {}
+
+function getUserProfile(userId: string): any {
+    try {
+        const userData = fetchUserData(userId);
+        // ... some business logic
+    } catch (error) {
+        if (error instanceof DataAccessException) {
+            throw new BusinessLogicException("Error processing user profile.");
+        }
+    }
+}
+
+// Presentation Layer
+class PresentationException extends Error {}
+
+function displayUserProfile(userId: string): void {
+    try {
+        const profile = getUserProfile(userId);
+        // ... display logic
+    } catch (error) {
+        if (error instanceof BusinessLogicException) {
+            throw new PresentationException("Error displaying user profile.");
+        }
+    }
+}
+
+// Somewhere in the main execution
+try {
+    displayUserProfile("someUserId");
+} catch (error) {
+    if (error instanceof PresentationException) {
+        console.error("UI Error:", error.message);
+    } else {
+        console.error("Unknown error:", error.message);
+    }
+}
+
+```
+
+위의 예제에서, 각 계층에 대한 오류가 발생하면 해당 계층에 특화된 예외 클래스를 통해 오류를 던집니다. 이렇게 하면, 오류가 발생했을 때 어느 계층에서 문제가 발생했는지 쉽게 파악하고 디버깅할 수 있습니다.
+
+
 적절한 수준으로 추상화된 Exception을 정의하거나 IllegalArgumentException 같은 java의 표준 Exception을 활용할 수도 있다.  
 Service layer에서는 Business 로직의 수준에 맞는 custom exception을 정의하는 것도 고려할만 하다.  
 이 때 cause exception을 상위 Exception의 생성자에 넘기는 exception chaning기법도 사용할 수 있다.
