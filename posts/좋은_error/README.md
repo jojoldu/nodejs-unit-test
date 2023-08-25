@@ -93,6 +93,16 @@ throw new IllegalArgumentException(`사용자 ${userId}의 입력(${inputData})�
 
 로깅 메세지는 가능한 문제 원인을 파악할 수 있는 형태로 가야한다.
 
+```ts
+
+try {
+  process(url);
+} catch (e) {
+  logger.error(`사용자 ${userId}의 입력(${inputData})가 잘못되었다.`, e);
+  throw new IllegalArgumentException('잘못된 입력입니다.');
+}
+```
+
 ## Exception 무시하지 않기
 
 아래와 같이 catch절에서 아무 것도 하지 않는 코드는 바람직하지 않다.
