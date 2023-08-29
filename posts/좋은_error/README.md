@@ -83,8 +83,39 @@ class UserAlreadyRegisteredException extends ValidationException {}
 
 ```
 
-## 예외에 의미 제공하기
+## 의미를 담고 있는 예외
 
+예외의 이름이 그 예외의 원인과 내용을 정확하게 반영해야 한다는 원칙이다.  
+코드를 읽는 사람이 예외 이름만 보고도 해당 예외가 왜 발생했는지 어느 정도 추측할 수 있어야 한다.
+
+
+- 코드의 가독성 향상: 의미 있는 이름을 가진 예외는 코드를 읽는 사람에게 문맥을 제공한다.
+- 디버깅 용이성: 오류의 원인을 빠르게 파악하고 수정할 수 있다.
+
+
+```ts
+// bad
+class CustomException extends Error {}
+
+function connectToDatabase() {
+    throw new CustomException("Connection failed because of invalid credentials.");
+}
+```
+
+```ts
+// good
+class InvalidCredentialsException extends Error {}
+
+function connectToDatabase() {
+    throw new InvalidCredentialsException("Failed to connect due to invalid credentials.");
+}
+```
+
+이번 코드에서는 `InvalidCredentialsException` 라는 예외 이름을 사용하여 데이터베이스 연결 시 발생하는 인증 오류를 명확하게 나타낸다.  
+이 이름만 보고도 해당 예외의 주요 원인을 파악할 수 있다.
+이 원칙을 따르면, 코드의 다른 부분에서 이 예외를 처리할 때도 해당 예외의 원인과 대응 방법을 더 잘 이해하고 대응할 수 있다.
+
+## 추적 가능한 예외
 
 실패한 코드의 의도를 파악하려면 호출 스택만으로 부족하다.  
 그래서 다음의 내용이 예외에 담겨야 한다. 
