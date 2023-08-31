@@ -1,11 +1,11 @@
 # 좋은 예외(Exception) 만들기
 
-
-예외를 사용하는 것은 피할 수 없다.  
-그렇다고 예외를 과도하게 사용하면 오류의 원인을 모호하게 만들 수 있다.  
-그래서 종종 예외를 신속하고 단호하게 처리해야 한다고 배운다.  
-하지만 반드시 그렇지만은 않다.  
-오히려 예외를 우아하게 처리하여 나머지 코드와 조화롭게 만드는 기술을 배워야 한다.
+프로그램을 만들면서 오류를 피할 수 없다.  
+그래서 좋은 코드는 오류를 어떻게 다루는지가 중요하다.  
+실제 코드가 하는 일을 파악하기가 힘들 정도로 너무 많은 오류 처리 코드를 가지고 있는 프로그램이 있는가 하면,  
+깔끔한 오류 처리 코드로 핵심 비즈니스가 잘 드러나는 프로그램도 있다.    
+  
+이번 글에서는 좋은 코드를 다루기 위해 필요한 오류 처리 (예외 다루기)를 이야기한다.
 
 > 이번 글은 Node.js, Java 등에서도 함께 사용할 수 있는 내용들을 고려했다.
 
@@ -166,6 +166,21 @@ try {
 }
 ```
 
+## 외부의 예외 감싸기
+
+```ts
+const pay = new Pay();
+try{
+    pay.billing();
+} catch (pen: PayNetworkError) {
+    
+} catch (e) {
+    
+} catch (e) {
+    
+}
+```
+
 ## Exception 무시하지 않기
 
 아래와 같이 catch절에서 아무 것도 하지 않는 코드는 바람직하지 않다.
@@ -314,8 +329,8 @@ function updateUser(): Error {
 프레임워크에서는 checked exception에 대한 처리를 미루는 목적으로 사용하기도 하지만, Business 코드에서는 습관적으로 java.lang.Exception을 쓴다면 정교한 예외처리를 할 수 없다.
 
 
-> Java에서는 `Unchecked Exception` 와 `Checked Exception` 을 구분하고 있지만, 최근엔 **정말 특별한 경우가 아니면 Unchecked Exception을 사용하라**고 권고하고 있다. 
-요즘에는 `Unchecked exception` 을 기본적으로 사용하고 특별한 이유가 있는 것만 `Checked exception` 을 고려하는 것을 추천한다.
+> Java에서는 `Unchecked Exception` 와 `Checked Exception` 을 구분하고 있지만, 최근엔 **정말 특별한 경우가 아니면 Unchecked Exception을 사용하라**고 권고하고 있다.
+> 요즘에는 `Unchecked exception` 을 기본적으로 사용하고 특별한 이유가 있는 것만 `Checked exception` 을 고려하는 것을 추천한다.
 
 
 ## logger 사용하기
