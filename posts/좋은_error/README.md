@@ -150,21 +150,16 @@ throw new IllegalArgumentException(`사용자 ${userId}의 입력(${inputData})�
 물론 당연하게도 **에러 메세지 그대로 사용자에게 전달하는 곳은 없을 것**이다.  
 사용자에게 노출할 메세지와 우리가 해결할 문제의 원인을 남기는 것은 분리해야한다.
 
-
-
-## 사용자 메세지와 로깅 메세지 분리하기
-
-로깅 메세지는 가능한 문제 원인을 파악할 수 있는 형태로 가야한다.
-
 ```ts
 
 try {
-  process(url);
+  // 비즈니스 로직
 } catch (e) {
   logger.error(`사용자 ${userId}의 입력(${inputData})가 잘못되었다.`, e);
   throw new IllegalArgumentException('잘못된 입력입니다.');
 }
 ```
+
 
 ## 외부의 예외 감싸기
 
@@ -228,6 +223,55 @@ catch절에는 예외 흐름에 적합한 구현코드가 있어야 한다.
 
 프로그램의 정상적인 흐름을 제어하기 위해 예외를 사용하지 않는다.  
 예외는 오직 예외적인 경우에만 사용해야 한다.
+
+```ts
+// bad
+function fetchDataFromAPI(): any {
+    // 가상의 API 호출
+    if (/* 데이터가 없는 경우 */) {
+        throw new NoDataFoundError();
+    }
+    // 데이터 반환
+    return data;
+}
+
+try {
+    const data = fetchDataFromAPI();
+    process(data);
+} catch (error) {
+    if (error instanceof NoDataFoundError) {
+        displayEmptyState();
+    } else {
+        displayGenericError();
+    }
+}
+```
+
+위의 예에서 NoDataFoundError 예외는 데이터가 없는 일반적인 상황을 나타내기 위해 사용되었습니다. 이는 예외를 프로그램의 정상적인 흐름 제어를 위한 수단으로 사용하는 잘못된 접근 방식입니다.
+
+
+```ts
+// good
+function fetchDataFromAPI(): any | null {
+  // 가상의 API 호출
+  if (/* 데이터가 없는 경우 */) {
+    return null;
+  }
+  
+  // 데이터 반환
+  return data;
+}
+
+const data = fetchDataFromAPI();
+if (data) {
+  process(data);
+} else {
+  displayEmptyState();
+}
+```
+
+위의 예에서는 데이터가 없는 경우, 함수는 null을 반환하고 호출자는 그 결과를 확인하여 적절한 액션을 취한다.  
+예외는 실제 오류나 예기치 않은 상황을 처리하기 위해서만 사용되어야 한다.
 
 특정 예외를 처리하기 위한 코드를 너무 많이 사용하거나, 필요 이상으로 구체적인 예외를 처리하려고 할 때 발생하는 문제를 지적합니다. 이런 식의 처리는 코드의 가독성을 해칠 수 있으며, 때로는 예외의 실제 원인을 숨기게 될 수 있다.
 
