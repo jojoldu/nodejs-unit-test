@@ -2,12 +2,11 @@
 
 프로그램을 만들면서 오류를 피할 수 없다.  
 그래서 좋은 코드는 오류를 어떻게 다루는지가 중요하다.  
-실제 코드가 하는 일을 파악하기가 힘들 정도로 너무 많은 오류 처리 코드를 가지고 있는 프로그램이 있는가 하면,  
-깔끔한 오류 처리 코드로 핵심 비즈니스가 잘 드러나는 프로그램도 있다.    
+메인 비즈니스 로직이 무엇인지 파악하기 힘들 정도로 너무 많은 오류 처리를 가지고 있는 코드가 있는가 하면, 깔끔한 오류 처리로 핵심 비즈니스가 잘 드러나는 코드도 있다.    
   
 이번 글에서는 좋은 코드를 다루기 위해 필요한 오류 처리 (예외 다루기)를 이야기한다.
 
-> 이번 글은 Node.js, Java 등에서도 함께 사용할 수 있는 내용들을 고려했다.
+> Node.js, Java 등에서도 함께 사용할 수 있는 내용들을 고려했다.
 
 ## 복구 가능한 오류와 불가능한 오류 구분하기
 
@@ -16,11 +15,10 @@
 ### 복구 가능한 오류
 
 사용자가 잘못된 전화번호를 입력한다면 이는 시스템을 멈춰야할 정도의 문제가 아니다.  
-사용자에게 전화번호가 잘못되었으니 다시 입력하라는 오류 메세지를 제공하고, 다시 입력받으면 된다.
-마찬가지로, 네트워크 오류가 발생했다면 잠시 후, 다시 요청하면 된다.
+사용자에게 전화번호가 잘못되었으니 다시 입력하라는 오류 메세지를 제공하고 다시 입력받으면 된다.
+마찬가지로 네트워크 오류가 발생했다면 잠시 후, 다시 요청하면 된다.
 
-이러한 오류는 프로그램이 감지하고 적절한 조치를 취한 후 정상적으로 계속 실행될 수 있는 오류입니다.
-이 오류는 예외 처리 메커니즘이나 오류 처리 루틴을 통해 처리될 수 있습니다.
+이러한 오류는 프로그램이 감지하고 적절한 조치를 취한 후 정상적으로 계속 실행될 수 있는 오류이다.
 
 - 사용자의 오입력 (다시 입력하라고 하면 됨)
 - 네트워크 오류 (다시 요청하면 됨)
@@ -28,16 +26,23 @@
 
 ### 복구 불가능한 오류
 
-이러한 오류는 프로그램이 계속 실행될 수 없게 만들 수 있으며, 종종 프로그램의 강제 종료나 시스템 크래시를 일으킬 수 있습니다.
-대부분의 경우, 이 오류의 원인을 파악하고 수정하기 전에 프로그램이 계속 실행될 수 없습니다.
+이러한 오류는 프로그램이 계속 실행될 수 없게 만들 수 있으며, 종종 프로그램의 강제 종료나 시스템 크래시를 일으킬 수 있다.
+대부분의 경우, 이 오류의 원인을 해결하기 전에 프로그램이 계속 실행될 수 없다.
 
-- 메모리 부족 (Out of Memory): 시스템이 필요한 메모리를 할당받지 못할 때 발생합니다. 이런 경우 프로그램은 종종 즉시 중단됩니다.
-- 스택 오버플로우: 재귀 함수가 너무 깊게 호출되어 스택 메모리가 고갈될 때 발생합니다.
-- 시스템 레벨의 오류: 하드웨어 문제나 운영 체제의 중대한 버그로 인해 발생하는 오류입니다.
+- 메모리 부족 (Out of Memory)
+  - 시스템이 필요한 메모리를 할당받지 못할 때 발생한다. 
+- 스택오버플로우 (StackOverflow)
+  - 재귀 함수가 너무 깊게 호출되어 스택 메모리가 고갈될 때 발생한다.
+- 시스템 레벨의 오류
+  - 하드웨어 문제나 운영 체제의 중대한 버그로 인해 발생한다.
 
-## null, -1, 빈 문자열을 예외로 사용하지 않기
+이 2가지 유형을 구분해서 예외를 처리해야 한다.
 
-일부 프로젝트에서는 **비정상적인 경우에 예외가 아닌 특정 값을 사용**하는 경우를 보게 된다.  
+
+
+## null, -1, 빈 문자열 등 특수값을 예외로 사용하지 않기
+
+일부 프로젝트에서는 **비정상적인 경우에 예외가 아닌 특정 값을 사용**하는 경우가 있다.  
   
 예를 들어 아래와 같이 사용자의 입력값이 잘못된 경우 -1을 반환하는 코드를 볼 수 있다.
 
@@ -74,20 +79,6 @@ function divideRight(a: number, b: number): number {
 - 어떤 경로로 이 문제가 발생한 것인지 확인할 수 있는 Stack Trace를 알 수 있다.
 - 더 깔끔한 코드를 작성할 수 있다
 
-## 오류가 발생하면 즉시 예외 던지기
-
-## 예외 계층 구조 만들기
-
-예외를 가능한 계층 구조로 만들어서 사용한다.
-
-```ts
-class ValidationException extends Error {}
-
-class DuplicatedException extends ValidationException {}
-
-class UserAlreadyRegisteredException extends ValidationException {}
-
-```
 
 ## 의미를 담고 있는 예외
 
@@ -176,25 +167,9 @@ try{
 }
 ```
 
-## Exception 무시하지 않기
+## 다시 throw할 거면 잡지 않기
 
-아래와 같이 catch절에서 아무 것도 하지 않는 코드는 바람직하지 않다.
-
-```ts
-try {
-  // 비즈니스 로직
-} catch (e) {
-
-}
-```
-
-정말 할일이 없다면 `//ignore` 로 의도를 주석으로라도 달아주는 것이 차라리 더 낫겠지만, 그럴 경우는 거의 없다.  
-  
-> 다만 JVM의 `Connection.close()` 등 워낙 관례적으로 catch절을 무시하는 코드도 있지만, `Try-with-resources` 문법이 나오면서 이런 코드는 거의 없어졌다.
-
-## 다시 throw할 거면 try catch로 잡지 않기
-
-아래와 같이 catch절에서 아무 작업도 없이 바로 throw 를 하는 코드는 있나마나한 코드이다.
+아래와 같이 catch 절에서 아무 작업도 없이 바로 throw 를 하는 코드는 있나마나한 코드이다.
 
 ```ts
 function something() {
@@ -215,18 +190,19 @@ function something() {
 ```
 
 Exception을 무시하는것보다는 위험은 적지만, 그래도 굳이 불필요한 코드만 추가한 것이다.  
+
 catch절에는 예외 흐름에 적합한 구현코드가 있어야 한다.  
 **로깅 혹은 Layer에 적합한 Exception 변환** 등도 그 예이다.  
 로깅 혹은 Layer에 적합한 Exception 변환등이 필요한 것이 아니라면 try catch로 다시 잡지 않는 것이 좋다.
 
-## 무분별할 Catch 금지
+## 정상적인 흐름에서 Catch 금지 (무분별한 Catch 금지)
 
 프로그램의 정상적인 흐름을 제어하기 위해 예외를 사용하지 않는다.  
 예외는 오직 예외적인 경우에만 사용해야 한다.
 
 ```ts
 // bad
-function fetchDataFromAPI(): any {
+function fetchDataFromAPI() {
     // 가상의 API 호출
     if (/* 데이터가 없는 경우 */) {
         throw new NoDataFoundError();
@@ -235,24 +211,27 @@ function fetchDataFromAPI(): any {
     return data;
 }
 
-try {
+function display() {
+  try {
     const data = fetchDataFromAPI();
     process(data);
-} catch (error) {
-    if (error instanceof NoDataFoundError) {
-        displayEmptyState();
-    } else {
-        displayGenericError();
-    }
+  } catch (error) {
+      if (error instanceof NoDataFoundError) {
+          displayEmptyState();
+      } else {
+          displayGenericError();
+      }
+  }
 }
+
 ```
 
-위의 예에서 NoDataFoundError 예외는 데이터가 없는 일반적인 상황을 나타내기 위해 사용되었습니다. 이는 예외를 프로그램의 정상적인 흐름 제어를 위한 수단으로 사용하는 잘못된 접근 방식입니다.
-
+위의 예에서 NoDataFoundError 예외는 데이터가 없는 일반적인 상황을 나타내기 위해 사용된다.  
+이는 예외를 프로그램의 정상적인 흐름 제어를 위한 수단으로 사용하는 잘못된 접근 방식이다.
 
 ```ts
 // good
-function fetchDataFromAPI(): any | null {
+function fetchDataFromAPI() {
   // 가상의 API 호출
   if (/* 데이터가 없는 경우 */) {
     return null;
@@ -262,12 +241,17 @@ function fetchDataFromAPI(): any | null {
   return data;
 }
 
-const data = fetchDataFromAPI();
-if (data) {
+function display() {
+  const data = fetchDataFromAPI();
+
+  if (!data) {
+    displayEmptyState();
+    return;
+  }
+
   process(data);
-} else {
-  displayEmptyState();
 }
+
 ```
 
 위의 예에서는 데이터가 없는 경우, 함수는 null을 반환하고 호출자는 그 결과를 확인하여 적절한 액션을 취한다.  
@@ -280,15 +264,16 @@ if (data) {
 
 Repository (혹은 DAO) 에서 HttpException을 던진다거나 Presentation (Controller) 에서 SQLException을 처리하는것은 Layer별 역할에 맞지 않다.  
 
-여러 계층(layer)로 구성된 소프트웨어 아키텍처에서 각 계층에 맞게 적절한 예외를 정의하고 던지는 방법을 의미합니다. 이러한 방식은 오류를 더 쉽게 추적하고, 각 계층에서 발생하는 오류의 본질에 따라 적절한 처리를 할 수 있도록 합니다.
+여러 계층(layer)로 구성된 소프트웨어 아키텍처에서 각 계층에 맞게 적절한 예외를 정의하고 던지는 방법을 의미한다.  
+이러한 방식은 오류를 더 쉽게 추적하고, 각 계층에서 발생하는 오류의 본질에 따라 적절한 처리를 할 수 있도록 한다.
 
-예를 들어, 일반적인 3계층 웹 애플리케이션에서는 다음과 같은 계층이 있을 수 있습니다:
+일반적인 3계층 웹 애플리케이션에서는 다음과 같은 계층이 있다.
 
 - 데이터 액세스 계층 (Data Access Layer)
 - 비즈니스 로직 계층 (Business Logic Layer)
 - 프레젠테이션 계층 (Presentation Layer)
 
-각 계층에서 발생할 수 있는 오류의 성격은 다르기 때문에, 해당 계층에 맞는 예외를 던지는 것이 유용합니다.
+각 계층에서 발생할 수 있는 오류의 성격은 다르기 때문에, 해당 계층에 맞는 예외를 던지는 것이 유용하다.
 
 ```ts
 // Data Access Layer
@@ -341,10 +326,10 @@ try {
 
 ```
 
-위의 예제에서, 각 계층에 대한 오류가 발생하면 해당 계층에 특화된 예외 클래스를 통해 오류를 던집니다. 이렇게 하면, 오류가 발생했을 때 어느 계층에서 문제가 발생했는지 쉽게 파악하고 디버깅할 수 있습니다.
+위의 예제에서, 각 계층에 대한 오류가 발생하면 해당 계층에 특화된 예외 클래스를 통해 오류를 던진다.  
+이렇게 하면, 오류가 발생했을 때 어느 계층에서 문제가 발생했는지 쉽게 파악하고 디버깅할 수 있다.
 
-
-적절한 수준으로 추상화된 Exception을 정의하거나 IllegalArgumentException 같은 java의 표준 Exception을 활용할 수도 있다.  
+적절한 수준으로 추상화된 Exception을 정의하거나 `IllegalArgumentException` 같은 java의 표준 Exception을 활용할 수도 있다.  
 Service layer에서는 Business 로직의 수준에 맞는 custom exception을 정의하는 것도 고려할만 하다.  
 이 때 cause exception을 상위 Exception의 생성자에 넘기는 exception chaning기법도 사용할 수 있다.
 
@@ -354,6 +339,18 @@ try {
 } catch (e) {
   throw new BankAccountExeption("fail to call " + url, e);
 }
+```
+
+## 예외 계층 구조 만들기
+
+예외를 가능한 계층 구조로 만들어서 사용한다.
+
+```ts
+class ValidationException extends Error {}
+
+class DuplicatedException extends ValidationException {}
+
+class UserAlreadyRegisteredException extends ValidationException {}
 ```
 
 
