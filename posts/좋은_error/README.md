@@ -27,7 +27,7 @@
 
 ### 복구 가능한 오류
 
-복구 가능한 오류는 일반적으로 시스템 외적인 요소로 발생하는 치명적이지 않은 오류이다.  
+복구 가능한 오류는 일반적으로 **시스템 외적인 요소로 발생하는 치명적이지 않은 오류**이다.  
 사용자가 잘못된 전화번호를 입력한다면 이는 시스템을 멈춰야할 정도의 문제가 아니다.  
 사용자에게 전화번호가 잘못되었으니 다시 입력하라는 오류 메세지를 제공하고 다시 입력받으면 된다.
 마찬가지로 네트워크 오류가 발생했다면 잠시 후, 다시 요청하면 된다.
@@ -40,7 +40,7 @@
 
 복구 가능한 오류는 **상시로 발생할 수 있다고 가정하고**, 사용자 (호출자) 에게 가능한 문제 원인을 인지할 수 있게 해야한다.  
   
-너무 잦은 복구 가능한 오류의 발생은 복구 불가능한 오류 (개발자의 잘못구현된 코드)일 수 있으니 이를 위해 특정 임계치를 두어 모니터링 알람을 보내도록 구성한다.  
+너무 잦은 복구 가능한 오류의 발생은 복구 불가능한 오류 (개발자의 잘못구현된 코드)일 수 있으니 이를 위해 로그 레벨을 `warn` 으로 두고 임계치를 넘으면 모니터링 알람을 보내도록 구성한다.  
 (단, 여기서의 알람 임계치는 복구 불가능한 오류 보다는 기준이 높아야 한다)
 
 ### 복구 불가능한 오류
@@ -57,9 +57,12 @@
 - 개발자의 잘못 구현된 코드
 
 복구 불가능한 오류는 빠르게 개발자에게 문제 원인을 알려야한다.  
-이를 위해 모니터링 시스템을 도입하고, 모든 내용을 추적하며, 특정 임계치를 초과하면 개발자에게 알람을 보내도록 구성해야한다.
+
+이를 위해 로그 레벨을 `error`로 두고, 로그에서는 에러 트레이스를 남긴 뒤, 임계치를 초과하면 개발자에게 알람을 보내도록 구성해야한다.
 
 ## null, -1, 빈 문자열 등 특수값을 예외로 사용하지 않기
+
+예외 상황은 예외 (Exception) 으로 처리해야 한다.  
 
 일부 프로젝트에서는 **비정상적인 경우에 예외가 아닌 특정 값을 사용**하는 경우가 있다.  
   
@@ -97,7 +100,6 @@ function divideRight(a: number, b: number): number {
 - 해당 문제의 상세 메세지를 포함시킬 수 있다.
 - 어떤 경로로 이 문제가 발생한 것인지 확인할 수 있는 Stack Trace를 알 수 있다.
 - 더 깔끔한 코드를 작성할 수 있다
-
 
 ## 의미를 담고 있는 예외
 
@@ -145,19 +147,114 @@ function connectToDatabase() {
 예외에 해당 예외의 근본 원인을 찾알 수 있는 정확한 정보를 남겨준다.  
 예를 들어 사용자의 입력값이 규칙에 어긋난다고 가정해보자.  
   
-다음과 같은 형태로 오류를 생성하면 입력값에 대한 오류인것은 알겠지만, **어떻게 입력했길래 검증 로직에서 실패한 것인지 알 수가 없다**.
+다음과 같은 형태로 예외를 생성하면 입력값에 대한 오류인것은 알겠지만, **어떻게 입력했길래 검증 로직에서 실패한 것인지 알 수가 없다**.
 
 ```ts
 // bad
 throw new IllegalArgumentException('잘못된 입력입니다.');
 ```
 
-반면 다음과 같이 오류를 남기면, 
+반면 다음과 같이 예외를 남기면, 
 
 ```ts
 // good
 throw new IllegalArgumentException(`사용자 ${userId}의 입력(${inputData})가 잘못되었다.`);
 ```
+
+어떤 이유로 잘못된 것인지 알 수 빠르게 파악할 수 있다.  
+
+## Layer에 맞는 Exception 던지기
+
+Repository (혹은 DAO) 에서 HttpException을 던진다거나 Presentation (Controller) 에서 SQLException을 처리하는것은 Layer별 역할에 맞지 않다.  
+
+여러 계층(layer)로 구성된 소프트웨어 아키텍처에서 각 계층에 맞게 적절한 예외를 정의하고 던지는 방법을 의미한다.  
+이러한 방식은 오류를 더 쉽게 추적하고, 각 계층에서 발생하는 오류의 본질에 따라 적절한 처리를 할 수 있도록 한다.
+
+일반적인 3계층 웹 애플리케이션에서는 다음과 같은 계층이 있다.
+
+- 데이터 액세스 계층 (Data Access Layer)
+- 비즈니스 로직 계층 (Business Logic Layer)
+- 프레젠테이션 계층 (Presentation Layer)
+
+각 계층에서 발생할 수 있는 오류의 성격은 다르기 때문에, 해당 계층에 맞는 예외를 던지는 것이 유용하다.
+
+```ts
+// Data Access Layer
+class DataAccessException extends Error {}
+
+function fetchUserData(userId: string): any {
+    // ...
+    throw new DataAccessException("Failed to fetch user data from database.");
+}
+
+// Business Logic Layer
+class BusinessLogicException extends Error {}
+
+function getUserProfile(userId: string): any {
+    try {
+        const userData = fetchUserData(userId);
+        // ... some business logic
+    } catch (error) {
+        if (error instanceof DataAccessException) {
+            throw new BusinessLogicException("Error processing user profile.");
+        }
+    }
+}
+
+// Presentation Layer
+class PresentationException extends Error {}
+
+function displayUserProfile(userId: string): void {
+    try {
+        const profile = getUserProfile(userId);
+        // ... display logic
+    } catch (error) {
+        if (error instanceof BusinessLogicException) {
+            throw new PresentationException("Error displaying user profile.");
+        }
+    }
+}
+```
+```ts
+// 글로벌 Error Handler
+try {
+    displayUserProfile("someUserId");
+} catch (error) {
+    if (error instanceof PresentationException) {
+        console.error("UI Error:", error.message);
+    } else {
+        console.error("Unknown error:", error.message);
+    }
+}
+
+```
+
+위의 예제에서, 각 계층에 대한 오류가 발생하면 해당 계층에 특화된 예외 클래스를 통해 오류를 던진다.  
+이렇게 하면, 오류가 발생했을 때 어느 계층에서 문제가 발생했는지 쉽게 파악하고 디버깅할 수 있다.
+
+적절한 수준으로 추상화된 Exception을 정의하거나 `IllegalArgumentException` 같은 java의 표준 Exception을 활용할 수도 있다.  
+Service layer에서는 Business 로직의 수준에 맞는 custom exception을 정의하는 것도 고려할만 하다.  
+이 때 cause exception을 상위 Exception의 생성자에 넘기는 exception chaning기법도 사용할 수 있다.
+
+```ts
+try {
+  process(url);
+} catch (e) {
+  throw new BankAccountExeption("fail to call " + url, e);
+}
+```
+
+## 예외 계층 구조 만들기
+
+예외를 가능한 계층 구조로 만들어서 사용한다.
+
+```ts
+class ValidationException extends Error {}
+
+class DuplicatedException extends ValidationException {}
+
+class UserAlreadyRegisteredException extends ValidationException {}
+```  
 
 ## 외부의 예외 감싸기
 
@@ -268,181 +365,39 @@ function display() {
 
 특정 예외를 처리하기 위한 코드를 너무 많이 사용하거나, 필요 이상으로 구체적인 예외를 처리하려고 할 때 발생하는 문제를 지적합니다. 이런 식의 처리는 코드의 가독성을 해칠 수 있으며, 때로는 예외의 실제 원인을 숨기게 될 수 있다.
 
-## Layer에 맞는 Exception 던지기
-
-Repository (혹은 DAO) 에서 HttpException을 던진다거나 Presentation (Controller) 에서 SQLException을 처리하는것은 Layer별 역할에 맞지 않다.  
-
-여러 계층(layer)로 구성된 소프트웨어 아키텍처에서 각 계층에 맞게 적절한 예외를 정의하고 던지는 방법을 의미한다.  
-이러한 방식은 오류를 더 쉽게 추적하고, 각 계층에서 발생하는 오류의 본질에 따라 적절한 처리를 할 수 있도록 한다.
-
-일반적인 3계층 웹 애플리케이션에서는 다음과 같은 계층이 있다.
-
-- 데이터 액세스 계층 (Data Access Layer)
-- 비즈니스 로직 계층 (Business Logic Layer)
-- 프레젠테이션 계층 (Presentation Layer)
-
-각 계층에서 발생할 수 있는 오류의 성격은 다르기 때문에, 해당 계층에 맞는 예외를 던지는 것이 유용하다.
-
-```ts
-// Data Access Layer
-class DataAccessException extends Error {}
-
-function fetchUserData(userId: string): any {
-    // ...
-    throw new DataAccessException("Failed to fetch user data from database.");
-}
-
-// Business Logic Layer
-class BusinessLogicException extends Error {}
-
-function getUserProfile(userId: string): any {
-    try {
-        const userData = fetchUserData(userId);
-        // ... some business logic
-    } catch (error) {
-        if (error instanceof DataAccessException) {
-            throw new BusinessLogicException("Error processing user profile.");
-        }
-    }
-}
-
-// Presentation Layer
-class PresentationException extends Error {}
-
-function displayUserProfile(userId: string): void {
-    try {
-        const profile = getUserProfile(userId);
-        // ... display logic
-    } catch (error) {
-        if (error instanceof BusinessLogicException) {
-            throw new PresentationException("Error displaying user profile.");
-        }
-    }
-}
-```
-```ts
-// 글로벌 Error Handler
-try {
-    displayUserProfile("someUserId");
-} catch (error) {
-    if (error instanceof PresentationException) {
-        console.error("UI Error:", error.message);
-    } else {
-        console.error("Unknown error:", error.message);
-    }
-}
-
-```
-
-위의 예제에서, 각 계층에 대한 오류가 발생하면 해당 계층에 특화된 예외 클래스를 통해 오류를 던진다.  
-이렇게 하면, 오류가 발생했을 때 어느 계층에서 문제가 발생했는지 쉽게 파악하고 디버깅할 수 있다.
-
-적절한 수준으로 추상화된 Exception을 정의하거나 `IllegalArgumentException` 같은 java의 표준 Exception을 활용할 수도 있다.  
-Service layer에서는 Business 로직의 수준에 맞는 custom exception을 정의하는 것도 고려할만 하다.  
-이 때 cause exception을 상위 Exception의 생성자에 넘기는 exception chaning기법도 사용할 수 있다.
-
-```ts
-try {
-  process(url);
-} catch (e) {
-  throw new BankAccountExeption("fail to call " + url, e);
-}
-```
-
-## 예외 계층 구조 만들기
-
-예외를 가능한 계층 구조로 만들어서 사용한다.
-
-```ts
-class ValidationException extends Error {}
-
-class DuplicatedException extends ValidationException {}
-
-class UserAlreadyRegisteredException extends ValidationException {}
-```
-
-
-## 외부 API의 에러를 Wrapper 클래스로 처리하기
-
-메서드 시그니처에서 Error은 세부 Exception을 가리게 됩니다.
-
-```ts
-function updateUser(): Error {
-
-    ....
-}
-
-```
-
-정말 다른 Exception을 지정할것이 없을때 최후의 수단으로 씁니다.  
-프레임워크에서는 checked exception에 대한 처리를 미루는 목적으로 사용하기도 하지만, Business 코드에서는 습관적으로 java.lang.Exception을 쓴다면 정교한 예외처리를 할 수 없다.
-
-
-> Java에서는 `Unchecked Exception` 와 `Checked Exception` 을 구분하고 있지만, 최근엔 **정말 특별한 경우가 아니면 Unchecked Exception을 사용하라**고 권고하고 있다.
-> 요즘에는 `Unchecked exception` 을 기본적으로 사용하고 특별한 이유가 있는 것만 `Checked exception` 을 고려하는 것을 추천한다.
-
-
-## logger 사용하기
-
-Exception을 기록으로 남기고 끝낼 경우에라도 로깅 프레임워크를 사용하는 편이 좋다.
-
-```ts
-// bad
-try {
-  // 비즈니스 로직
-} catch (e) {
-  console.error("fail to process file", e);
-}
-```
-
-```ts
-// good
-try {
-  // 비즈니스 로직
-} catch (e) {
-  logger.error("fail to process file", e);
-}
-```
-
-
-JVM의 `e.printStackTrace()`, Node.js의 `console.log | console.error` 등은 콘솔로만 메세지를 남긴다.  
-물론 `e.printStackTrace()` 은 Tomcat을 사용할 경우 `{TOMCAT_HOME}/logs/catalina.out` 에 남긴 하지만, 이는 기본적인 로깅 프레임워크들처럼 로그 데이터에 대한 세부적인 설정을 할 수가 없다.  
-  
-이와 같이 콘솔 메세지로 관리하는 것에는 크게 2가지 문제가 있다.
-
-- 적절한 로그레벨을 사용할 수 없다.
-- 다양한 로그 형태를 사용할 수 없다.
-
-
-로깅 프레임워크를 이용하면 파일을 쪼개는 정책을 설정할 수 있고, 여러 서버의 로그를 한곳에서 모아서 보는 시스템을 활요할 수도 있다. 
-
-## logger에서는 전체 에러 스택을 남긴다.
-
-로거 메소드에 Exception객체를 직접 넘기면 `e.printStackTrace()` 처럼 Exception의 스택도 모두 남겨준다. 
-에러의 추적성을 높이기 위해서는 `e.toString()` 이나 `e.getMessage()` 로 마지막 메시지만 남기기보다는 전체 에러 스택을 다 넘기는 편이 좋다.
-
-```ts
-// bad
-try {
-  // 비즈니스 로직
-} catch (e) {
-  logger.error(`fail to process file: ${e.getMessage()}`);
-}
-```
-
-```ts
-// good
-try {
-  // 비즈니스 로직
-} catch (e) {
-  logger.error("fail to process file", e);
-}
-```
 
 
 ## 가능한 늦게 예외를 처리 한다.
 
+Exception을 throw 하자마자 잡지 않는다.  
+가능하면 해당 예외를 잡아야 하는 단계 중 가장 늦게 잡는다.
+
+```ts
+// bad
+
+```
+
 Global Handler 에서 로그를 남긴다.
+
+```ts
+@Catch()
+export class AllExceptionsFilter implements ExceptionFilter {
+  catch(exception: unknown, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
+    const status = exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+
+    const errorResponse = {
+      statusCode: status,
+      message: exception['message'],
+      // ... add other fields if needed
+    };
+
+    response.status(status).json(errorResponse);
+  }
+}
+```
 
 ```ts
 DB.addDocument(newCustomer, (error: Error, result: Result) => {
