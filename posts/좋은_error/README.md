@@ -276,9 +276,28 @@ class UserAlreadyRegisteredException extends ValidationException {}
 const pay = new Pay();
 try{
     pay.billing();
-} catch (pen: PayNetworkError) {
+} catch (pen: PayNetworkException) {
     
-} catch () {
+} catch (eme: EmptyMoneyException) {
+    
+} catch (pse: PayServerException) {
+
+} catch (e) {
+    
+}
+```
+
+
+
+```ts
+function billing() {
+  pay.billing();
+}
+
+const pay = new Pay();
+try{
+    billing();
+} catch (pen: PayException) {
     
 } catch (e) {
     
@@ -387,7 +406,7 @@ function display() {
 ## 가능한 늦게 예외를 처리 한다.
 
 Exception을 throw 하자마자 잡지 않는다.  
-가능하면 해당 예외를 잡아야 하는 단계 중 가장 늦게 잡는다.
+가능한 가장 늦은 단계에서 예외를 처리한다.  
 
 ```ts
 // bad
