@@ -3,7 +3,7 @@
 좋은 예외 처리는 견고하고, 좋은 사용자 경험을 줄 수 있다.  
 예외 처리를 통해 애플리케이션이 예기치 않게 종료되는 것을 방지하고, 
 갑작스런 종료 대신 사용자는 무엇이 잘못되었는지, 그리고 가능하다면 어떻게 바로잡을 수 있는지에 대한 의미 있는 오류 메시지를 받을 수 있다.  
-의미 있는 오류 메시지와 로그는 개발자가 문제를 진단하는 데 큰 도움이 되어 이로 인해 문제 해결 시간이 단축된다.  
+뿐만 아니라 좋은 예외처리는 개발자가 문제를 진단하는 데 큰 도움이 되어 이로 인해 문제 해결 시간이 단축된다.  
   
 특히, 복잡한 시스템에서 여러 단계의 프로세스가 있는 경우 예외는 프로세스의 위치에 따라 다르게 처리되어 적절한 예외 처리는 이러한 프로그램의 프로세스를 관리하는 데 유연성을 제공한다.  
   
@@ -161,7 +161,10 @@ throw new IllegalArgumentException('잘못된 입력입니다.');
 throw new IllegalArgumentException(`사용자 ${userId}의 입력(${inputData})가 잘못되었다.`);
 ```
 
-어떤 이유로 잘못된 것인지 알 수 빠르게 파악할 수 있다.  
+어떤 이유로 잘못된 것인지 빠르게 파악할 수 있다.  
+
+> 물론 Exception 내용 그대로 사용자에게 노출하는 것은 별개의 이야기이다.  
+> Logger를 통해 남길 내용과 사용자에게 노출할 메세지는 분리가 필요하다.
 
 ## Layer에 맞는 Exception 던지기
 
@@ -232,23 +235,28 @@ try {
 위의 예제에서, 각 계층에 대한 오류가 발생하면 해당 계층에 특화된 예외 클래스를 통해 오류를 던진다.  
 이렇게 하면, 오류가 발생했을 때 어느 계층에서 문제가 발생했는지 쉽게 파악하고 디버깅할 수 있다.
 
-적절한 수준으로 추상화된 Exception을 정의하거나 `IllegalArgumentException` 같은 java의 표준 Exception을 활용할 수도 있다.  
-Service layer에서는 Business 로직의 수준에 맞는 custom exception을 정의하는 것도 고려할만 하다.  
-이 때 cause exception을 상위 Exception의 생성자에 넘기는 exception chaning기법도 사용할 수 있다.
+그래서 적절한 수준으로 추상화된 Exception을 정의하거나 `IllegalArgumentException` 같은 Java의 표준 Exception을 활용하는 것이 좋다.  
 
-```ts
-try {
-  process(url);
-} catch (e) {
-  throw new BankAccountExeption("fail to call " + url, e);
-}
-```
+물론 이 때 원인이 되는 Exception을 상위 Exception의 생성자에 넘기는 exception chaning기법도 사용할 수 있다.
 
 ## 예외 계층 구조 만들기
 
-예외를 가능한 계층 구조로 만들어서 사용한다.
+예외를 가능한 계층 구조로 만들어서 사용한다.  
+위 내용대로 Exception을 만들다보면 수많은 Custom Exception들이 생성된다.  
+  
+이를 용도에 맞게 분류할 필요가 있으며, 이렇게 분류한 Exception들은 그에 맞게 일관된 처리 방법을 적용할 수 있다.
 
 ```ts
+// bad
+class DuplicatedException extends Error {}
+
+class UserAlreadyRegisteredException extends Error {}
+```
+
+아래와 같이 목적에 맞는 Custom Exception을 분류할 수 있는 상위 Exception을 가지도록 한다.
+
+```ts
+// good
 class ValidationException extends Error {}
 
 class DuplicatedException extends ValidationException {}
@@ -256,7 +264,13 @@ class DuplicatedException extends ValidationException {}
 class UserAlreadyRegisteredException extends ValidationException {}
 ```  
 
+
 ## 외부의 예외 감싸기
+
+외부 SDK, 외부 API를 통해 발생하는 예외들은 하나로 묶어서 처리한다.   
+이는 바로 직전의 **예외 계층 구조 만들기**에 연관된다.  
+  
+다음과 같이 외부 결제 서비스의 SDK를 사용하는 경우 해당 결제 서비스가 일으키는 모든 에러에 대해 핸들
 
 ```ts
 const pay = new Pay();
@@ -264,7 +278,7 @@ try{
     pay.billing();
 } catch (pen: PayNetworkError) {
     
-} catch (e) {
+} catch () {
     
 } catch (e) {
     
@@ -361,6 +375,9 @@ function display() {
 ```
 
 함수는 `null` 을 반환하고 호출자는 그 결과를 확인하여 적절한 액션을 취한다.  
+
+> 물론 [Null Object Pattern](https://johngrib.github.io/wiki/pattern/null-object/) 등을 활용해서 `Null` 값을 반환하지 않는 것이 더 좋다.
+
 예외는 실제 오류나 예기치 않은 상황을 처리하기 위해서만 사용되어야 한다.
 
 특정 예외를 처리하기 위한 코드를 너무 많이 사용하거나, 필요 이상으로 구체적인 예외를 처리하려고 할 때 발생하는 문제를 지적합니다. 이런 식의 처리는 코드의 가독성을 해칠 수 있으며, 때로는 예외의 실제 원인을 숨기게 될 수 있다.
@@ -380,6 +397,7 @@ Exception을 throw 하자마자 잡지 않는다.
 Global Handler 에서 로그를 남긴다.
 
 ```ts
+// good
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
@@ -399,7 +417,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
 }
 ```
 
+만약 Nest.js와 같은 프레임워크를 사용하지 않고 Express 등을 그대로 사용하고 있다면, 미들웨어 레벨에서 처리한다.
+
 ```ts
+// good
 DB.addDocument(newCustomer, (error: Error, result: Result) => {
   if (error)
     throw new Error('Great error explanation comes here', other useful parameters)
