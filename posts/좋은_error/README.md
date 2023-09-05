@@ -1,6 +1,6 @@
 # 좋은 예외(Exception) 처리 하기
 
-좋은 예외 처리는 견고하고, 좋은 사용자 경험을 줄 수 있다.  
+좋은 예외 처리는 견고한 프로그램을 만들고, 좋은 사용자 경험을 줄 수 있다.  
 예외 처리를 통해 애플리케이션이 예기치 않게 종료되는 것을 방지하고, 
 갑작스런 종료 대신 사용자는 무엇이 잘못되었는지, 그리고 가능하다면 어떻게 바로잡을 수 있는지에 대한 의미 있는 오류 메시지를 받을 수 있다.  
 뿐만 아니라 좋은 예외처리는 개발자가 문제를 진단하는 데 큰 도움이 되어 이로 인해 문제 해결 시간이 단축된다.  
@@ -11,7 +11,8 @@
   
 이번 글에서는 좋은 코드를 다루기 위해 필요한 오류 처리 (예외 다루기)를 이야기한다.
 
-> Node.js, Java 등에서도 함께 사용할 수 있는 내용들을 고려했다.
+> Node.js, Java 등에서도 함께 사용할 수 있는 내용들을 고려했다. 
+> 예제 코드는 TS로 구현되어있다. (우리 팀원들을 위한 글이니깐)
 > 예외와 함께 다니는 로그에 대해서도 함께 이야기 하고 싶지만, 이후에 별도로 다룬다.
 
 ## 복구 가능한 오류와 불가능한 오류 구분하기
@@ -56,7 +57,7 @@
   - 하드웨어 문제나 운영 체제의 중대한 버그로 인해 발생한다.
 - 개발자의 잘못 구현된 코드
 
-복구 불가능한 오류는 빠르게 개발자에게 문제 원인을 알려야한다.  
+복구 불가능한 오류는 자주 발생하는 오류가 아니기 때문에 **빠르게 개발자에게 문제 원인을 알려야한다**.  
 
 이를 위해 로그 레벨을 `error`로 두고, 로그에서는 에러 트레이스를 남긴 뒤, 임계치를 초과하면 개발자에게 알람을 보내도록 구성해야한다.
 
@@ -101,48 +102,15 @@ function divideRight(a: number, b: number): number {
 - 어떤 경로로 이 문제가 발생한 것인지 확인할 수 있는 Stack Trace를 알 수 있다.
 - 더 깔끔한 코드를 작성할 수 있다
 
-## 의미를 담고 있는 예외
-
-예외의 이름이 그 예외의 원인과 내용을 정확하게 반영해야 한다.  
-코드를 읽는 사람이 예외 이름만 보고도 해당 예외가 왜 발생했는지 어느 정도 추측할 수 있어야 한다.  
-  
-이는 크게 2가지 이유가 있다.
-
-- 코드의 가독성 향상: 의미 있는 이름을 가진 예외는 코드를 읽는 사람에게 문맥을 제공한다.
-- 디버깅 용이성: 오류의 원인을 빠르게 파악하고 수정할 수 있다.
-
-```ts
-// bad
-class CustomException extends Error {}
-
-function connectToDatabase() {
-    throw new CustomException("Connection failed because of invalid credentials.");
-}
-```
-
-위 예외는 너무 포괄적인 의미를 담고 있다. (`CustomException`)
-
-```ts
-// good
-class InvalidCredentialsException extends Error {}
-
-function connectToDatabase() {
-    throw new InvalidCredentialsException("Failed to connect due to invalid credentials.");
-}
-```
-
-이번 코드에서는 `InvalidCredentialsException` 라는 예외 이름을 사용하여 데이터베이스 연결 시 발생하는 인증 오류를 명확하게 나타낸다.  
-
-이 이름만 보고도 해당 예외의 주요 원인을 파악할 수 있다.
-
 ## 추적 가능한 예외
 
 실패한 코드의 의도를 파악하려면 호출 스택만으로 부족하다.  
 그래서 다음의 내용이 예외에 담겨야 한다. 
+
 - 오류 메세지에 어떠한 값을 사용하다가 실패하였는지
 - 실패한 작업의 이름과 실패 유형
 
-운영 환경에서 예외가 발생했을 때 조금이라도 정확하고 빠르게 대응 가능해진다.
+이들이 포함되어 있어야 운영 환경에서 예외가 발생했을 때 조금이라도 정확하고 빠르게 대응 가능해진다.
 
 예외에 해당 예외의 근본 원인을 찾알 수 있는 정확한 정보를 남겨준다.  
 예를 들어 사용자의 입력값이 규칙에 어긋난다고 가정해보자.  
@@ -166,7 +134,42 @@ throw new IllegalArgumentException(`사용자 ${userId}의 입력(${inputData})�
 > 물론 Exception 내용 그대로 사용자에게 노출하는 것은 별개의 이야기이다.  
 > Logger를 통해 남길 내용과 사용자에게 노출할 메세지는 분리가 필요하다.
 
-## Layer에 맞는 Exception 던지기
+## 의미를 담고 있는 예외
+
+예외의 이름은 그 예외의 원인과 내용을 정확하게 반영해야 한다.  
+코드를 읽는 사람이 예외 이름만 보고도 해당 예외가 왜 발생했는지 어느 정도 추측할 수 있어야 한다.  
+  
+이는 크게 2가지 이유가 있다.
+
+- 코드의 가독성 향상: 의미 있는 이름을 가진 예외는 코드를 읽는 사람에게 문맥을 제공한다.
+- 디버깅 용이성: 오류의 원인을 빠르게 파악하고 수정할 수 있다.
+
+```ts
+// bad
+class CustomException extends Error {}
+
+function connectToDatabase() {
+    throw new CustomException("Connection failed because of invalid credentials.");
+}
+```
+
+위 예외는 너무 포괄적인 의미를 담고 있다. (`CustomException`)  
+이를 좀 더 유의미한 예외로 만들어서 개선할 수 있다.
+
+```ts
+// good
+class InvalidCredentialsException extends Error {}
+
+function connectToDatabase() {
+    throw new InvalidCredentialsException("Failed to connect due to invalid credentials.");
+}
+```
+
+개선된 코드에서는 `InvalidCredentialsException` 라는 예외 이름을 사용하여 데이터베이스 연결 시 발생하는 인증 오류를 명확하게 나타낸다.  
+
+그리고 예외의 이름만으로도 해당 예외의 주요 원인을 파악할 수 있다.
+
+## Layer에 맞는 예외
 
 Repository (혹은 DAO) 에서 HttpException을 던진다거나 Presentation (Controller) 에서 SQLException을 처리하는것은 Layer별 역할에 맞지 않다.  
 
@@ -183,16 +186,12 @@ Repository (혹은 DAO) 에서 HttpException을 던진다거나 Presentation (Co
 
 ```ts
 // Data Access Layer
-class DataAccessException extends Error {}
-
 function fetchUserData(userId: string): any {
     // ...
     throw new DataAccessException("Failed to fetch user data from database.");
 }
 
 // Business Logic Layer
-class BusinessLogicException extends Error {}
-
 function getUserProfile(userId: string): any {
     try {
         const userData = fetchUserData(userId);
@@ -205,8 +204,6 @@ function getUserProfile(userId: string): any {
 }
 
 // Presentation Layer
-class PresentationException extends Error {}
-
 function displayUserProfile(userId: string): void {
     try {
         const profile = getUserProfile(userId);
@@ -218,6 +215,10 @@ function displayUserProfile(userId: string): void {
     }
 }
 ```
+
+그리고 각 계층에서 발생한 예외들은 적절한 위치에서 처리한다.  
+뒤에서 언급하겠지만, 이때 **가능한 가장 늦은 위치에서 처리**한다.
+
 ```ts
 // 글로벌 Error Handler
 try {
@@ -242,9 +243,10 @@ try {
 ## 예외 계층 구조 만들기
 
 예외를 가능한 계층 구조로 만들어서 사용한다.  
-위 내용대로 Exception을 만들다보면 수많은 Custom Exception들이 생성된다.  
+
+"의미를 담고 있는 예외", "Layer에 맞는 예외" 등 내용을 따르다보면 수많은 Custom Exception들이 생성된다.  
   
-이를 용도에 맞게 분류할 필요가 있으며, 이렇게 분류한 Exception들은 그에 맞게 일관된 처리 방법을 적용할 수 있다.
+이를 용도에 맞게 분류할 필요가 있으며, 이렇게 **기준에 맞게 분류한 Exception들은 그에 맞게 일관된 처리 방법**을 적용할 수 있다.
 
 ```ts
 // bad
@@ -270,39 +272,84 @@ class UserAlreadyRegisteredException extends ValidationException {}
 외부 SDK, 외부 API를 통해 발생하는 예외들은 하나로 묶어서 처리한다.   
 이는 바로 직전의 **예외 계층 구조 만들기**에 연관된다.  
   
-다음과 같이 외부 결제 서비스의 SDK를 사용하는 경우 해당 결제 서비스가 일으키는 모든 에러에 대해 핸들
-
+예를 들어 다음과 같이 외부 결제 서비스의 SDK를 사용하는 경우가 있을 경우 이들을 묶어서 처리할 수 있다.
+ 
 ```ts
-const pay = new Pay();
-try{
-    pay.billing();
-} catch (pen: PayNetworkException) {
-    
-} catch (eme: EmptyMoneyException) {
-    
-} catch (pse: PayServerException) {
-
-} catch (e) {
-    
+// bad
+function order() {
+  const pay = new Pay();
+  try{
+      pay.billing();
+      database.save(pay);
+  } catch (e) {
+      logger.error(`pay fail`, e);
+  }
 }
 ```
 
-
+이렇게 한번에 catch를 할 경우 구체적으로 **어디서 어떤 문제가 발생했으며, 그에 따른 다양한 해결방법을 포함시키기가 어렵다**.  
+  
+외부 라이브러리 (`pay.billing`) 에서 발생하는 문제와 우리가 관리하는 코드는 (`databse.save`) 가 같은 방식으로 해결해서는 안된다.  
+특히 결제 서비스의 경우 사용자의 문제로 인해 오류가 발생할 수 있는 상시적인 문제를 포함하고 있다.  
+  
+이를 위해 다음과 같이 외부 라이브러리가 발생시키는 모든 예외를 처리하는 것 또한 문제이다.
 
 ```ts
+// bad
+function order() {
+  const pay = new Pay();
+  try{
+      pay.billing();
+      database.save(pay);
+  } catch (e) {
+      if(e instanceof PayNetworkException) {
+        ...
+      } else if (e instanceof EmptyMoneyException) {
+        ...
+      } else if (e instanceof PayServerException) {
+        ...
+      }
+      ...
+  }
+}
+```
+
+```ts
+// good
+
 function billing() {
-  pay.billing();
+  try {
+    pay.billing();
+  } catch (e) {
+    if(e instanceof PayNetworkException) {
+      ...
+    } else if (e instanceof EmptyMoneyException) {
+      ...
+    } else if (e instanceof PayServerException) {
+      ...
+    }
+    ...
+    throw new BillingException (e);
 }
 
-const pay = new Pay();
-try{
-    billing();
-} catch (pen: PayException) {
-    
-} catch (e) {
-    
+function order() {
+  const pay = new Pay();
+  pay.billing(); 
+  
+  try{
+    database.save(pay);
+  } catch (e) {
+    pay.cancel();  
+  }
 }
+
 ```
+
+- `BillingException` 은 우리 서비스의 예외이기 때문에 가능한 가장 먼 곳에서 처리한다 (미들웨어, 글로벌 에러 핸들러 등)
+- DB 저장이 실패하면 결제된 요청도 취소 처리한다.
+
+이렇게 처리하면 외부 라이브러리 (결제 서비스) 와 우리 서비스 (order) 간 의존성이 분리된다.  
+다른 외부 라이브러리로 교체가 필요한 상황에도 
 
 ## 다시 throw할 거면 잡지 않기
 
@@ -406,19 +453,54 @@ function display() {
 ## 가능한 늦게 예외를 처리 한다.
 
 Exception을 throw 하자마자 잡지 않는다.  
-가능한 가장 늦은 단계에서 예외를 처리한다.  
+가능한 가장 최상위 계층에서 처리한다.  
+물론 무조건적으로 글로벌 핸들러에서 처리하는 것을 의미하지 않는다.  
+해당 예외를 처리해야하는 여러 계층 중 가장 최상위 (가장 멀리 떨어진) 계층에서 처리한다.
 
 ```ts
 // bad
+function divide(a: number, b: number): number {
+    if (b === 0) {
+        // 일찍 예외를 던진다
+        throw new DivideZeroError("Cannot divide by zero!");
+    }
+    return a / b;
+}
 
+function calculate() {
+  try {
+    divide();
+  } catch (e) {
+    if (error instanceof DivideZeroError) {
+       ...
+    }
+  }
+}
 ```
 
-Global Handler 에서 로그를 남긴다.
+이렇게 되면 해당 **divide 함수를 호출해야하는 모든 곳에서는 항상 예외처리를 해야만 한다**.  
+뿐만 아니라, 이렇게 예외처리가 필요한 함수가 1개가 아니라 여러개라면 이를 호출하는 쪽에서는 수많은 예외처리 코드가 포함되어 **실제 비즈니스 로직 보다 예외처리하는 코드가 더 많아진다**.  
+  
+반면 글로벌 핸들러 혹은 미들웨어 등 **최상위 계층에서 예외를 처리**하면 코드의 가독성과 재사용성에 도움이 된다.
 
 ```ts
 // good
+function divide(a: number, b: number): number {
+    if (b === 0) {
+        // 일찍 예외를 던진다
+        throw new DivideZeroError("Cannot divide by zero!");
+    }
+    return a / b;
+}
+
+function calculate() {
+  divide();
+  ...
+}
+
+// good
 @Catch()
-export class AllExceptionsFilter implements ExceptionFilter {
+export class DivideZeroExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -434,41 +516,35 @@ export class AllExceptionsFilter implements ExceptionFilter {
     response.status(status).json(errorResponse);
   }
 }
+
 ```
 
 만약 Nest.js와 같은 프레임워크를 사용하지 않고 Express 등을 그대로 사용하고 있다면, 미들웨어 레벨에서 처리한다.
 
 ```ts
 // good
-DB.addDocument(newCustomer, (error: Error, result: Result) => {
-  if (error)
-    throw new Error('Great error explanation comes here', other useful parameters)
-});
-
-try {
-  customerService.addNew(req.body).then((result: Result) => {
-    res.status(200).json(result);
-  }).catch((error: Error) => {
-    next(error)
-  });
-} catch (error) {
-  next(error);
-}
-
 app.use(async (err: Error, req: Request, res: Response, next: NextFunction) => {
   await errorHandler.handleError(err, res);
 });
-
-process.on("uncaughtException", (error:Error) => {
-  errorHandler.handleError(error);
-});
-
-process.on("unhandledRejection", (reason) => {
-  errorHandler.handleError(reason);
-});
 ```
+
+Exception을 throw 하지 않고, 가능한 늦게 잡게 되면 다음과 같은 장점을 얻게 된다.
+
+- 가독성
+  - 함수 각각이 예외를 처리하지 않기 때문에 코드가 더 깔끔하고 가독성이 좋아진다.
+- 재사용성
+  - 예외 처리가 분리되어 있으면, 해당 함수나 모듈을 다른 상황에서 재사용하기 쉽다.
+- 통일성
+  - 예외를 한 곳에서 처리하면 처리 방법을 통일시킬 수 있다.
 
 ## 마무리
 
 프로그램을 만들면서 오류를 피할 수 없다.  
-그래서 좋은 코드는 오류를 어떻게 다루는지가 중요하다. 
+그래서 좋은 코드는 오류를 어떻게 다루는지가 중요하다.  
+  
+이 외에도 예외처리에 대한 여러가지 좋은 팁들이 많다.  
+많은 책들에서, 좋은 프레임워크의 Github 코드 등에서 이런 내용들을 찾을 수 있다.
+
+그리고 가장 좋은 경험은 내가 경험한 프로젝트에 따라서 예외에 대한 기준들이 하나둘씩 세워지는 것이다.  
+그때마다 기록에 남겨두고 추가/개선 하면 커리어 내내 도움이 된다.  
+특히 이런 예외처리, 로깅 등은 프로그래밍 언어와 무관하게 도움이 많이 되니 계속해서 기록해두는 것을 추천한다. 
