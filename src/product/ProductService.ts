@@ -38,21 +38,26 @@ export class ProductService {
     async create_2 (createDtos: ProductCreateDto[]) {
         const entites = createDtos.map(dto => dto.toEntity(generateId()));
 
-        await Promise.all(entites.map(entity => {
-            const query =
-                `INSERT INTO product (${ Object.keys(entity) }) `
-                + 'VALUES (?, ?, ?, ?, ?, NOW(), NOW() )';
+        await Promise.all(entites.map(entity =>
+            this.dbConnection.query(
+                `INSERT INTO product (${Object.keys(entity)}) `
+                + 'VALUES (?, ?, ?, ?, ?, NOW(), NOW() )',
+                [
+                    entity.id,
+                    entity.name,
+                    entity.price,
+                    entity.status,
+                    entity.description
+                ])));
 
-            const params = [
-                entity.id,
-                entity.name,
-                entity.price,
-                entity.status,
-                entity.description
-            ];
+        return entites;
+    }
 
-            return this.dbConnection.query(query, params);
-        }));
+    async create_3 (createDtos: ProductCreateDto[]) {
+        const entites = createDtos.map(dto => dto.toEntity(generateId()));
+
+        await Promise.all(entites.map(entity =>
+            this.dbConnection.query(getInsertQuery(entity), getParams(entity))));
 
         return entites;
     }
@@ -64,4 +69,19 @@ export async function save(product: Product) {
 
 export function generateId() {
     return "uuid";
+}
+
+function getInsertQuery(entity: Product) {
+    return `INSERT INTO product (${Object.keys(entity)}) `
+        + 'VALUES (?, ?, ?, ?, ?, NOW(), NOW() )';
+}
+
+function getParams(entity: Product) {
+    return [
+        entity.id,
+        entity.name,
+        entity.price,
+        entity.status,
+        entity.description
+    ];
 }

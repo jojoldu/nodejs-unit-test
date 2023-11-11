@@ -37,31 +37,44 @@ export class ProductService {
 
 ```ts
 export class ProductService {
-    async creates(classes: ClassDto[]): Promise<ClassDto[]> {
-        const classEntities = classes.map(c => c.toClassEntity(generateUuid()));
-        
-        await Promise.all(classEntities.map(newClassEntity => {
-            const query = `INSERT INTO ${CLASS_TABLE_NAME}` +
-                `(${Object.keys(newClassEntity).map(k => convertCamelToSnakeName(k))}) ` +
-                `VALUES ( ${convertUuidToBinParam()}, ${convertUuidToBinParam()}, ${convertUuidToBinParam()}, ?, ?, ?, ?, ?, ?, NOW(3), NOW(3) )`;
+    ...
+    
+    async create_2 (createDtos: ProductCreateDto[]) {
+        const entites = createDtos.map(dto => dto.toEntity(generateId()));
 
-            return this.dbConnection.query(query, [
-                newClassEntity.id,
-                newClassEntity.categoryId,
-                newClassEntity.teacherId,
-                newClassEntity.nameHash,
-                newClassEntity.name,
-                newClassEntity.price,
-                newClassEntity.state,
-                newClassEntity.isDeleted,
-                newClassEntity.description]);
-        }))
+        await Promise.all(entites.map(entity =>
+            this.dbConnection.query(
+                `INSERT INTO product (${Object.keys(entity)}) `
+                + 'VALUES (?, ?, ?, ?, ?, NOW(), NOW() )',
+                [
+                    entity.id,
+                    entity.name,
+                    entity.price,
+                    entity.status,
+                    entity.description
+                ])));
 
-        return classEntities.map(c => ClassDto.fromEntity(c));
-    };
+        return entites;
+    }
 }
 ```
+
+```ts
+export class ProductService {
+    ...
+    
+    async create_3 (createDtos: ProductCreateDto[]) {
+        const entites = createDtos.map(dto => dto.toEntity(generateId()));
+
+        await Promise.all(entites.map(entity =>
+            this.dbConnection.query(getInsertQuery(entity), getParams(entity))));
+
+        return entites;
+    }
+}
+```
+
 데이터가 1,000건, 10,000건이상인 경우에는 
 
-Go처럼 List Comprehension이 부재한 언어에서는 이를 `for` 를 통해 별도의 함수에서 처리할 수 있다.
+Go처럼 List Comprehension이 부재한 언어에서는 이를 별도의 함수에서 `for` 를 통해 처리할 수 있다.
 
