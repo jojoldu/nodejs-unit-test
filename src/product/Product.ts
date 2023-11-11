@@ -1,22 +1,22 @@
 export class Product {
-    private readonly id: string;
-    private readonly name: string;
-    private readonly price: number;
-    private readonly status: string;
-    private readonly description: string;
-    private readonly createdAt: Date;
-    private readonly updatedAt: Date;
-    private readonly deletedAt: Date;
+    private readonly _id: string;
+    private readonly _name: string;
+    private readonly _price: number;
+    private readonly _status: string;
+    private readonly _description: string;
+    private readonly _createdAt: Date;
+    private readonly _updatedAt: Date;
+    private readonly _deletedAt: Date;
 
     constructor(id: string, name: string, price: number, status: string, description: string, createdAt: Date, updatedAt: Date, deletedAt: Date) {
-        this.id = id;
-        this.name = name;
-        this.price = price;
-        this.status = status;
-        this.description = description;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.deletedAt = deletedAt;
+        this._id = id;
+        this._name = name;
+        this._price = price;
+        this._status = status;
+        this._description = description;
+        this._createdAt = createdAt;
+        this._updatedAt = updatedAt;
+        this._deletedAt = deletedAt;
     }
 
     static newInstance (id: string, name: string, price: number, description: string) {
@@ -30,5 +30,38 @@ export class Product {
             null,
             null
         )
+    }
+
+
+    get id(): string {
+        return this._id;
+    }
+
+    get name(): string {
+        return this._name;
+    }
+
+    get price(): number {
+        return this._price;
+    }
+
+    get status(): string {
+        return this._status;
+    }
+
+    get description(): string {
+        return this._description;
+    }
+
+    get createdAt(): Date {
+        return this._createdAt;
+    }
+
+    get updatedAt(): Date {
+        return this._updatedAt;
+    }
+
+    get deletedAt(): Date {
+        return this._deletedAt;
     }
 }
