@@ -2,35 +2,37 @@
 
 ```ts
 export class ProductService {
-    async oldCreates(classes: ClassDto[]): Promise<ClassDto[]> {
+    async create_1 (createDtos: ProductCreateDto[]) {
         const promiseList = [];
-        const results = [];
-        for(const classItem of classes) {
-            const newClassEntity = classItem.toClassEntity(generateUuid());
+        const results: Product[] = [];
+        for(const dto of createDtos) {
+            const entity = dto.toEntity(generateId());
             const queryParams = [];
-        
-            const query = `INSERT INTO ${ CLASS_TABLE_NAME }` +
-                `(${ Object.keys(newClassEntity).map(k => convertCamelToSnakeName(k)) }) ` +
-                `VALUES ( ${convertUuidToBinParam()}, ${convertUuidToBinParam()}, ${convertUuidToBinParam()}, ?, ?, ?, ?, ?, ?, NOW(), NOW() )`;
-        
+
+            const query =
+            `INSERT INTO product (${ Object.keys(entity) }) `
+            + 'VALUES (?, ?, ?, ?, ?, NOW(), NOW() )';
+
             queryParams.push(
-                newClassEntity.id,
-                newClassEntity.categoryId,
-                newClassEntity.teacherId,
-                newClassEntity.nameHash,
-                newClassEntity.name,
-                newClassEntity.price,
-                newClassEntity.state,
-                newClassEntity.isDeleted,
-                newClassEntity.description
+                entity.id,
+                entity.name,
+                entity.price,
+                entity.status,
+                entity.description
             );
             promiseList.push(this.dbConnection.query(query, queryParams))
-            results.push(ClassDto.fromEntity(newClassEntity));
+            results.push(entity);
         }
-        
+
         await Promise.all(promiseList);
         return results;
-    };
+    }
+```
+
+관련 있는 변수들을 근처로 옮긴다.
+
+```ts
+
 ```
 
 ```ts

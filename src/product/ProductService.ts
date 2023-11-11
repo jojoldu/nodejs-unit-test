@@ -34,6 +34,28 @@ export class ProductService {
         await Promise.all(promiseList);
         return results;
     }
+
+    async create_2 (createDtos: ProductCreateDto[]) {
+        const entites = createDtos.map(dto => dto.toEntity(generateId()));
+
+        await Promise.all(entites.map(entity => {
+            const query =
+                `INSERT INTO product (${ Object.keys(entity) }) `
+                + 'VALUES (?, ?, ?, ?, ?, NOW(), NOW() )';
+
+            const params = [
+                entity.id,
+                entity.name,
+                entity.price,
+                entity.status,
+                entity.description
+            ];
+
+            return this.dbConnection.query(query, params);
+        }));
+
+        return entites;
+    }
 }
 
 export async function save(product: Product) {
