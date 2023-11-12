@@ -43,6 +43,7 @@ export class ProductRepository {
         // 반복문을 돌면서 쌓아둔 결과를 반환
         return results;
     }
+}
 ```
 
 생각나는대로 코드를 작성하다보면 위와 같이 코드가 길어지고, 가독성이 떨어지는 경우가 많다.  
