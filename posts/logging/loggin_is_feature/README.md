@@ -26,21 +26,23 @@ Error나 Info 로그를 각양각색의 포맷으로 남긴다면, 모니터링�
 반면에 디버깅 로깅은 **운영 환경에서의 올바른 작동이 필요하지 않다**.  
 오로지 프로그래머가 개발 단계에서 시스템 내부의 작동 방식을 확인하기 위한 용도이므로 **테스트를 거칠 필요가 없으며 에러 로그처럼 메시지가 일관적일 필요도 없다**.  
   
-똑같은 로그인데 굳이 이 2개를 구분해서 관리가 필요할까? 라는 생각이 든다면, **에러 (정보) 로그는 로그 보다는 지표 전송**으로 생각해보자.  
-로그를 남기는게 아니라 지표 전송 혹은 알람으로 보내야 한다고 생각하면 좀 더 해당 로그를 도메인처럼 생각할 수 있다.   
+똑같은 로그인데 굳이 이 2개를 구분해서 관리가 필요할까? 라는 생각이 든다면,  
+**로그를 남기는게 아니라 지표 전송 혹은 알람으로 보내는 기능**으로 생각하면 모든 로그가 동일하게 생각되진 않을 것이다.     
   
-예를 들어 다음과 같이 운영 환경에서의 상황을 모니터링 하기 위해 다음과 같이 "카트에서 음식 상품을 삭제 처리할때만 추적"이 필요하다고 해보자.
+예를 들어 다음과 같은 메소드 구현이 필요하다고 가정해보자.
 
 ```ts
 export class CartService {
     ...
     removeCart(product: Product) {
-        logger.debug(`Called RemoveCart`);
+        logger.debug("Called RemoveCart");
         
-        httpClient.removeProduct(product.id);
-        
-        if (product.type === ProductType.FOOD) {
-            logger.info(`Removed Cart ${product.id}, ${product.name}, ${product.price}`);
+        httpClient.removeProduct(product.id); // 삭제 요청
+
+        if (product.type === ProductType.FOOD && product.isSpoiledFood()) {
+            logger.info(`Removed Spoiled Food ${product.id}, ${product.name}, ${product.price}, Expiration Date=${product.expirationAt}`);
+        } else if (product.type === ProductType.BOOK) {
+            logger.info(`Removed Book ${product.id}, ${product.name}, ${product.price}`);
         }
     }
 }
@@ -48,7 +50,7 @@ export class CartService {
 
 이 코드에는 크게 3가지 문제가 있다.
 
-1. 비즈니스 로직을 보기 힘들정도로 더 많은 부분을 차지하는 로깅 코드
+1. 비즈니스 로직을 덮어버린 로깅 코드
 2. 주요 로깅 영역에 대한 테스트 코드 작성의 어려움
 3. 일관된 로그 메세지를 남기는 것에 대한 어려움
 
@@ -56,13 +58,15 @@ export class CartService {
 이 코드에서 주요 코드는 다음과 같다.
 
 1) `httpClient.removeProduct(product.id);` 를 호출하는 것
-2) `FOOD` 타입인 경우 `info` 로그를 남기는 것
+2) 여러 상황에 따른 `logger.info` 호출
 
-하지만 **코드의 대부분은 로그를 남기는 것**이다.  
-  
-이 `removeCart` 함수가 과연 로그를 남기는 것을 목적으로 하는 함수였을까?  
-그렇지 않다.  
-다만, 에러 (정보) 로그를 로깅 인프라로 바라보고 사용하다보니 주요 로직보다 로깅 코드가 훨씬 더 많은 함수가 되었다.  
+반면 주요하지 않는 코드는 다음과 같다.
+
+1) 메소드 호출 여부를 디버깅 하기 위한 `logger.debug("Called RemoveCart");` 
+
+코드를 보면 알겠지만 중요한 코드인 `httpClient.removeProduct(product.id);` 외 나머지**대부분의 코드는 로그를 남기기 위한 코드**이다.   
+
+에러 (정보) 로그를 로깅 인프라로 바라보고 사용하다보니 주요 로직보다 로깅 코드가 훨씬 더 많은 함수가 되었다.  
   
 또한, 일부 언어나 프레임워크에서는 테스트 코드 작성도 어렵다.
 이 에러 (정보) 로깅은 **운영 환경에서 꼭 정상 작동해야하는 기능**이다.  
@@ -123,15 +127,17 @@ export class CartService {
     removeCart(product: Product) {
         logger.debug(`Called RemoveCart`); // 개발자 디버깅용
         httpClient.removeProduct(product.id);
-        this.cartProbe.remove(product); // Cart 관측 객체에 위임
+        this.cartProbe.remove(product); // 에러(정보) 로그는 Cart 관측 객체에 위임
     }
 }
 
 // Business Probe Object
 export class CartProbe {
     remove(product: Product) {
-        if (product.type === ProductType.FOOD) {
-            logger.info(`Removed Cart ${product.id}, ${product.name}, ${product.price}`);
+        if (product.type === ProductType.FOOD && product.isSpoiledFood()) {
+            logger.info(`Removed Spoiled Food ${product.id}, ${product.name}, ${product.price}, Expiration Date=${product.expirationAt}`);
+        } else if (product.type === ProductType.BOOK) {
+            logger.info(`Removed Book ${product.id}, ${product.name}, ${product.price}`);
         }
     }
 }
@@ -142,20 +148,23 @@ export class CartProbe {
 1. 비즈니스 로직과 운영 로깅의 단일 책임
 2. 테스트 코드 작성의 용이함
 3. 일관된 로그 포맷 관리의 용이함
-4. 로그 세부 사항에 대한 추상화
+4. 로그 세부 사항에 대한 캡슐화
 
-에러 객체가 로거, 메시지 버스, 팝업 창 등으로 구현될 수 있으며, 이 세부 사항은 이 수준의 코드와 관련이 없다.
-
-이 코드는 테스트하기도 더 쉽다.  
+4번의 경우 각종 로깅에 대해 로거를 사용하는지, 메세지 버스를 사용하는지, 메트릭 트레킹 API를 사용하는지 등등을 비즈니스 로직에서는 알 필요가 없어진다.  
   
-로깅 프레임워크가 아닌 우리가 에러 객체를 소유하고 있으므로 편의에 따라 모의 구현을 전달하고 테스트 케이스에 로컬로 유지할 수 있다.  
-또 다른 단순화는 이제 형식이 지정된 문자열의 내용이 아닌 객체에 대해 테스트한다는 것이다.  
-물론 여전히 에러 구현과 이에 초점을 맞춘 몇 가지 통합 테스트를 작성해야 한다.
+테스트 코드 역시 작성하기 쉽다.  
+관측 객체인 `CartProbe` 를 적절한 Stub 객체로 교체하는 등으로 Mocking을 통한 행위 검증에서 명확하게 어떠한 메시지를 출력했는지 상태 검증이 가능하게 된다.
 
+- [메일 내용을 단위 테스트로 상태 검증 하기](https://jojoldu.tistory.com/619)
 
-에러 (정보) 로깅을 캡슐화 하는 것에 대해 오버엔지니어링은 아닐까 생각할 수 있다.  
+또한 해당 도메인에 대한 운영 환경의 로깅이 단일 객체에 모여있으니, 어떠한 형태로 로깅을 해야하는지 로그 포맷을 관리하기도 쉬워졌다.  
 
-**구현 (로깅)이 아니라 의도 (에러 담당자를 돕는 것)에 따라 코드를 작성한다는 의미이므로 더 표현력이 풍부**해진다. 
+## 반론
+
+모든 에러와 정보성 로깅을 캡슐화 하는 것은 오버 엔지니어링이라고 생각할 수 있다.  
+  
+이는 **생성자 대신에 팩토리 메소드를 만드는 것과 유사**하다.  
+**구현이 아니라 의도 (어떤 목적을 위한 것인지) 에 따라 코드를 작성하는 것인지 의미를 전달할 수 있다**.    
 모든 에러 보고는 알려진 몇 군데에서 처리되므로 보고 방식에 일관성을 유지하고 재사용을 장려하기가 더 쉬워진다.    
   
 또한 애플리케이션 계층으로 패키지 (디렉토리)를 바라보는 것이 아닌 애플리케이션 도메인의 관점에서 보고를 구조화하고 제어하는 데 도움이 될 수 있다.  
